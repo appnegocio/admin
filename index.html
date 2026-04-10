@@ -22,21 +22,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--g100);color:var(--g900);m
 .lb{width:100%;height:48px;background:var(--v);color:white;border:none;border-radius:var(--rad);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:.5rem}
 .lb:hover{background:var(--vd)}
 .lerr{background:var(--rl);border:1.5px solid #ffc9c9;border-radius:8px;padding:10px 14px;font-size:13px;color:var(--r);margin-top:1rem;display:none}
-#p-cel{display:none;min-height:100vh;background:var(--g100)}
+#p-cel{display:none;height:100dvh;height:100vh;background:var(--g100);display:flex;flex-direction:column;overflow:hidden}
 .ch{background:var(--v);padding:1rem 1rem 1.25rem;display:flex;justify-content:space-between;align-items:flex-start}
 .ch-neg{font-size:17px;font-weight:600;color:white}
 .ch-fecha{font-size:12px;color:rgba(255,255,255,.75);margin-top:2px}
 .ch-out{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
-.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:1rem;padding-bottom:130px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:1rem;overflow-y:auto;flex:1}
 .cmod{background:white;border-radius:14px;padding:1.1rem 1rem;display:flex;flex-direction:column;gap:10px;cursor:pointer;box-shadow:var(--sh)}
 .cmod:active{transform:scale(.96)}
 .cmod-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .cmod-icon svg{width:22px;height:22px}
 .cmod-name{font-size:13px;font-weight:600;color:var(--g900);line-height:1.3}
-.cbot{background:white;border-top:1px solid var(--g200);display:flex;position:fixed;bottom:0;left:0;right:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.cbot{background:white;border-top:1px solid var(--g200);display:flex;flex-shrink:0}
 .ctab{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:500;color:var(--g500);cursor:pointer;border-top:2px solid transparent}
 .ctab.active{color:var(--v);border-top-color:var(--v)}
-#btn-sync{position:fixed;bottom:58px;left:0;right:0;z-index:19;height:44px;background:var(--v);border:none;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+#btn-sync{height:44px;background:var(--v);border:none;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;width:100%}
 .ctab svg{width:20px;height:20px}
 .cscreen{display:none;flex-direction:column;min-height:100vh}
 .cscreen.vis{display:flex}
@@ -618,7 +618,7 @@ function logout(){
 }
 
 function inicCel(){
-  document.getElementById('p-cel').style.display='block';
+  document.getElementById('p-cel').style.display='flex';
   document.getElementById('cel-neg').textContent=cli.nombre_negocio;
   var ds=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   document.getElementById('cel-fecha').textContent=ds[hoy.getDay()]+' '+hoy.getDate()+' de '+MS[hoy.getMonth()];
