@@ -37,7 +37,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--g100);color:var(--g900);m
 .ctab{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:500;color:var(--g500);cursor:pointer;border-top:2px solid transparent}
 .ctab.active{color:var(--v);border-top-color:var(--v)}
 #btn-sync{height:44px;background:var(--v);border:none;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;width:100%}
-@media(min-width:768px){#p-cel{display:none!important}}
 .ctab svg{width:20px;height:20px}
 .cscreen{display:none;flex-direction:column;min-height:100vh}
 .cscreen.vis{display:flex}
@@ -619,7 +618,7 @@ function logout(){
 }
 
 function inicCel(){
-  document.getElementById('p-cel').style.display='block';
+  var elCel=document.getElementById('p-cel');elCel.style.cssText='display:block!important';
   document.getElementById('cel-neg').textContent=cli.nombre_negocio;
   var ds=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   document.getElementById('cel-fecha').textContent=ds[hoy.getDay()]+' '+hoy.getDate()+' de '+MS[hoy.getMonth()];
