@@ -874,8 +874,49 @@ function renderCajaHist(d){
     return '<div class="hitem"><div class="htop"><span class="hfecha">'+fd+'</span><span class="hval '+cls+'">'+fmt(dif)+'</span></div><div class="hrow"><span>Total Z</span><span>'+fmt(r.total_z)+'</span></div><div class="hrow"><span>Retiros</span><span>'+fmt(r.retiros)+'</span></div></div>';}).join('');
 }
 function renderFactHist(d){
-  return d.map(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
-    return '<div class="hitem"><div class="htop"><span class="hfecha">'+r.proveedor+'</span><span class="hval neg">'+fmt(r.total)+'</span></div><div class="hrow"><span>'+fd+' · N°'+(r.numero_factura||'—')+'</span><span><span class="bdg '+(r.pagado?'quincena':'adelanto')+'">'+(r.pagado?'✅ Pagado':'⏳ Pendiente')+'</span></span></div></div>';}).join('');
+  // Agrupar por mes
+  var meses={};
+  d.forEach(function(r){
+    var key=r.fecha?r.fecha.substring(0,7):'';
+    if(!meses[key])meses[key]=[];
+    meses[key].push(r);
+  });
+  var keys=Object.keys(meses).sort().reverse();
+  var mesActual=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+  var h='';
+  keys.forEach(function(k){
+    var parts=k.split('-');
+    var label=MS[parseInt(parts[1])-1]+' '+parts[0];
+    var isActual=k===mesActual;
+    var total=meses[k].reduce(function(s,r){return s+(r.total||0);},0);
+    var mid='fhist-'+k.replace('-','');
+    h+='<div style="border:1px solid '+(isActual?'var(--v)':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
+    h+='<div data-target="'+mid+'" class="bal-toggle" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isActual?'var(--vl)':'white')+';cursor:pointer">';
+    h+='<span style="font-size:14px;font-weight:600;color:'+(isActual?'var(--vd)':'var(--g900)')+'">'+label+'</span>';
+    h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--r);font-weight:600">'+fmt(total)+'</span><span style="color:var(--g500)">'+(isActual?'▲':'▼')+'</span></div></div>';
+    h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
+    meses[k].forEach(function(r){
+      var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
+      h+='<div class="hitem" style="border-radius:0;border-left:none;border-right:none;border-top:none">';
+      h+='<div class="htop"><span class="hfecha">'+r.proveedor+'</span><span class="hval neg">'+fmt(r.total)+'</span></div>';
+      h+='<div class="hrow"><span>'+fd+' · N°'+(r.numero_factura||'—')+'</span><span><span class="bdg '+(r.pagado?'quincena':'adelanto')+'">'+(r.pagado?'✅ Pagado':'⏳ Pendiente')+'</span></span></div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  // Agregar eventos después de renderizar
+  setTimeout(function(){
+    document.querySelectorAll('#ft-hc .bal-toggle').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var tid=this.dataset.target;
+        var div=document.getElementById(tid);
+        var arrow=this.querySelector('span:last-child');
+        if(div.style.display==='none'){div.style.display='block';arrow.textContent='▲';}
+        else{div.style.display='none';arrow.textContent='▼';}
+      });
+    });
+  },100);
+  return h;
 }
 function renderPersHist(d){
   var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Otro:'otro'};
@@ -1091,14 +1132,7 @@ function dpage(n,el){
     d.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short',year:'numeric'});var dif=r.diferencia||0,rb=(r.redcompra||0)+(r.creditos_redbanc||0)+(r.otro_redbanc||0);h+='<tr style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td>'+fmt(r.total_z)+'</td><td>'+fmt(rb)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:600">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editCaja('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarCaja(\''+r.id+'\')">🗑️</button></td></tr>';});
     return h+'<tr style="background:var(--g50);font-weight:600;border-top:2px solid var(--g200)"><td>Total</td><td>'+fmt(tZ)+'</td><td></td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr></table></div>';
   });
-  if(n==='facturas')loadTD('facturas','df',function(d){
-    var tN=0,tI=0,tIM=0,tT=0;
-    d.forEach(function(r){tN+=(r.monto_neto||0);tI+=(r.iva||0);tIM+=(r.impuesto||0);tT+=(r.total||0);});
-    var h='<div class="rcards"><div class="rcard"><div class="rcard-l">Total compras</div><div class="rcard-v" style="color:var(--r)">'+fmt(tT)+'</div></div><div class="rcard"><div class="rcard-l">IVA total</div><div class="rcard-v" style="color:var(--a)">'+fmt(tI)+'</div></div><div class="rcard"><div class="rcard-l">Impuesto</div><div class="rcard-v" style="color:var(--az)">'+fmt(tIM)+'</div></div></div>';
-    h+='<div class="tc"><div class="tc-h"><span class="tc-t">Facturas</span><span class="tc-c">'+d.length+'</span></div><table><tr><th>N° Factura</th><th>Proveedor</th><th>Neto</th><th>IVA</th><th>Impuesto</th><th>Total</th><th>Estado</th><th></th></tr>';
-    d.forEach(function(r){h+='<tr style="'+(r.pagado?'':'background:#fffbf0;')+'"><td style="font-weight:500">'+(r.numero_factura||'—')+'</td><td>'+r.proveedor+'</td><td>'+fmt(r.monto_neto)+'</td><td>'+fmt(r.iva)+'</td><td>'+(r.impuesto?fmt(r.impuesto):'—')+'</td><td style="font-weight:600">'+fmt(r.total)+'</td><td><button onclick="togglePagado(\''+r.id+'\','+r.pagado+')" style="border:none;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:'+(r.pagado?'var(--vl)':'var(--al)')+';color:'+(r.pagado?'var(--vd)':'var(--a)')+'">'+(r.pagado?'✅ Pagado':'⏳ Pendiente')+'</button></td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editFact('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarFact(\''+r.id+'\')">🗑️</button></td></tr>';});
-    return h+'<tr style="background:var(--g50);font-weight:600;border-top:2px solid var(--g200)"><td colspan="2">Total</td><td>'+fmt(tN)+'</td><td>'+fmt(tI)+'</td><td>'+fmt(tIM)+'</td><td>'+fmt(tT)+'</td><td></td><td></td></tr></table></div>';
-  });
+  if(n==='facturas')loadFacturasDash();
   if(n==='gastosfijos'){
     var elGF=document.getElementById('dg');elGF.innerHTML='<div class="ld">Cargando...</div>';
     fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.desc,mes.desc&limit=200',{headers:H()})
@@ -1230,6 +1264,117 @@ async function toggleCliente(id,activo,nombre){
   }catch(ex){alert('Error: '+ex.message);}
 }
 
+
+async function loadFacturasDash(){
+  var el=document.getElementById('df');el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=500',{headers:H()});
+    var d=await r.json();
+    if(!d||!d.length){el.innerHTML='<div class="empty">Sin facturas registradas.</div>';return;}
+
+    // Agrupar por mes
+    var meses={};
+    d.forEach(function(r){
+      var key=r.fecha?r.fecha.substring(0,7):'';
+      if(!meses[key])meses[key]=[];
+      meses[key].push(r);
+    });
+    var keys=Object.keys(meses).sort().reverse();
+    var mesActual=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+
+    // Totales generales
+    var tT=d.reduce(function(s,r){return s+(r.total||0);},0);
+    var tI=d.reduce(function(s,r){return s+(r.iva||0);},0);
+    var tIM=d.reduce(function(s,r){return s+(r.impuesto||0);},0);
+    var tN=d.reduce(function(s,r){return s+(r.monto_neto||0);},0);
+
+    // KPIs
+    var h='<div class="rcards" style="margin-bottom:1.25rem">';
+    h+='<div class="rcard"><div class="rcard-l">Total compras</div><div class="rcard-v" style="color:var(--r)">'+fmt(tT)+'</div></div>';
+    h+='<div class="rcard"><div class="rcard-l">IVA total</div><div class="rcard-v" style="color:var(--a)">'+fmt(tI)+'</div></div>';
+    h+='<div class="rcard"><div class="rcard-l">Facturas</div><div class="rcard-v" style="color:var(--az)">'+d.length+'</div></div>';
+    h+='</div>';
+
+    // Gráfico por mes
+    var maxM=0;
+    keys.forEach(function(k){var t=meses[k].reduce(function(s,r){return s+(r.total||0);},0);if(t>maxM)maxM=t;});
+    if(!maxM)maxM=1;
+
+    h+='<div class="cc2" style="margin-bottom:1.25rem">';
+    h+='<div class="cc2-t">Compras por mes — click en barra para ver facturas</div>';
+    h+='<div style="display:flex;align-items:flex-end;gap:6px;height:180px;padding-bottom:24px;position:relative">';
+    keys.slice(0,12).reverse().forEach(function(k){
+      var total=meses[k].reduce(function(s,r){return s+(r.total||0);},0);
+      var parts=k.split('-');
+      var label=MC[parseInt(parts[1])-1];
+      var isActual=k===mesActual;
+      var pct=Math.min(Math.round((total/maxM)*150),150)||0;
+      h+='<div class="fact-bar-col" data-mes="'+k+'" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;cursor:pointer" onclick="mostrarFactMes(this.dataset.mes)">';
+      h+='<div style="font-size:9px;color:var(--g500)">'+fmtK(total)+'</div>';
+      h+='<div style="width:100%;height:'+pct+'px;background:'+(isActual?'var(--r)':'#ffc9c9')+';border-radius:4px 4px 0 0;transition:opacity .2s" onmouseover="this.style.opacity=.7" onmouseout="this.style.opacity=1"></div>';
+      h+='<div style="font-size:10px;font-weight:'+(isActual?'700':'500')+';color:'+(isActual?'var(--r)':'var(--g500)')+'">'+label+'</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+
+    // Contenedor del listado por mes
+    h+='<div id="df-mes-detail"></div>';
+
+    // Desplegables por mes
+    h+='<div id="df-meses">';
+    keys.forEach(function(k){
+      var parts=k.split('-');
+      var label=MS[parseInt(parts[1])-1]+' '+parts[0];
+      var isActual=k===mesActual;
+      var totalMes=meses[k].reduce(function(s,r){return s+(r.total||0);},0);
+      var mid='dfm-'+k.replace('-','');
+      h+='<div style="border:1px solid '+(isActual?'var(--r)':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
+      h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'#fff0f0':'var(--g50)')+';cursor:pointer" onclick="toggleMesFact(this.dataset.mid,this)">';
+      h+='<span style="font-size:13px;font-weight:600;color:'+(isActual?'var(--r)':'var(--g900)')+'">'+label+'</span>';
+      h+='<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--r);font-weight:600">'+fmt(totalMes)+'</span><span style="color:var(--g500);font-size:11px">'+(meses[k].length+' facturas')+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
+      h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
+      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">N°</th><th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Proveedor</th><th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total</th><th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Estado</th><th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
+      meses[k].forEach(function(r){
+        h+='<tr style="border-bottom:1px solid var(--g50)'+(r.pagado?'':'background:#fffbf0;')+'">';
+        h+='<td style="padding:8px 1.25rem;font-size:13px;color:var(--g500)">'+(r.numero_factura||'—')+'</td>';
+        h+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:500">'+r.proveedor+'</td>';
+        h+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:600;text-align:right;color:var(--r)">'+fmt(r.total)+'</td>';
+        h+='<td style="padding:8px 1.25rem"><button data-fid="'+r.id+'" data-pag="'+r.pagado+'" onclick="togglePagado(this.dataset.fid,this.dataset.pag===\'true\')" style="border:none;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:'+(r.pagado?'var(--vl)':'var(--al)')+';color:'+(r.pagado?'var(--vd)':'var(--a)')+'">'+(r.pagado?'✅ Pagado':'⏳ Pendiente')+'</button></td>';
+        h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editFact(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarFact(this.dataset.id)">🗑️</button></td>';
+        h+='</tr>';
+      });
+      h+='</table></div></div>';
+    });
+    h+='</div>';
+
+    el.innerHTML=h;
+    // Marcar barra activa
+    setTimeout(function(){mostrarFactMes(mesActual);},100);
+  }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
+}
+
+function toggleMesFact(mid,header){
+  var div=document.getElementById(mid);
+  var arr=document.getElementById('arr-'+mid);
+  if(div.style.display==='none'){div.style.display='block';arr.textContent='▲';}
+  else{div.style.display='none';arr.textContent='▼';}
+}
+
+function mostrarFactMes(mes){
+  // Resaltar barra seleccionada
+  document.querySelectorAll('.fact-bar-col').forEach(function(col){
+    var bar=col.querySelector('div[style*="height"]');
+    if(bar)bar.style.opacity=col.dataset.mes===mes?'1':'0.4';
+  });
+  // Abrir desplegable del mes y cerrar otros
+  var mid='dfm-'+mes.replace('-','');
+  var div=document.getElementById(mid);
+  if(div){
+    div.style.display='block';
+    document.getElementById('arr-'+mid).textContent='▲';
+    div.closest('div').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
 
 async function loadEmpleados(){
   var el=document.getElementById('dem');el.innerHTML='<div class="ld">Cargando...</div>';
