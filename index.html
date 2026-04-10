@@ -607,7 +607,7 @@ async function entrar(){
     cli=d[0];document.getElementById('lerr').style.display='none';
     document.getElementById('p-login').style.display='none';
     if(cli.rol==='admin')inicAdmin();
-    else if(isMob)inicCel();else inicDash();
+    else if(window.innerWidth<768)inicCel();else inicDash();
   }catch(ex){document.getElementById('lerr').style.display='block';}
 }
 
