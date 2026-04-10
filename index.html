@@ -892,7 +892,7 @@ async function loadBalCel(){
           tieneDatos=true;
           var mid='bal-'+a+'-'+m;
           mesesHtml+='<div style="border:1px solid var(--g200);border-radius:10px;margin-bottom:6px;overflow:hidden">';
-          mesesHtml+='<div onclick="toggleBal(''+mid+'')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:white;cursor:pointer">';
+          mesesHtml+='<div data-bid="'+mid+'" onclick="toggleBal(this.dataset.bid)" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:white;cursor:pointer">';
           mesesHtml+='<span style="font-size:14px;font-weight:600;color:var(--g900)">'+MS[m-1]+'</span>';
           mesesHtml+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:600;color:'+(res>=0?'var(--vd)':'var(--r)')+'">'+fmt(res)+'</span><span id="arr-'+mid+'" style="color:var(--g500)">▼</span></div></div>';
           mesesHtml+='<div id="'+mid+'" style="display:none;padding:10px 12px;background:var(--g50);border-top:1px solid var(--g200)">';
@@ -909,7 +909,7 @@ async function loadBalCel(){
       var tR=tV-tC-tS-tG,tM=tV>0?Math.round((tR/tV)*100):0;
       var anoId='bal-ano-'+a;
       h+='<div style="border:1.5px solid '+(a===aAct?'var(--v)':'var(--g200)')+';border-radius:12px;margin-bottom:12px;overflow:hidden">';
-      h+='<div onclick="toggleBalAno(''+anoId+'')" style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:'+(a===aAct?'var(--vl)':'white')+';cursor:pointer">';
+      h+='<div data-aid="'+anoId+'" onclick="toggleBalAno(this.dataset.aid)" style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:'+(a===aAct?'var(--vl)':'white')+';cursor:pointer">';
       h+='<span style="font-size:16px;font-weight:700;color:'+(a===aAct?'var(--vd)':'var(--g900)')+'">'+a+(a===aAct?' (actual)':'')+'</span>';
       h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:600;color:'+(tR>=0?'var(--vd)':'var(--r)')+'">'+fmt(tR)+'</span><span id="arr-'+anoId+'" style="color:var(--g500)">'+(a===aAct?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+anoId+'" style="display:'+(a===aAct?'block':'none')+';padding:10px">';
