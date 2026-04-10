@@ -1024,9 +1024,9 @@ async function loadB(){
 
     data.forEach(function(r){
       var ea=r.m===hoy.getMonth()+1;
-      var pctV=Math.round((r.v/maxV)*160)||0;
-      var pctC=Math.round((r.eg/maxV)*160)||0;
-      var pctU=r.u>0?Math.round((r.u/maxV)*160):0;
+      var pctV=Math.min(Math.round((r.v/maxV)*160)||0,160);
+      var pctC=Math.min(Math.round((r.eg/maxV)*160)||0,160);
+      var pctU=r.u>0?Math.min(Math.round((r.u/maxV)*160),160):0;
       h+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end">';
       h+='<div style="font-size:9px;color:var(--g500);margin-bottom:2px">'+(r.td?fmtK(r.v):'')+'</div>';
       h+='<div style="width:100%;display:flex;gap:1px;align-items:flex-end;height:160px">';
