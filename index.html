@@ -619,6 +619,39 @@ function logout(){
   document.getElementById('le').value='';document.getElementById('lp').value='';
 }
 
+function inicDash(){
+  document.getElementById('p-dash').style.display='block';
+  document.getElementById('sb-neg').textContent=cli.nombre_negocio;
+  document.getElementById('tbn').textContent=cli.nombre_negocio;
+  var ini=cli.nombre_negocio.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+  document.getElementById('tbav').textContent=ini;
+  var h='';for(var i=0;i<12;i++)h+='<button class="pill'+(i+1===mesSel?' active':'')+'\" onclick="selMes('+(i+1)+',this)">'+MC[i]+'</button>';
+  document.getElementById('pills').innerHTML=h;
+  loadR();
+}
+function selMes(m,el){mesSel=m;document.querySelectorAll('.pill').forEach(function(b){b.classList.remove('active');});el.classList.add('active');loadR();}
+
+async function loadR(){
+  var el=document.getElementById('rc');el.innerHTML='<div class="ld">Calculando...</div>';
+  var a=hoy.getFullYear(),d=a+'-'+String(mesSel).padStart(2,'0')+'-01',mf=mesSel===12?1:mesSel+1,af=mesSel===12?a+1:a,h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var [rC,rF,rP,rG]=await Promise.all([fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+mesSel+'&anio=eq.'+a,{headers:H()})]);
+    var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
+    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0),GF=g.length>0?(g[0].total||0):0,G=P+GF,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
+    var diasMes=new Date(a,mesSel,0).getDate(),sinReg=diasMes-c.length;
+    var h='<div class="kgrid"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Personal + fijos</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
+    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'"><div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div><div style="text-align:right"><div class="ub-ml">Margen</div><div class="ub-mv">'+M+'%</div></div></div>';
+    var nMal=c.filter(function(r){return(r.diferencia||0)!==0;}).length;
+    var al=nMal>0?'<div class="alerta err"><span>⚠️</span><span><strong>'+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</strong></span></div>':'<div class="alerta ok"><span>✓</span><span>Todos los cierres cuadran</span></div>';
+    if(c.length>0){
+      var tZ=0,tDif=0;c.forEach(function(r){tZ+=(r.total_z||0);tDif+=(r.diferencia||0);});
+      h+=al+'<div class="tc"><div class="tc-h"><span class="tc-t">Cierres de caja</span><span class="tc-c">'+c.length+'</span></div><table><tr><th>Fecha</th><th>Total Z</th><th>Retiros</th><th>Diferencia</th></tr>';
+      c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;h+='<tr style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td>'+fmt(r.total_z)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:600">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
+      h+='<tr style="background:var(--g50);font-weight:600;border-top:2px solid var(--g200)"><td>Total</td><td>'+fmt(tZ)+'</td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr></table></div>';
+    }
+    el.innerHTML=h;
+  }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
+}
 function inicCel(){
   document.getElementById('p-cel').style.display='block';
   document.getElementById('cel-neg').textContent=cli.nombre_negocio;
