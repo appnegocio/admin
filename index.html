@@ -1012,9 +1012,15 @@ async function loadBalCel(){
   }catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
 }
 
-async function loadB(){
+async function loadB(anioSel){
   var el=document.getElementById('bc');el.innerHTML='<div class="ld">Calculando...</div>';
-  var a=hoy.getFullYear();
+  var a=anioSel||hoy.getFullYear();
+  // Selector de años
+  var anioHtml='<div style="display:flex;gap:8px;margin-bottom:1.25rem">';
+  [hoy.getFullYear(),hoy.getFullYear()-1,hoy.getFullYear()-2].forEach(function(y){
+    anioHtml+='<button onclick="loadB('+y+')" style="padding:6px 16px;border-radius:20px;border:1.5px solid '+(y===a?'var(--v)':'var(--g200)')+';background:'+(y===a?'var(--v)':'white')+';color:'+(y===a?'white':'var(--g700)')+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">'+y+'</button>';
+  });
+  anioHtml+='</div>';
   try{
     var res=await Promise.all([
       fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
@@ -1081,7 +1087,7 @@ async function loadB(){
     h+='</div></div>';
 
     // Tabla detalle
-    h+='<div class="tc"><div class="tc-h"><span class="tc-t">Detalle por mes</span></div>';
+    h+=anioHtml+'<div class="tc"><div class="tc-h"><span class="tc-t">Detalle por mes</span></div>';
     h+='<table><tr><th>Mes</th><th style="text-align:right">Ventas</th><th style="text-align:right">Compras</th><th style="text-align:right">Sueldos</th><th style="text-align:right">Gastos fijos</th><th style="text-align:right">Resultado</th><th style="text-align:right">Margen</th></tr>';
     data.forEach(function(r){
       var ea=r.m===hoy.getMonth()+1;
