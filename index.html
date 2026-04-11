@@ -585,7 +585,7 @@ var SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh
 var MS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var MC=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 var hoy=new Date(),cli=null,mesSel=hoy.getMonth()+1,isMob=window.innerWidth<768;
-var empSel=null,tipoSel=null;
+var empSel=null,tipoSel=null,anioSel=hoy.getFullYear();
 var GFC=['pr','su','ar','lu','cr','iv','co','ot'];
 var GFKEYS=['previred','sueldos','arriendo','luz','credito','iva','contabilidad','otros'];
 
@@ -625,15 +625,19 @@ function inicDash(){
   document.getElementById('tbn').textContent=cli.nombre_negocio;
   var ini=cli.nombre_negocio.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
   document.getElementById('tbav').textContent=ini;
-  var h='';for(var i=0;i<12;i++)h+='<button class="pill'+(i+1===mesSel?' active':'')+'\" onclick="selMes('+(i+1)+',this)">'+MC[i]+'</button>';
-  document.getElementById('pills').innerHTML=h;
+  var ha='<div style="margin-bottom:4px"><div style="font-size:10px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Año</div><div style="display:flex;gap:6px;margin-bottom:12px">';
+  [hoy.getFullYear(),hoy.getFullYear()-1,hoy.getFullYear()-2].forEach(function(y){ha+='<button onclick="selAnio('+y+')" style="padding:5px 16px;border-radius:20px;border:1.5px solid '+(y===anioSel?'var(--v)':'var(--g200)')+';background:'+(y===anioSel?'var(--v)':'white')+';color:'+(y===anioSel?'white':'var(--g700)')+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">'+y+'</button>';});
+  ha+='</div><div style="font-size:10px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Mes</div></div>';
+  var hm='';for(var i=0;i<12;i++)hm+='<button class="pill'+(i+1===mesSel?' active':'')+'" onclick="selMes('+(i+1)+',this)">'+MC[i]+'</button>';
+  document.getElementById('pills').innerHTML=ha+hm;
   loadR();
 }
 function selMes(m,el){mesSel=m;document.querySelectorAll('.pill').forEach(function(b){b.classList.remove('active');});el.classList.add('active');loadR();}
+function selAnio(y){anioSel=y;inicDash();}
 
 async function loadR(){
   var el=document.getElementById('rc');el.innerHTML='<div class="ld">Calculando...</div>';
-  var a=hoy.getFullYear(),d=a+'-'+String(mesSel).padStart(2,'0')+'-01',mf=mesSel===12?1:mesSel+1,af=mesSel===12?a+1:a,h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  var a=anioSel,d=a+'-'+String(mesSel).padStart(2,'0')+'-01',mf=mesSel===12?1:mesSel+1,af=mesSel===12?a+1:a,h2=af+'-'+String(mf).padStart(2,'0')+'-01';
   try{
     var [rC,rF,rP,rG]=await Promise.all([fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+mesSel+'&anio=eq.'+a,{headers:H()})]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
