@@ -1507,7 +1507,7 @@ async function loadEmpleados(){
       h+='<tr><td style="font-weight:500">'+e.nombre+'</td><td>'+fmt(e.sueldo_mensual||0)+'</td>';
       h+='<td><span class="bdg quincena">Activo</span></td>';
       h+='<td style="white-space:nowrap"><button class="btn-edit" onclick=\'abrirEditEmp('+JSON.stringify(e)+')\'>✏️</button>';
-      h+='<button class="btn-del" onclick="desactivarEmp(\''+e.id+'\',\''+e.nombre+'\')">🚫</button></td></tr>';
+      h+='<button class="btn-del" data-id="'+e.id+'" data-nom="'+e.nombre+'" onclick="eliminarEmp(this.dataset.id,this.dataset.nom)">🗑️</button></td></tr>';
     });
     h+='</table></div>';
     if(inactivos.length>0){
@@ -1567,10 +1567,10 @@ async function guardarEmp(){
   btn.disabled=false;btn.textContent=id?'Guardar cambios':'Agregar';
 }
 
-async function desactivarEmp(id,nombre){
-  if(!confirm('¿Desactivar a '+nombre+'? Ya no aparecerá en el celular para registrar pagos.'))return;
+async function eliminarEmp(id,nombre){
+  if(!confirm('¿Eliminar a '+nombre+'? Esta acción no se puede deshacer.'))return;
   try{
-    var r=await fetch(SU+'/rest/v1/empleados?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({activo:false})});
+    var r=await fetch(SU+'/rest/v1/empleados?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'DELETE',headers:H()});
     if(r.ok){loadEmpleados();cargarEmps();}
     else throw new Error(await r.text());
   }catch(ex){alert('Error: '+ex.message);}
