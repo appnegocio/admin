@@ -1180,17 +1180,75 @@ function dpage(n,el){
   if(n==='personal'){loadTD('pagos_personal','dpe',renderPersonalTabla);}
   if(n==='cierres')loadCierresDash();
   if(n==='facturas')loadFacturasDash();
-  if(n==='gastosfijos'){
-    var elGF=document.getElementById('dg');elGF.innerHTML='<div class="ld">Cargando...</div>';
-    fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.desc,mes.desc&limit=200',{headers:H()})
-    .then(function(r){return r.json();}).then(function(d){
-      if(!d||!d.length){elGF.innerHTML='<div class="empty">Sin gastos registrados.</div>';return;}
-      var h='<div class="tc"><div class="tc-h"><span class="tc-t">Gastos fijos por mes</span><span class="tc-c">'+d.length+' meses</span></div><table><tr><th>Mes</th><th>Previred</th><th>Sueldos</th><th>Arriendo</th><th>Luz</th><th>IVA</th><th>Contabilidad</th><th>Total</th><th></th></tr>';
-      d.forEach(function(r){h+='<tr><td style="font-weight:500">'+MS[r.mes-1]+' '+r.anio+'</td><td>'+fmt(r.previred)+'</td><td>'+fmt(r.sueldos)+'</td><td>'+fmt(r.arriendo)+'</td><td>'+fmt(r.luz)+'</td><td>'+fmt(r.iva)+'</td><td>'+fmt(r.contabilidad)+'</td><td style="font-weight:600">'+fmt(r.total)+'</td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editGF('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarGF(\''+r.id+'\')">🗑️</button></td></tr>';});
-      elGF.innerHTML=h+'</table></div>';
-    }).catch(function(){elGF.innerHTML='<div class="empty">Error al cargar.</div>';});
-  }
+  if(n==='gastosfijos')loadGastosFijosDash();
 }
+async function loadGastosFijosDash(){
+  var el=document.getElementById('dg');el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.asc,mes.asc&limit=200',{headers:H()});
+    var d=await r.json();
+    if(!d||!d.length){el.innerHTML='<div class="empty">Sin gastos registrados.</div>';return;}
+
+    var cats=[
+      {key:'previred',label:'Previred',color:'#1971c2'},
+      {key:'sueldos',label:'Sueldos',color:'#e67700'},
+      {key:'arriendo',label:'Arriendo',color:'#0d9e6e'},
+      {key:'luz',label:'Luz',color:'#e03131'},
+      {key:'iva',label:'IVA',color:'#7048e8'},
+      {key:'contabilidad',label:'Contabilidad',color:'#0ca678'}
+    ];
+
+    var maxVal=0;
+    d.forEach(function(row){cats.forEach(function(c){if((row[c.key]||0)>maxVal)maxVal=row[c.key]||0;});});
+    if(!maxVal)maxVal=1;
+
+    var W=700,SH=220,PAD=55,RPAD=10,TPAD=15,BPAD=30;
+    var gW=W-PAD-RPAD,gH=SH-TPAD-BPAD;
+    var groupW=Math.floor(gW/d.length);
+    var barW=Math.max(Math.floor((groupW-4)/cats.length)-1,2);
+
+    var svg='<div class="cc2" style="margin-bottom:1.25rem"><div class="cc2-t">Gastos fijos por mes</div>';
+    svg+='<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;font-size:12px">';
+    cats.forEach(function(c){svg+='<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:'+c.color+';display:inline-block"></span>'+c.label+'</span>';});
+    svg+='</div><svg viewBox="0 0 '+W+' '+SH+'" style="width:100%;height:auto">';
+
+    // Grid
+    for(var gi=0;gi<=4;gi++){
+      var gy=TPAD+gH*(1-gi/4);
+      svg+='<line x1="'+PAD+'" y1="'+gy+'" x2="'+(W-RPAD)+'" y2="'+gy+'" stroke="#e9ecef" stroke-width="1"/>';
+      svg+='<text x="'+(PAD-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="9" fill="#adb5bd">'+fmtK(maxVal*gi/4)+'</text>';
+    }
+
+    d.forEach(function(row,i){
+      var gx=PAD+i*groupW+2;
+      cats.forEach(function(c,ci){
+        var val=row[c.key]||0;
+        var bh=Math.round((val/maxVal)*gH);
+        var bx=gx+ci*(barW+1);
+        var by=TPAD+gH-bh;
+        if(bh>0) svg+='<rect x="'+bx+'" y="'+by+'" width="'+barW+'" height="'+bh+'" fill="'+c.color+'" rx="1" opacity="0.85"/>';
+      });
+      var cx=gx+(cats.length*(barW+1))/2;
+      svg+='<text x="'+cx+'" y="'+(SH-5)+'" text-anchor="middle" font-size="9" fill="#495057">'+MC[row.mes-1]+'</text>';
+    });
+
+    svg+='</svg></div>';
+
+    // Tabla
+    var h=svg+'<div class="tc"><div class="tc-h"><span class="tc-t">Gastos fijos por mes</span><span class="tc-c">'+d.slice().reverse().length+' meses</span></div><table><tr><th>Mes</th><th>Previred</th><th>Sueldos</th><th>Arriendo</th><th>Luz</th><th>IVA</th><th>Contabilidad</th><th>Total</th><th></th></tr>';
+    d.slice().reverse().forEach(function(r){
+      h+='<tr><td style="font-weight:500">'+MS[r.mes-1]+' '+r.anio+'</td>';
+      h+='<td>'+fmt(r.previred)+'</td><td>'+fmt(r.sueldos)+'</td><td>'+fmt(r.arriendo)+'</td>';
+      h+='<td>'+fmt(r.luz)+'</td><td>'+fmt(r.iva)+'</td><td>'+fmt(r.contabilidad)+'</td>';
+      h+='<td style="font-weight:600">'+fmt(r.total)+'</td>';
+      h+='<td style="white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editGF(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarGF(this.dataset.id)">🗑️</button></td>';
+      h+='</tr>';
+    });
+    h+='</table></div>';
+    el.innerHTML=h;
+  }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
+}
+
 function swPersonalTab(tab){
   var isPagos=tab==='pagos';
   document.getElementById('dp-personal-pagos').style.display=isPagos?'':'none';
