@@ -1109,7 +1109,7 @@ async function loadB(anioSel){
     h+='<div class="cc2-t">Ventas vs Compras vs Resultado — '+a+'</div>';
     h+='<div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px">';
     h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:var(--v);display:inline-block"></span>Ventas</span>';
-    h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:#ffc9c9;display:inline-block"></span>Compras</span>';
+    h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:var(--r);display:inline-block"></span>Compras</span>';
     h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:var(--az);display:inline-block"></span>Resultado</span>';
     h+='</div>';
     h+='<div style="display:flex;align-items:flex-end;gap:4px;height:200px;padding-bottom:24px;position:relative">';
@@ -1126,7 +1126,7 @@ async function loadB(anioSel){
       h+='<div style="font-size:9px;color:var(--g500);margin-bottom:2px">'+(r.td?fmtK(r.v):'')+'</div>';
       h+='<div style="width:100%;display:flex;gap:1px;align-items:flex-end;height:160px">';
       h+='<div style="flex:1;height:'+pctV+'px;background:'+(ea?'var(--v)':'var(--vm)')+';border-radius:3px 3px 0 0"></div>';
-      h+='<div style="flex:1;height:'+pctC+'px;background:'+(ea?'#ffc9c9':'#ffe3e3')+';border-radius:3px 3px 0 0"></div>';
+      h+='<div style="flex:1;height:'+pctC+'px;background:'+(ea?'var(--r)':'#e57373')+';border-radius:3px 3px 0 0"></div>';
       h+='<div style="flex:1;height:'+pctU+'px;background:'+(ea?'var(--az)':'var(--azl)')+';border-radius:3px 3px 0 0"></div>';
       h+='</div>';
       h+='<div style="font-size:10px;font-weight:'+(ea?'700':'500')+';color:'+(ea?'var(--vd)':'var(--g500)')+'">'+MC[r.m-1]+'</div>';
