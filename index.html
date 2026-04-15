@@ -1370,78 +1370,86 @@ async function toggleCliente(id,activo,nombre){
 var cierresDashData=[];
 var cierresFiltro='mes';
 
-function renderCierresDashInto(d,el){
-  if(!d||!d.length){el.innerHTML='<div class="empty">Sin cierres para el período seleccionado.</div>';return;}
+// Devuelve lunes de la semana que contiene 'fecha' (Date)
+function luneDe(fecha){
+  var d=new Date(fecha);
+  var dow=d.getDay()===0?6:d.getDay()-1;
+  d.setDate(d.getDate()-dow);
+  return d.toISOString().substring(0,10);
+}
 
-  var nMalTotal=d.filter(function(r){return (r.diferencia||0)!==0;}).length;
-  var h=nMalTotal>0?'<div class="alerta err"><span>⚠️</span><span><strong>'+nMalTotal+' cierre'+(nMalTotal>1?'s':'')+' con descuadre</strong></span></div>':'<div class="alerta ok"><span>✓</span><span>Todos los cierres cuadran</span></div>';
+function filasTabla(rows){
+  var t='<table style="width:100%;border-collapse:collapse"><tr>';
+  t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th>';
+  t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total Z</th>';
+  t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th>';
+  t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th>';
+  t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
+  rows.forEach(function(r){
+    var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    var dif=r.diferencia||0;
+    t+='<tr style="border-bottom:1px solid var(--g50);'+(dif!==0?'background:#fff8f8;':'')+'">';
+    t+='<td style="padding:8px 1.25rem;font-size:13px">'+fd+'</td>';
+    t+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.total_z)+'</td>';
+    t+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.retiros)+'</td>';
+    t+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:600;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td>';
+    t+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button></td>';
+    t+='</tr>';
+  });
+  return t+'</table>';
+}
 
-  function filas(rows){
-    var t='<table style="width:100%;border-collapse:collapse"><tr>';
-    t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th>';
-    t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total Z</th>';
-    t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th>';
-    t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th>';
-    t+='<th style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
-    rows.forEach(function(r){
-      var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
-      var dif=r.diferencia||0;
-      t+='<tr style="border-bottom:1px solid var(--g50);'+(dif!==0?'background:#fff8f8;':'')+'">';
-      t+='<td style="padding:8px 1.25rem;font-size:13px">'+fd+'</td>';
-      t+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.total_z)+'</td>';
-      t+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.retiros)+'</td>';
-      t+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:600;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td>';
-      t+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button></td>';
-      t+='</tr>';
-    });
-    return t+'</table>';
-  }
+function aplicarFiltroCierres(){
+  var body=document.getElementById('dc-body');
+  if(!body)return;
+  var d=cierresDashData;
 
   if(cierresFiltro==='dia'){
-    var hace30=new Date(hoy);hace30.setDate(hace30.getDate()-29);
-    var filtrados=d.filter(function(r){return r.fecha&&new Date(r.fecha+'T12:00:00')>=hace30;});
-    var tZ=filtrados.reduce(function(s,r){return s+(r.total_z||0);},0);
-    h+='<div style="border:1px solid var(--g200);border-radius:10px;margin-bottom:8px;overflow:hidden">';
-    h+='<div style="padding:10px 1.25rem;background:var(--g50);display:flex;justify-content:space-between;align-items:center">';
-    h+='<span style="font-size:13px;font-weight:600;color:var(--g700)">Últimos 30 días</span>';
-    h+='<div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--g500)">'+filtrados.length+' registros</span><span style="font-size:13px;font-weight:600;color:var(--vd)">'+fmt(tZ)+'</span></div></div>';
-    h+=filtrados.length?filas(filtrados):'<div class="empty" style="margin:0;border-radius:0">Sin registros en los últimos 30 días</div>';
-    h+='</div>';
+    var fechaSel=document.getElementById('cf-dia')&&document.getElementById('cf-dia').value;
+    var rows=fechaSel?d.filter(function(r){return r.fecha===fechaSel;}):[];
+    var h='';
+    if(!fechaSel){
+      body.innerHTML='<div class="empty">Selecciona una fecha para ver el cierre de ese día.</div>';return;
+    }
+    if(!rows.length){
+      var fdLabel=new Date(fechaSel+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      body.innerHTML='<div class="empty">No hay cierre registrado para el <strong>'+fdLabel+'</strong>.</div>';return;
+    }
+    var r=rows[0];
+    var dif=r.diferencia||0;
+    var fdLabel=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    h+=(dif===0?'<div class="alerta ok"><span>✓</span><span>Caja cuadra perfectamente</span></div>':'<div class="alerta err"><span>⚠️</span><span><strong>Cierre con descuadre</strong></span></div>');
+    h+='<div class="tc"><div class="tc-h"><span class="tc-t">'+fdLabel+'</span></div>';
+    h+='<table style="width:100%;border-collapse:collapse">';
+    var campos=[['Total Z',r.total_z,'var(--vd)'],['Caja inicial',r.caja_inicial,''],['Caja final',r.caja_final,''],['Redcompra',r.redcompra,''],['Créditos Redbanc',r.creditos_redbanc,''],['Otro Redbanc',r.otro_redbanc,''],['Transferencias',r.transferencias,''],['Nulos',r.nulos,''],['Retiros',r.retiros,'var(--a)'],['Gastos',r.gastos,'var(--r)']];
+    campos.forEach(function(c){if(c[1]){h+='<tr><td style="padding:8px 1.25rem;font-size:13px;color:var(--g700)">'+c[0]+'</td><td style="padding:8px 1.25rem;font-size:13px;text-align:right;font-weight:600;color:'+(c[2]||'var(--g900)')+'">'+fmt(c[1])+'</td></tr>';}});
+    h+='<tr style="background:'+(dif===0?'var(--vl)':'#fff8f8')+';border-top:2px solid var(--g200)"><td style="padding:10px 1.25rem;font-size:14px;font-weight:700">Diferencia</td><td style="padding:10px 1.25rem;font-size:16px;font-weight:700;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';
+    h+='</table></div>';
+    h+='<div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️ Editar</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️ Eliminar</button></div>';
+    body.innerHTML=h;
 
   } else if(cierresFiltro==='semana'){
-    var semanas={};
-    d.forEach(function(r){
-      if(!r.fecha)return;
-      var fecha=new Date(r.fecha+'T12:00:00');
-      var dow=fecha.getDay()===0?6:fecha.getDay()-1;
-      var lunes=new Date(fecha);lunes.setDate(fecha.getDate()-dow);
-      var key=lunes.toISOString().substring(0,10);
-      if(!semanas[key])semanas[key]=[];
-      semanas[key].push(r);
-    });
-    var sweeks=Object.keys(semanas).sort().reverse();
-    var semActual=(function(){var d2=new Date(hoy);var dow=d2.getDay()===0?6:d2.getDay()-1;d2.setDate(d2.getDate()-dow);return d2.toISOString().substring(0,10);}());
-    sweeks.forEach(function(k){
-      var lun=new Date(k+'T12:00:00');
-      var dom=new Date(lun);dom.setDate(dom.getDate()+6);
-      var fD=function(dt){return dt.toLocaleDateString('es-CL',{day:'numeric',month:'short'});};
-      var label='Sem. '+fD(lun)+' – '+fD(dom);
-      var isActual=k===semActual;
-      var rows=semanas[k];
-      var totalZ=rows.reduce(function(s,r){return s+(r.total_z||0);},0);
-      var nMal=rows.filter(function(r){return (r.diferencia||0)!==0;}).length;
-      var mid='cds-'+k.replace(/-/g,'');
-      h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'#ffc9c9':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
-      h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'var(--vl)':nMal>0?'var(--rl)':'var(--g50)')+';cursor:pointer" onclick="toggleMesCaja(this.dataset.mid,this)">';
-      h+='<div><span style="font-size:13px;font-weight:600;color:'+(isActual?'var(--vd)':nMal>0?'var(--r)':'var(--g900)')+'">'+label+'</span>';
-      if(nMal>0)h+=' <span style="font-size:11px;color:var(--r)">⚠️ '+nMal+' descuadre'+(nMal>1?'s':'')+'</span>';
-      h+='</div>';
-      h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+rows.length+' días</span><span style="font-size:13px;font-weight:600;color:var(--vd)">'+fmt(totalZ)+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
-      h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
-      h+=filas(rows)+'</div></div>';
-    });
+    var fechaSel=document.getElementById('cf-sem')&&document.getElementById('cf-sem').value;
+    if(!fechaSel){body.innerHTML='<div class="empty">Selecciona una fecha dentro de la semana que quieres ver.</div>';return;}
+    var lunesSel=luneDe(new Date(fechaSel+'T12:00:00'));
+    var domSel=new Date(lunesSel+'T12:00:00');domSel.setDate(domSel.getDate()+6);
+    var domStr=domSel.toISOString().substring(0,10);
+    var rows=d.filter(function(r){return r.fecha>=lunesSel&&r.fecha<=domStr;});
+    var fD=function(dt){return new Date(dt+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});};
+    var label='Semana '+fD(lunesSel)+' – '+fD(domStr);
+    var tZ=rows.reduce(function(s,r){return s+(r.total_z||0);},0);
+    var nMal=rows.filter(function(r){return (r.diferencia||0)!==0;}).length;
+    var h=(nMal>0?'<div class="alerta err"><span>⚠️</span><span><strong>'+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</strong></span></div>':'<div class="alerta ok"><span>✓</span><span>Todos los cierres de la semana cuadran</span></div>');
+    if(!rows.length){body.innerHTML='<div class="empty">No hay cierres registrados en la semana del '+fD(lunesSel)+' al '+fD(domStr)+'.</div>';return;}
+    h+='<div style="border:1px solid var(--v);border-radius:10px;overflow:hidden">';
+    h+='<div style="padding:10px 1.25rem;background:var(--vl);display:flex;justify-content:space-between;align-items:center">';
+    h+='<span style="font-size:13px;font-weight:600;color:var(--vd)">'+label+'</span>';
+    h+='<div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--g500)">'+rows.length+' día'+(rows.length>1?'s':'')+'</span><span style="font-size:13px;font-weight:600;color:var(--vd)">'+fmt(tZ)+'</span></div></div>';
+    h+=filasTabla(rows)+'</div>';
+    body.innerHTML=h;
 
   } else {
+    // Vista mes: agrupa todos los registros por mes, con desplegables
     var meses={};
     d.forEach(function(r){
       var key=r.fecha?r.fecha.substring(0,7):'';
@@ -1450,6 +1458,9 @@ function renderCierresDashInto(d,el){
     });
     var keys=Object.keys(meses).sort().reverse();
     var mesActual=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+    if(!keys.length){body.innerHTML='<div class="empty">Sin cierres registrados.</div>';return;}
+    var nMalTotal=d.filter(function(r){return (r.diferencia||0)!==0;}).length;
+    var h=nMalTotal>0?'<div class="alerta err"><span>⚠️</span><span><strong>'+nMalTotal+' cierre'+(nMalTotal>1?'s':'')+' con descuadre en total</strong></span></div>':'<div class="alerta ok"><span>✓</span><span>Todos los cierres cuadran</span></div>';
     keys.forEach(function(k){
       var parts=k.split('-');
       var label=MS[parseInt(parts[1])-1]+' '+parts[0];
@@ -1464,37 +1475,53 @@ function renderCierresDashInto(d,el){
       h+='</div>';
       h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' días</span><span style="font-size:13px;font-weight:600;color:var(--vd)">'+fmt(totalZ)+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
-      h+=filas(meses[k])+'</div></div>';
+      h+=filasTabla(meses[k])+'</div></div>';
     });
+    body.innerHTML=h;
   }
-  el.innerHTML=h;
 }
 
 function setCierresFiltro(f){
   cierresFiltro=f;
+  // Actualizar estilos botones
   document.querySelectorAll('.cfiltro-btn').forEach(function(b){
     var activo=b.dataset.f===f;
     b.style.background=activo?'var(--v)':'white';
     b.style.color=activo?'white':'var(--g700)';
     b.style.borderColor=activo?'var(--v)':'var(--g200)';
   });
-  renderCierresDashInto(cierresDashData,document.getElementById('dc-body'));
+  // Mostrar/ocultar pickers
+  var pickerDia=document.getElementById('cf-picker-dia');
+  var pickerSem=document.getElementById('cf-picker-sem');
+  if(pickerDia)pickerDia.style.display=f==='dia'?'flex':'none';
+  if(pickerSem)pickerSem.style.display=f==='semana'?'flex':'none';
+  aplicarFiltroCierres();
 }
 
 async function loadCierresDash(){
   var el=document.getElementById('dc');
   cierresFiltro='mes';
-  var btnBar='<div style="display:flex;gap:6px;margin-bottom:1rem">'
-    +'<button class="cfiltro-btn" data-f="dia" onclick="setCierresFiltro(\'dia\')" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--g200);background:white;color:var(--g700);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Día</button>'
-    +'<button class="cfiltro-btn" data-f="semana" onclick="setCierresFiltro(\'semana\')" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--g200);background:white;color:var(--g700);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Semana</button>'
-    +'<button class="cfiltro-btn" data-f="mes" onclick="setCierresFiltro(\'mes\')" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--v);background:var(--v);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Mes</button>'
-    +'</div>';
-  el.innerHTML=btnBar+'<div id="dc-body"><div class="ld">Cargando...</div></div>';
+  var hoy2=hoy.toISOString().substring(0,10);
+  var html=''
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap">'
+    +'<button class="cfiltro-btn" data-f="dia" onclick="setCierresFiltro(\'dia\')" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--g200);background:white;color:var(--g700);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📅 Día</button>'
+    +'<button class="cfiltro-btn" data-f="semana" onclick="setCierresFiltro(\'semana\')" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--g200);background:white;color:var(--g700);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📆 Semana</button>'
+    +'<button class="cfiltro-btn" data-f="mes" onclick="setCierresFiltro(\'mes\')" style="padding:5px 16px;border-radius:20px;border:1.5px solid var(--v);background:var(--v);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🗓️ Mes</button>'
+    +'<div id="cf-picker-dia" style="display:none;align-items:center;gap:6px">'
+    +'<input type="date" id="cf-dia" value="'+hoy2+'" max="'+hoy2+'" onchange="aplicarFiltroCierres()" style="height:34px;padding:0 10px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--g900);background:white">'
+    +'</div>'
+    +'<div id="cf-picker-sem" style="display:none;align-items:center;gap:6px">'
+    +'<span style="font-size:12px;color:var(--g500)">Fecha dentro de la semana:</span>'
+    +'<input type="date" id="cf-sem" value="'+hoy2+'" max="'+hoy2+'" onchange="aplicarFiltroCierres()" style="height:34px;padding:0 10px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--g900);background:white">'
+    +'</div>'
+    +'</div>'
+    +'<div id="dc-body"><div class="ld">Cargando...</div></div>';
+  el.innerHTML=html;
   try{
     var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=500',{headers:H()});
     var d=await r.json();
     cierresDashData=d||[];
-    renderCierresDashInto(cierresDashData,document.getElementById('dc-body'));
+    aplicarFiltroCierres();
   }catch(ex){document.getElementById('dc-body').innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
 
