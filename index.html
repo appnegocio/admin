@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AdminFácil</title>
+<title>AdminFácil v2</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -313,8 +313,8 @@ tr:hover td{background:#f8f9fa}
         <label class="fl">Total</label><input class="fi" type="number" id="ft-to" placeholder="0">
         <label class="fl">Estado de pago</label>
         <div style="display:flex;gap:10px;margin-top:4px">
-          <button type="button" id="ft-pg-no" onclick="selPago(false)" style="flex:1;height:48px;border:2px solid var(--g200);border-radius:10px;background:white;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">❌ No pagado</button>
-          <button type="button" id="ft-pg-si" onclick="selPago(true)" style="flex:1;height:48px;border:2px solid var(--g200);border-radius:10px;background:white;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">✅ Pagado</button>
+          <button type="button" id="ft-pg-no" onclick="selPago(false)" style="flex:1;height:42px;border:1px solid var(--g200);border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">❌ No pagado</button>
+          <button type="button" id="ft-pg-si" onclick="selPago(true)" style="flex:1;height:42px;border:1px solid var(--g200);border-radius:8px;background:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">✅ Pagado</button>
         </div>
         <input type="hidden" id="ft-pagado" value="false">
         <div class="fmsg ok" id="ft-ok">✓ Factura guardada correctamente</div>
@@ -957,7 +957,7 @@ function renderCajaHist(d){
     var totalZ=meses[k].reduce(function(s,r){return s+(r.total_z||0);},0);
     var nMal=meses[k].filter(function(r){return (r.diferencia||0)!==0;}).length;
     var mid='chist-'+k.replace('-','');
-    h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'var(--r)':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
+    h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'var(--r)':'var(--g200)')+';border-radius:8px;margin-bottom:8px;overflow:hidden">';
     h+='<div data-target="'+mid+'" class="bal-toggle" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isActual?'var(--vl)':nMal>0?'var(--rl)':'white')+';cursor:pointer">';
     h+='<div><span style="font-size:14px;font-weight:500;color:'+(isActual?'var(--vd)':nMal>0?'var(--r)':'var(--g900)')+'">'+label+(nMal>0?' ⚠️':'')+'</span>';
     if(nMal>0)h+='<br><span style="font-size:11px;color:var(--r)">'+nMal+' descuadre'+(nMal>1?'s':'')+'</span>';
@@ -1005,7 +1005,7 @@ function renderFactHist(d){
     var isActual=k===mesActual;
     var total=meses[k].reduce(function(s,r){return s+(r.total||0);},0);
     var mid='fhist-'+k.replace('-','');
-    h+='<div style="border:1px solid '+(isActual?'var(--v)':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
+    h+='<div style="border:1px solid '+(isActual?'var(--v)':'var(--g200)')+';border-radius:8px;margin-bottom:8px;overflow:hidden">';
     h+='<div data-target="'+mid+'" class="bal-toggle" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(isActual?'var(--vl)':'white')+';cursor:pointer">';
     h+='<span style="font-size:14px;font-weight:500;color:'+(isActual?'var(--vd)':'var(--g900)')+'">'+label+'</span>';
     h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--r);font-weight:500">'+fmt(total)+'</span><span style="color:var(--g500)">'+(isActual?'▲':'▼')+'</span></div></div>';
@@ -1080,7 +1080,7 @@ async function loadBalCel(){
           tieneDatos=true;
           var mid='bal'+a+'m'+m;
           var clr=result>=0?'var(--vd)':'var(--r)';
-          mesesHtml+='<div style="border:1px solid var(--g200);border-radius:10px;margin-bottom:6px;overflow:hidden">';
+          mesesHtml+='<div style="border:1px solid var(--g200);border-radius:8px;margin-bottom:6px;overflow:hidden">';
           mesesHtml+='<div class="bal-toggle" data-target="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:white;cursor:pointer">';
           mesesHtml+='<span style="font-size:14px;font-weight:500;color:var(--g900)">'+MS[m-1]+'</span>';
           mesesHtml+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:500;color:'+clr+'">'+fmt(result)+'</span><span style="color:var(--g500)">▼</span></div></div>';
@@ -1452,7 +1452,7 @@ async function loadCierresDash(){
       var totalZ=meses[k].reduce(function(s,r){return s+(r.total_z||0);},0);
       var nMal=meses[k].filter(function(r){return (r.diferencia||0)!==0;}).length;
       var mid='cdm-'+k.replace('-','');
-      h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'#ffc9c9':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
+      h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'#ffc9c9':'var(--g200)')+';border-radius:8px;margin-bottom:8px;overflow:hidden">';
       h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'var(--vl)':nMal>0?'var(--rl)':'var(--g50)')+';cursor:pointer" onclick="toggleMesCaja(this.dataset.mid,this)">';
       h+='<div><span style="font-size:13px;font-weight:500;color:'+(isActual?'var(--vd)':nMal>0?'var(--r)':'var(--g900)')+'">'+label+'</span>';
       if(nMal>0)h+=' <span style="font-size:11px;color:var(--r)">⚠️ '+nMal+' descuadre'+(nMal>1?'s':'')+'</span>';
@@ -1521,7 +1521,7 @@ async function loadCreditosCel(){
       h+='<div style="background:var(--g200);border-radius:4px;height:6px;margin-bottom:4px"><div style="background:var(--r);border-radius:4px;height:6px;width:'+pct+'%"></div></div>';
       h+='<div style="font-size:10px;color:var(--g500);margin-bottom:8px">'+pct+'% pagado</div>';
       if(pendiente){
-        h+='<button onclick="registrarPagoCel(&quot;'+c.id+'&quot;,&quot;'+c.nombre+'&quot;,'+c.cuota_mensual+')" style="width:100%;height:44px;background:var(--v);border:none;border-radius:10px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago de '+MS[mesA-1]+'</button>';
+        h+='<button onclick="registrarPagoCel(&quot;'+c.id+'&quot;,&quot;'+c.nombre+'&quot;,'+c.cuota_mensual+')" style="width:100%;height:42px;background:var(--v);border:none;border-radius:8px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago de '+MS[mesA-1]+'</button>';
       }
       h+='</div>';
     });
@@ -1834,7 +1834,7 @@ async function loadFacturasDash(){
       var isActual=k===mesActual;
       var totalMes=meses[k].reduce(function(s,r){return s+(r.total||0);},0);
       var mid='dfm-'+k.replace('-','');
-      h+='<div style="border:1px solid '+(isActual?'var(--r)':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
+      h+='<div style="border:1px solid '+(isActual?'var(--r)':'var(--g200)')+';border-radius:8px;margin-bottom:8px;overflow:hidden">';
       h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'#fff0f0':'var(--g50)')+';cursor:pointer" onclick="toggleMesFact(this.dataset.mid,this)">';
       h+='<span style="font-size:13px;font-weight:500;color:'+(isActual?'var(--r)':'var(--g900)')+'">'+label+'</span>';
       h+='<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--r);font-weight:500">'+fmt(totalMes)+'</span><span style="color:var(--g500);font-size:11px">'+(meses[k].length+' facturas')+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
