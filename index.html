@@ -1273,10 +1273,10 @@ async function loadGastosFijosDash(){
       cats.forEach(function(c){if((row[c.key]||0)>maxCat)maxCat=row[c.key]||0;});
     });
     if(!maxCat)maxCat=1;
-    var BAR_H=90; // altura máxima de cada barra en px
-    var BAR_W=8;  // ancho fijo de cada barra en px
-    var GAP=2;    // gap entre barras del mismo grupo
-    var GROUP_GAP=16; // gap entre grupos de meses
+    var BAR_H=160; // altura máxima de cada barra en px
+    var BAR_W=12;  // ancho fijo de cada barra en px
+    var GAP=3;    // gap entre barras del mismo grupo
+    var GROUP_GAP=20; // gap entre grupos de meses
 
     // ── GRÁFICO ──
     var chart='<div class="cc2" style="margin-bottom:1.25rem">';
@@ -1291,16 +1291,17 @@ async function loadGastosFijosDash(){
     chart+='</div>';
     // Área del gráfico con scroll horizontal si hay muchos meses
     chart+='<div style="overflow-x:auto;padding-bottom:4px">';
-    chart+='<div style="display:flex;align-items:flex-end;gap:'+GROUP_GAP+'px;height:'+(BAR_H+40)+'px;padding-bottom:22px;position:relative;min-width:max-content">';
+    chart+='<div style="display:flex;align-items:flex-end;gap:'+GROUP_GAP+'px;height:'+(BAR_H+50)+'px;padding-bottom:26px;position:relative;min-width:max-content">';
     // Líneas guía
-    chart+='<div style="position:absolute;bottom:22px;left:0;right:0;border-top:1px solid var(--g200)"></div>';
-    chart+='<div style="position:absolute;bottom:'+Math.round(22+BAR_H*0.5)+'px;left:0;right:0;border-top:1px dashed #e9ecef"></div>';
-    chart+='<div style="position:absolute;bottom:'+Math.round(22+BAR_H*0.75)+'px;left:0;right:0;border-top:1px dashed #e9ecef"></div>';
+    chart+='<div style="position:absolute;bottom:26px;left:0;right:0;border-top:1px solid var(--g200)"></div>';
+    chart+='<div style="position:absolute;bottom:'+Math.round(26+BAR_H*0.25)+'px;left:0;right:0;border-top:1px dashed #e9ecef"></div>';
+    chart+='<div style="position:absolute;bottom:'+Math.round(26+BAR_H*0.5)+'px;left:0;right:0;border-top:1px dashed #e9ecef"></div>';
+    chart+='<div style="position:absolute;bottom:'+Math.round(26+BAR_H*0.75)+'px;left:0;right:0;border-top:1px dashed #e9ecef"></div>';
     d.forEach(function(row){
       var ea=(row.mes===hoy.getMonth()+1&&row.anio===hoy.getFullYear());
       var total=cats.reduce(function(s,c){return s+(row[c.key]||0);},0);
       chart+='<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">';
-      chart+='<div style="font-size:10px;color:var(--g500);margin-bottom:2px">'+fmtK(total)+'</div>';
+      chart+='<div style="font-size:11px;color:var(--g500);margin-bottom:3px">'+fmtK(total)+'</div>';
       // Grupo de barras verticales
       chart+='<div style="display:flex;align-items:flex-end;gap:'+GAP+'px;height:'+BAR_H+'px">';
       cats.forEach(function(c){
@@ -1336,15 +1337,15 @@ async function loadGastosFijosDash(){
     h+='</tr>';
     d.slice().reverse().forEach(function(r,i){
       var ea=(r.mes===hoy.getMonth()+1&&r.anio===hoy.getFullYear());
-      var rowBg=ea?'background:var(--vl);':'';
+      var rowBg=ea?'background:#e8f7f2;':'';
       var lastRow=i===d.length-1;
       var tdFinal=lastRow?'font-size:13px;color:var(--g900);padding:10px 14px':'font-size:13px;color:var(--g900);padding:10px 14px;border-bottom:1px solid var(--g100)';
       h+='<tr style="'+rowBg+'">';
-      h+='<td style="'+tdFinal+';font-weight:600;color:'+(ea?'var(--vd)':'var(--g900)')+'">'+MS[r.mes-1]+' '+r.anio+'</td>';
+      h+='<td style="'+tdFinal+';font-weight:600;color:'+(ea?'var(--vd)':'var(--g900)')+(ea?';border-left:4px solid #0d9e6e':';border-left:4px solid transparent')+'">'+MS[r.mes-1]+' '+r.anio+'</td>';
       [r.previred,r.sueldos,r.arriendo,r.luz,r.credito,r.iva,r.contabilidad,r.otros].forEach(function(v){
-        h+='<td style="'+tdFinal+'">'+fmt(v)+'</td>';
+        h+='<td style="'+tdFinal+';color:'+(ea?'#087a55':'var(--g900)')+'">'+fmt(v)+'</td>';
       });
-      h+='<td style="'+tdFinal+';font-weight:600">'+fmt(r.total)+'</td>';
+      h+='<td style="'+tdFinal+';font-weight:600;color:'+(ea?'#087a55':'var(--g900)')+'">'+fmt(r.total)+'</td>';
       h+='<td style="'+tdFinal+';white-space:nowrap">'
         +'<button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editGF(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button>'
         +'<button class="btn-del" data-id="'+r.id+'" onclick="eliminarGF(this.dataset.id)">🗑️</button>'
