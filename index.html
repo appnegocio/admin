@@ -1467,13 +1467,13 @@ async function cargarClientes(){
       h+='<td style="color:var(--az)">'+c.email+'</td>';
       h+='<td><span class="bdg '+(c.activo?'quincena':'otro')+'">'+(c.activo?'Activo':'Inactivo')+'</span></td>';
       h+='<td style="white-space:nowrap">';
-      h+='<button class="btn-edit" onclick=\'abrirEditCliente('+JSON.stringify(c)+')\'>✏️</button>';
-      h+='<button class="btn-del" onclick="toggleCliente(\''+c.id+'\','+c.activo+',\''+c.nombre_negocio+'\')">'+(c.activo?'🚫':'✅')+'</button>';
+      h+='<button class="btn-edit" onclick=\'abrirEditCliente('+JSON.stringify(c)+')\'>'+'✏️'+'</button>';
+      h+='<button class="btn-del" onclick="toggleCliente(\''+c.id+'\','+c.activo+',\''+c.nombre_negocio+'\')" title="'+(c.activo?'Desactivar':'Activar')+'">'+(c.activo?'🚫':'✅')+'</button>';
+      h+='<button class="btn-del" onclick="eliminarCliente(\''+c.id+'\',\''+c.nombre_negocio+'\')" title="Eliminar" style="margin-left:4px">🗑️</button>';
       h+='</td></tr>';
     });
-    h+='</table></div>';
     el.innerHTML=h;
-  }catch(ex){el.innerHTML='<div class="empty">Error al cargar.</div>';}
+  }catch(ex){el.innerHTML='<div class="empty">Error: '+ex.message+'</div>';}
 }
 
 function abrirNuevoCliente(){
@@ -1489,6 +1489,7 @@ function abrirNuevoCliente(){
 }
 
 function abrirEditCliente(c){
+  if(typeof c==='string')c=JSON.parse(decodeURIComponent(c));
   document.getElementById('mcli-id').value=c.id;
   document.getElementById('mcli-titulo').textContent='Editar cliente';
   document.getElementById('mcli-nombre').value=c.nombre_negocio||'';
@@ -1509,13 +1510,7 @@ async function guardarCliente(){
   var id=document.getElementById('mcli-id').value;
   var btn=document.getElementById('mcli-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var payload={
-      nombre_negocio:nombre,
-      rubro:document.getElementById('mcli-rubro').value.trim(),
-      email:email,
-      activo:document.getElementById('mcli-activo').value==='true',
-      rol:'cliente'
-    };
+    var payload={nombre_negocio:nombre,rubro:document.getElementById('mcli-rubro').value.trim(),email:email,activo:document.getElementById('mcli-activo').value==='true',rol:'cliente'};
     if(pass)payload.password=pass;
     var r;
     if(id){
@@ -1541,101 +1536,13 @@ async function toggleCliente(id,activo,nombre){
   }catch(ex){alert('Error: '+ex.message);}
 }
 
-
-async function loadCierresDash(){
-  var el=document.getElementById('dc');el.innerHTML='<div class="ld">Cargando...</div>';
+async function eliminarCliente(id,nombre){
+  if(!confirm('¿Eliminar a '+nombre+' permanentemente? Esta acción no se puede deshacer.'))return;
   try{
-    var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=500',{headers:H()});
-    var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin cierres registrados.</div>';return;}
-    var meses={};
-    d.forEach(function(r){var key=r.fecha?r.fecha.substring(0,7):'';if(!meses[key])meses[key]=[];meses[key].push(r);});
-    var keys=Object.keys(meses).sort().reverse();
-    var mesActual=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
-    var nMalTotal=d.filter(function(r){return (r.diferencia||0)!==0;}).length;
-    var h=nMalTotal>0?'<div class="alerta err"><span>⚠️</span><span><strong>'+nMalTotal+' cierre'+(nMalTotal>1?'s':'')+' con descuadre en total</strong></span></div>':'<div class="alerta ok"><span>✓</span><span>Todos los cierres cuadran</span></div>';
-    keys.forEach(function(k){
-      var parts=k.split('-');
-      var label=MS[parseInt(parts[1])-1]+' '+parts[0];
-      var isActual=k===mesActual;
-      var totalZ=meses[k].reduce(function(s,r){return s+(r.total_z||0);},0);
-      var nMal=meses[k].filter(function(r){return (r.diferencia||0)!==0;}).length;
-      var mid='cdm-'+k.replace('-','');
-      h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'#ffc9c9':'#c1c7cd')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
-      h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'var(--vl)':nMal>0?'var(--rl)':'var(--g50)')+';cursor:pointer" onclick="toggleMesCaja(this.dataset.mid,this)">';
-      h+='<div><span style="font-size:13px;font-weight:500;color:'+(isActual?'var(--vd)':nMal>0?'var(--r)':'var(--g900)')+'">'+label+'</span>';
-      if(nMal>0)h+=' <span style="font-size:11px;color:var(--r)">⚠️ '+nMal+' descuadre'+(nMal>1?'s':'')+'</span>';
-      h+='</div>';
-      h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' días</span><span style="font-size:13px;font-weight:500;color:var(--vd)">'+fmt(totalZ)+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
-      h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
-      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total Z</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
-      meses[k].forEach(function(r){
-        var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
-        var dif=r.diferencia||0;
-        h+='<tr style="border-bottom:1px solid #dee2e6;'+(dif!==0?'background:#fff8f8;':'')+'">';
-        h+='<td style="padding:8px 1.25rem;font-size:13px">'+fd+'</td>';
-        h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.total_z)+'</td>';
-        h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.retiros)+'</td>';
-        h+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:500;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td>';
-        h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button></td>';
-        h+='</tr>';
-      });
-      h+='</table></div></div>';
-    });
-    el.innerHTML=h;
-  }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
-}
-
-// ══ MÓDULO CRÉDITOS ══
-
-// ── Utilidades ──
-function fmtDeuda(n){return n>0?'$'+Math.round(n).toLocaleString('es-CL'):'$0';}
-
-// ── Celular: cargar lista de créditos ──
-async function loadCreditosCel(){
-  var el=document.getElementById('cred-lista-cel');
-  el.innerHTML='<div class="ld">Cargando...</div>';
-  try{
-    var r=await fetch(SU+'/rest/v1/creditos?select=*&cliente_id=eq.'+cli.id+'&activo=eq.true&order=created_at.asc',{headers:H()});
-    var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin créditos registrados.<br>Usa la pestaña "+ Agregar" para crear uno.</div>';return;}
-    var mesA=hoy.getMonth()+1,anioA=hoy.getFullYear();
-    // Cargar pagos del mes actual para todos los créditos
-    var rp=await fetch(SU+'/rest/v1/pagos_creditos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+mesA+'&anio=eq.'+anioA,{headers:H()});
-    var pagos=await rp.json()||[];
-    var h='';
-    d.forEach(function(c){
-      var pagado=pagos.find(function(p){return p.credito_id===c.id&&p.pagado;});
-      var pendiente=!pagado;
-      var pct=c.total_cuotas>0?Math.round((c.cuotas_pagadas/c.total_cuotas)*100):0;
-      var deudaRest=Math.max((c.monto_total||0)-((c.cuotas_pagadas||0)*(c.cuota_mensual||0)),0);
-      var fechaFin=c.fecha_inicio?(function(){
-        var d2=new Date(c.fecha_inicio+'T12:00:00');
-        d2.setMonth(d2.getMonth()+(c.total_cuotas||0));
-        return d2.toLocaleDateString('es-CL',{month:'short',year:'numeric'});
-      })():'—';
-      h+='<div style="background:white;border:1px solid '+(pendiente?'#ffd580':'#c1c7cd')+';border-radius:8px;padding:12px;margin-bottom:10px">';
-      h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">';
-      h+='<div><div style="font-size:14px;font-weight:500;color:var(--g900)">'+c.nombre+'</div>';
-      if(c.banco)h+='<div style="font-size:11px;color:var(--g500)">'+c.banco+'</div>';
-      h+='</div>';
-      h+='<span style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;background:'+(pendiente?'var(--al)':'var(--vl)')+';color:'+(pendiente?'var(--a)':'var(--vd)')+'">'+( pendiente?'Pendiente '+MS[mesA-1]:'✓ Pagado '+MS[mesA-1])+'</span>';
-      h+='</div>';
-      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">';
-      h+='<div><div style="font-size:10px;color:var(--g500)">Cuota</div><div style="font-size:13px;font-weight:500;color:var(--g900)">'+fmtDeuda(c.cuota_mensual)+'</div></div>';
-      h+='<div><div style="font-size:10px;color:var(--g500)">Deuda restante</div><div style="font-size:13px;font-weight:500;color:var(--r)">'+fmtDeuda(deudaRest)+'</div></div>';
-      h+='<div><div style="font-size:10px;color:var(--g500)">Cuotas</div><div style="font-size:13px;color:var(--g900)">'+c.cuotas_pagadas+' / '+c.total_cuotas+'</div></div>';
-      h+='<div><div style="font-size:10px;color:var(--g500)">Termina</div><div style="font-size:13px;color:var(--g900)">'+fechaFin+'</div></div>';
-      h+='</div>';
-      h+='<div style="background:var(--g200);border-radius:4px;height:6px;margin-bottom:4px"><div style="background:var(--r);border-radius:4px;height:6px;width:'+pct+'%"></div></div>';
-      h+='<div style="font-size:10px;color:var(--g500);margin-bottom:8px">'+pct+'% pagado</div>';
-      if(pendiente){
-        h+='<button onclick="registrarPagoCel(&quot;'+c.id+'&quot;,&quot;'+c.nombre+'&quot;,'+c.cuota_mensual+')" style="width:100%;height:44px;background:var(--v);border:none;border-radius:10px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago de '+MS[mesA-1]+'</button>';
-      }
-      h+='</div>';
-    });
-    el.innerHTML=h;
-  }catch(ex){el.innerHTML='<div class="empty">Error: '+ex.message+'</div>';}
+    var r=await fetch(SU+'/rest/v1/clientes?id=eq.'+id,{method:'DELETE',headers:H()});
+    if(r.ok)cargarClientes();
+    else throw new Error(await r.text());
+  }catch(ex){alert('Error: '+ex.message);}
 }
 
 function abrirNuevoCreditoCel(){
