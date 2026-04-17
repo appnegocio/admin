@@ -276,7 +276,7 @@ tr:hover td{background:var(--g50)}
         <div class="fdiv">Caja física</div>
         <div class="fg2"><div><label class="fl">Caja inicial</label><input class="fi" type="number" id="cj-ci" placeholder="0" oninput="calcCaja()"></div><div><label class="fl">Caja final</label><input class="fi" type="number" id="cj-cf" placeholder="0" oninput="calcCaja()"></div></div>
         <div class="fdiv">Registradora</div>
-        <label class="fl">Total Z</label><input class="fi" type="number" id="cj-z" placeholder="0" oninput="calcCaja()">
+        <label class="fl">Ventas</label><input class="fi" type="number" id="cj-z" placeholder="0" oninput="calcCaja()">
         <div class="fdiv">Medios de pago Redbanc</div>
         <label class="fl">Redcompra</label><input class="fi" type="number" id="cj-rc" placeholder="0" oninput="calcCaja()">
         <label class="fl">Créditos Redbanc</label><input class="fi" type="number" id="cj-cr" placeholder="0" oninput="calcCaja()">
@@ -469,7 +469,7 @@ tr:hover td{background:var(--g50)}
     <div class="modal-div">Caja física</div>
     <div class="modal-grid2"><div><label class="modal-label">Caja inicial</label><input class="modal-input" type="number" id="mcj-ci" oninput="calcModalCaja()"></div><div><label class="modal-label">Caja final</label><input class="modal-input" type="number" id="mcj-cf" oninput="calcModalCaja()"></div></div>
     <div class="modal-div">Registradora</div>
-    <label class="modal-label">Total Z</label><input class="modal-input" type="number" id="mcj-z" oninput="calcModalCaja()">
+    <label class="modal-label">Ventas</label><input class="modal-input" type="number" id="mcj-z" oninput="calcModalCaja()">
     <div class="modal-div">Redbanc</div>
     <div class="modal-grid2"><div><label class="modal-label">Redcompra</label><input class="modal-input" type="number" id="mcj-rc" oninput="calcModalCaja()"></div><div><label class="modal-label">Créditos Redbanc</label><input class="modal-input" type="number" id="mcj-cr" oninput="calcModalCaja()"></div></div>
     <label class="modal-label">Otro Redbanc</label><input class="modal-input" type="number" id="mcj-ot" oninput="calcModalCaja()">
@@ -717,7 +717,7 @@ async function loadR(){
         +'<input type="date" id="rdb-fecha" value="'+primerDiaMes+'" min="'+primerDiaMes+'" max="'+ultimoDiaMes+'" onchange="aplicarRdbFiltroDia()" style="display:none;height:30px;padding:0 8px;border:1px solid #c1c7cd;border-radius:8px;font-size:12px;font-family:inherit;color:var(--g900)">'
         +'</div></div>'
         +'<div id="rdb-semanas" style="display:none;padding:8px 1.25rem 0"><div style="font-size:11px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Selecciona una semana</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+semPills+'</div></div>'
-        +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Total Z</th><th>Retiros</th><th>Diferencia</th></tr>';
+        +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Ventas</th><th>Retiros</th><th>Diferencia</th></tr>';
       c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;h+='<tr data-fecha="'+r.fecha+'" style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td>'+fmt(r.total_z)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:500">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
       h+='<tr id="rdb-total" style="background:var(--g50);font-weight:500;border-top:1px solid #c1c7cd"><td>Total mes</td><td>'+fmt(tZ)+'</td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr>'
         +'</table></div>'
@@ -1002,7 +1002,7 @@ function calcCaja(){
 }
 
 async function guardarCaja(){
-  var z=v('cj-z');if(!z){alert('Ingresa el Total Z');return;}
+  var z=v('cj-z');if(!z){alert('Ingresa el Ventas');return;}
   var fecha=document.getElementById('cj-f').value;if(!fecha){alert('Selecciona la fecha');return;}
   var ci=v('cj-ci'),cf=v('cj-cf'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
@@ -1195,7 +1195,7 @@ function renderCajaHist(d){
       h+='<span style="font-size:13px;font-weight:500;color:var(--g900)">'+fd+'</span>';
       h+='<span style="font-size:13px;font-weight:500;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</span></div>';
       h+='<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--g500)">';
-      h+='<span>Total Z: '+fmt(r.total_z)+'</span><span>Retiros: '+fmt(r.retiros)+'</span></div>';
+      h+='<span>Ventas: '+fmt(r.total_z)+'</span><span>Retiros: '+fmt(r.retiros)+'</span></div>';
       h+='</div>';
     });
     h+='</div></div>';
@@ -1637,7 +1637,7 @@ async function loadCierresDash(){
       h+='</div>';
       h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' días</span><span style="font-size:13px;font-weight:500;color:var(--vd)">'+fmt(totalZ)+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
-      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total Z</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
+      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Ventas</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
       meses[k].forEach(function(r){
         var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
         var dif=r.diferencia||0;
