@@ -285,7 +285,11 @@ tr:hover td{background:var(--g50)}
         <label class="fl">Transferencias</label><input class="fi" type="number" id="cj-tr" placeholder="0" oninput="calcCaja()">
         <label class="fl">Nulos / Vauchers</label><input class="fi" type="number" id="cj-nu" placeholder="0" oninput="calcCaja()">
         <label class="fl">Retiros</label><input class="fi" type="number" id="cj-re" placeholder="0" oninput="calcCaja()">
-        <label class="fl">Gastos del día</label><input class="fi" type="number" id="cj-ga" placeholder="0" oninput="calcCaja()">
+        <div class="fdiv">Gastos del día</div>
+        <div id="cj-gastos-lista"></div>
+        <button type="button" onclick="agregarGastoCel()" style="width:100%;height:38px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar gasto</button>
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:4px"><span style="color:#212529">Total gastos</span><span id="cj-ga-total" style="color:#e03131">$0</span></div>
+        <input type="hidden" id="cj-ga" value="0">
         <div class="fres neu" id="cj-res"><div class="fres-l">Diferencia de caja</div><div class="fres-v" id="cj-rv">—</div><div class="fres-h" id="cj-rh">Ingresa los datos para calcular</div></div>
         <div class="fmsg ok" id="cj-ok">✓ Cierre guardado correctamente</div>
         <div class="fmsg err" id="cj-err">Error al guardar</div>
@@ -475,7 +479,12 @@ tr:hover td{background:var(--g50)}
     <label class="modal-label">Otro Redbanc</label><input class="modal-input" type="number" id="mcj-ot" oninput="calcModalCaja()">
     <div class="modal-div">Otros</div>
     <div class="modal-grid2"><div><label class="modal-label">Transferencias</label><input class="modal-input" type="number" id="mcj-tr" oninput="calcModalCaja()"></div><div><label class="modal-label">Nulos</label><input class="modal-input" type="number" id="mcj-nu" oninput="calcModalCaja()"></div></div>
-    <div class="modal-grid2"><div><label class="modal-label">Retiros</label><input class="modal-input" type="number" id="mcj-re" oninput="calcModalCaja()"></div><div><label class="modal-label">Gastos</label><input class="modal-input" type="number" id="mcj-ga" oninput="calcModalCaja()"></div></div>
+    <label class="modal-label">Retiros</label><input class="modal-input" type="number" id="mcj-re" oninput="calcModalCaja()">
+    <div class="modal-div">Gastos del día</div>
+    <div id="mcj-gastos-lista"></div>
+    <button type="button" onclick="agregarGastoModal()" style="width:100%;height:34px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar gasto</button>
+    <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd"><span style="color:#212529">Total gastos</span><span id="mcj-ga-total" style="color:#e03131">$0</span></div>
+    <input type="hidden" id="mcj-ga" value="0">
     <div style="margin-top:.75rem;padding:.75rem 1rem;border-radius:8px;border:1px solid #c1c7cd;background:var(--g50)">
       <span style="font-size:12px;color:var(--g500);font-weight:500">DIFERENCIA: </span>
       <span style="font-size:15px;font-weight:500" id="mcj-dif">—</span>
@@ -990,6 +999,89 @@ function swTab(mod,t,el){
   el.classList.add('active');
 }
 
+// ── Gastos del día: funciones dinámicas ──
+function obtenerGastosLista(listaId){
+  var items=[];
+  document.querySelectorAll('#'+listaId+' .gasto-item').forEach(function(row){
+    var desc=row.querySelector('.gasto-desc').value.trim();
+    var monto=parseFloat(row.querySelector('.gasto-monto').value)||0;
+    if(desc||monto)items.push({desc:desc,monto:monto});
+  });
+  return items;
+}
+function calcTotalGastos(listaId,totalId,hiddenId){
+  var items=obtenerGastosLista(listaId);
+  var total=items.reduce(function(s,i){return s+i.monto;},0);
+  document.getElementById(totalId).textContent='$'+Math.round(total).toLocaleString('es-CL');
+  document.getElementById(hiddenId).value=total;
+  calcCaja();
+}
+function agregarGastoFila(listaId,totalId,hiddenId,desc,monto){
+  var lista=document.getElementById(listaId);
+  var row=document.createElement('div');
+  row.className='gasto-item';
+  row.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';
+  row.innerHTML='<input class="gasto-desc fi" type="text" placeholder="Descripcion" value="'+(desc||'')+'" style="flex:1;height:36px;font-size:13px" oninput="calcTotalGastos(\''+listaId+'\',\''+totalId+'\',\''+hiddenId+'\')">'
+    +'<input class="gasto-monto fi" type="number" placeholder="0" value="'+(monto||'')+'" style="width:100px;height:36px;font-size:13px;text-align:right" oninput="calcTotalGastos(\''+listaId+'\',\''+totalId+'\',\''+hiddenId+'\')">'
+    +'<button type="button" onclick="this.parentElement.remove();calcTotalGastos(\''+listaId+'\',\''+totalId+'\',\''+hiddenId+'\')" style="width:32px;height:32px;border:1px solid #F09595;border-radius:6px;background:white;color:#e03131;font-size:16px;cursor:pointer;font-family:inherit;flex-shrink:0">x</button>';
+  lista.appendChild(row);
+}
+function agregarGastoCel(){agregarGastoFila('cj-gastos-lista','cj-ga-total','cj-ga','',0);}
+function agregarGastoModal(){agregarGastoFila('mcj-gastos-lista','mcj-ga-total','mcj-ga','',0);}
+function cargarGastosEnLista(listaId,totalId,hiddenId,gastos_detalle){
+  document.getElementById(listaId).innerHTML='';
+  if(gastos_detalle&&gastos_detalle.length){
+    gastos_detalle.forEach(function(g){agregarGastoFila(listaId,totalId,hiddenId,g.desc,g.monto);});
+    calcTotalGastos(listaId,totalId,hiddenId);
+  }
+}
+function generarPDFCierre(r){
+  var gastos=r.gastos_detalle||[];
+  var totalGastos=gastos.reduce(function(s,g){return s+(g.monto||0);},0)||r.gastos||0;
+  var fecha=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var f2=function(n){return '$'+Math.round(n||0).toLocaleString('es-CL');};
+  var dif=r.diferencia||0;
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cierre '+r.fecha+'</title>'
+    +'<style>body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:600px}'
+    +'.hdr{background:#0d9e6e;color:white;padding:16px 20px;border-radius:6px 6px 0 0}'
+    +'.hdr h1{font-size:16px;margin:0 0 4px;font-weight:500}'
+    +'.hdr p{font-size:11px;margin:0;opacity:.85}'
+    +'.body{border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;padding:16px 20px}'
+    +'.sec{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin:14px 0 7px}'
+    +'.sec:first-child{margin-top:0}'
+    +'.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f1f3f5;font-size:12px}'
+    +'.row:last-child{border-bottom:none}'
+    +'.tot{font-weight:bold;border-top:2px solid #c1c7cd!important;border-bottom:none!important;padding-top:8px!important;margin-top:4px}'
+    +'.pos{color:#087a55}.neg{color:#e03131}'
+    +'.footer{text-align:center;font-size:10px;color:#adb5bd;margin-top:16px;padding-top:10px;border-top:1px solid #e9ecef}'
+    +'</style></head><body>'
+    +'<div class="hdr"><h1>Cierre de caja &mdash; '+fecha+'</h1><p>'+cli.nombre_negocio+' &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
+    +'<div class="body">'
+    +'<div class="sec">Resumen del dia</div>'
+    +'<div class="row"><span>Ventas</span><span class="pos">'+f2(r.total_z)+'</span></div>'
+    +'<div class="row"><span>Retiros</span><span>'+f2(r.retiros)+'</span></div>'
+    +'<div class="row"><span>Diferencia de caja</span><span class="'+(dif===0?'pos':'neg')+'">'+f2(dif)+(dif===0?' ok':' !')+'</span></div>'
+    +'<div class="sec">Detalle de caja</div>'
+    +'<div class="row"><span>Caja inicial</span><span>'+f2(r.caja_inicial)+'</span></div>'
+    +'<div class="row"><span>Caja final</span><span>'+f2(r.caja_final)+'</span></div>'
+    +'<div class="sec">Medios de pago</div>'
+    +'<div class="row"><span>Redcompra</span><span>'+f2(r.redcompra)+'</span></div>'
+    +'<div class="row"><span>Creditos Redbanc</span><span>'+f2(r.creditos_redbanc)+'</span></div>'
+    +'<div class="row"><span>Otro Redbanc</span><span>'+f2(r.otro_redbanc)+'</span></div>'
+    +'<div class="row"><span>Transferencias</span><span>'+f2(r.transferencias)+'</span></div>'
+    +'<div class="row"><span>Nulos / Vauchers</span><span>'+f2(r.nulos)+'</span></div>';
+  if(gastos&&gastos.length){
+    html+='<div class="sec">Gastos del dia</div>';
+    gastos.forEach(function(g){html+='<div class="row"><span>'+g.desc+'</span><span class="neg">'+f2(g.monto)+'</span></div>';});
+    html+='<div class="row tot"><span>Total gastos</span><span class="neg">'+f2(totalGastos)+'</span></div>';
+  }else if(r.gastos){
+    html+='<div class="sec">Gastos del dia</div><div class="row"><span>Gastos</span><span class="neg">'+f2(r.gastos)+'</span></div>';
+  }
+  html+='<div class="footer">AdminFacil &middot; Reporte generado automaticamente</div></div></body></html>';
+  var win=window.open('','_blank');
+  if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
+}
+
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
@@ -1008,9 +1100,10 @@ async function guardarCaja(){
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,diferencia:dif,cliente_id:cli.id})});
+    var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
-      setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){document.getElementById(id).value='';});calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
+      setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
   }catch(ex){document.getElementById('cj-err').style.display='block';document.getElementById('cj-err').textContent='Error: '+ex.message;btn.disabled=false;btn.textContent='Guardar cierre del día';}
 }
@@ -1646,7 +1739,7 @@ async function loadCierresDash(){
         h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.total_z)+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.retiros)+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:500;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td>';
-        h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button></td>';
+        h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button><button class="btn-edit" style="color:#0d9e6e;margin-left:4px" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="generarPDFCierre(JSON.parse(decodeURIComponent(this.dataset.rec)))">📄 PDF</button></td>';
         h+='</tr>';
       });
       h+='</table></div></div>';
@@ -2206,7 +2299,8 @@ function editCaja(r){
   document.getElementById('mcj-tr').value=r.transferencias||0;
   document.getElementById('mcj-nu').value=r.nulos||0;
   document.getElementById('mcj-re').value=r.retiros||0;
-  document.getElementById('mcj-ga').value=r.gastos||0;
+  cargarGastosEnLista('mcj-gastos-lista','mcj-ga-total','mcj-ga',r.gastos_detalle||[]);
+  if((!r.gastos_detalle||!r.gastos_detalle.length)&&r.gastos){document.getElementById('mcj-ga').value=r.gastos||0;}
   calcModalCaja();abrirModal('caja');
 }
 function calcModalCaja(){
@@ -2222,7 +2316,8 @@ async function guardarEditCaja(){
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
   var btn=document.getElementById('mcj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:z,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,diferencia:dif})});
+    var gastosDetalle=obtenerGastosLista('mcj-gastos-lista');
+    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:z,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif})});
     if(r.ok){cerrarModal('caja');dpage('cierres',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert('Error al guardar: '+ex.message);}
