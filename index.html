@@ -1330,9 +1330,9 @@ async function loadGastosFijosDash(){
     var tdNumStyle='font-size:13px;color:var(--g900);padding:10px 14px;border-bottom:1px solid var(--g100)';
 
     var h=chart+'<div style="background:white;border:1px solid var(--g200);border-radius:10px;overflow:hidden;margin-bottom:1.25rem">';
-    h+='<div style="padding:12px 16px;border-bottom:1px solid var(--g200);display:flex;justify-content:space-between;align-items:center">';
+    h+='<div style="padding:12px 16px;border-bottom:1px solid var(--g200);display:flex;justify-content:space-between;align-items:center;background:var(--g50)">';
     h+='<span style="font-size:13px;font-weight:600;color:var(--g900)">Gastos fijos por mes</span>';
-    h+='<span style="font-size:12px;color:var(--g500);background:var(--g100);padding:2px 10px;border-radius:20px">'+d.length+' meses</span>';
+    h+='<span style="font-size:12px;color:var(--g500);background:var(--g200);padding:2px 10px;border-radius:20px">'+d.length+' meses</span>';
     h+='</div>';
     h+='<table style="'+tStyle+'"><tr>';
     ['Mes','Previred','Sueldos','Arriendo','Luz','Crédito','IVA','Contabilidad','Otros','Total',''].forEach(function(col){
@@ -1871,9 +1871,9 @@ async function loadFacturasDash(){
       var isActual=k===mesActual;
       var totalMes=meses[k].reduce(function(s,r){return s+(r.total||0);},0);
       var mid='dfm-'+k.replace('-','');
-      h+='<div style="background:white;border:1px solid '+(isActual?'var(--r)':'var(--g200)')+';border-radius:8px;margin-bottom:8px;overflow:hidden">';
-      h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'#fff0f0':'var(--g50)')+';cursor:pointer;border-bottom:1px solid '+(isActual?'#ffc9c9':'var(--g200)')+'" onclick="toggleMesFact(this.dataset.mid,this)">';
-      h+='<span style="font-size:13px;font-weight:500;color:'+(isActual?'var(--r)':'var(--g900)')+'">'+label+'</span>';
+      h+='<div style="background:white;border:1px solid '+(isActual?'var(--v)':'var(--g200)')+';border-radius:8px;margin-bottom:8px;overflow:hidden">';
+      h+='<div data-mid="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:'+(isActual?'var(--vl)':'var(--g50)')+';cursor:pointer;border-bottom:1px solid '+(isActual?'var(--vm)':'var(--g200)')+'" onclick="toggleMesFact(this.dataset.mid,this)">';
+      h+='<span style="font-size:13px;font-weight:500;color:'+(isActual?'var(--vd)':'var(--g900)')+'">'+label+'</span>';
       h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' factura'+(meses[k].length>1?'s':'')+'</span><span style="font-size:13px;font-weight:500;color:var(--r)">'+fmt(totalMes)+'</span><span id="arr-'+mid+'" style="color:var(--g500)">'+(isActual?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
       h+='<table style="width:100%;border-collapse:collapse"><tr style="background:var(--g50)">';
