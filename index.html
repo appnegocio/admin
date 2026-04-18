@@ -703,14 +703,14 @@ async function loadR(){
     var h='<div class="kgrid"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Personal + fijos</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
     // ── Alerta margen vs mes anterior ──
     if(V>0&&Vp>0){
-      var diffM=M-Mp;
-      var subio=diffM>=0;
+      var diffM=M-Mp,subio=diffM>=0;
       h+='<div style="border-radius:8px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:14px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
-      h+='<div style="width:44px;height:44px;border-radius:8px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h+='<span style="font-size:22px;color:white">'+(subio?'↑':'↓')+'</span></div>';
-      h+='<div>';
-      h+='<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:'+(subio?'var(--vd)':'var(--r)')+'">Margen '+MS[mesSel-1]+' vs '+MS[mesPrev-1]+'</div>';
-      h+='<div style="font-size:18px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'% <span style="font-size:13px;font-weight:400;color:'+(subio?'var(--vd)':'var(--r)')+'">'+(subio?'+':'')+diffM+'% vs mes anterior ('+Mp+'%)</span></div>';
+      h+='<div style="width:42px;height:42px;border-radius:8px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:22px;color:white">'+(subio?'↑':'↓')+'</span></div>';
+      h+='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">';
+      h+='<div><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:3px">'+MS[mesSel-1]+'</div><div style="font-size:24px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'%</div></div>';
+      h+='<div style="font-size:18px;color:#adb5bd">→</div>';
+      h+='<div><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:3px">'+MS[mesPrev-1]+'</div><div style="font-size:24px;font-weight:500;color:#adb5bd">'+Mp+'%</div></div>';
+      h+='<div style="padding:5px 12px;border-radius:20px;font-size:14px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
       h+='</div></div>';
     }
     h+='<div class="ubanner '+(U>=0?'pos':'neg')+'"><div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div><div style="text-align:right"><div class="ub-ml">Margen</div><div class="ub-mv">'+M+'%</div></div></div>';
@@ -952,11 +952,12 @@ async function loadDashCelResumen(mesParam,anioParam){
     if(V>0&&Vp>0){
       var diffM=M-Mp,subio=diffM>=0;
       h+='<div style="border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;align-items:center;gap:10px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
-      h+='<div style="width:36px;height:36px;border-radius:6px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h+='<span style="font-size:18px;color:white">'+(subio?'↑':'↓')+'</span></div>';
-      h+='<div>';
-      h+='<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+(subio?'var(--vd)':'var(--r)')+'">Margen '+MS[mes-1]+' vs '+MS[mesPrev-1]+'</div>';
-      h+='<div style="font-size:15px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'% <span style="font-size:11px;font-weight:400">'+(subio?'+':'')+diffM+'% (ant. '+Mp+'%)</span></div>';
+      h+='<div style="width:36px;height:36px;border-radius:6px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:18px;color:white">'+(subio?'↑':'↓')+'</span></div>';
+      h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+      h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">'+MS[mes-1]+'</div><div style="font-size:20px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'%</div></div>';
+      h+='<div style="font-size:14px;color:#adb5bd">→</div>';
+      h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">'+MS[mesPrev-1]+'</div><div style="font-size:20px;font-weight:500;color:#adb5bd">'+Mp+'%</div></div>';
+      h+='<div style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
       h+='</div></div>';
     }
     h+='<div style="background:#0d9e6e;border-radius:8px;padding:10px 12px">';
