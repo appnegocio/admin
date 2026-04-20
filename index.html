@@ -132,7 +132,7 @@ body{font-family:'DM Sans',sans-serif;background:#f4f5f6;color:var(--g900);min-h
 .dcont{padding:1.5rem;flex:1}
 .dp{display:none}
 .dp.active{display:block}
-.pills{display:flex;gap:4px;margin-bottom:1.5rem;flex-wrap:wrap}
+.pills{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .pill{padding:4px 12px;border-radius:8px;border:var(--border);background:white;font-size:12px;font-weight:500;color:var(--g700);cursor:pointer;font-family:inherit}
 .pill:hover{border-color:var(--vm);color:var(--vd)}
 .pill.active{background:var(--v);color:white;border-color:var(--v)}
@@ -665,11 +665,14 @@ function inicDash(){
   document.getElementById('tbn').textContent=cli.nombre_negocio;
   var ini=cli.nombre_negocio.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
   document.getElementById('tbav').textContent=ini;
-  var ha='<div style="margin-bottom:4px"><div style="font-size:10px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Año</div><div style="display:flex;gap:6px;margin-bottom:12px">';
-  [hoy.getFullYear(),hoy.getFullYear()-1,hoy.getFullYear()-2].forEach(function(y){ha+='<button onclick="selAnio('+y+')" style="padding:5px 16px;border-radius:8px;border:1px solid '+(y===anioSel?'var(--v)':'#c1c7cd')+';background:'+(y===anioSel?'var(--v)':'white')+';color:'+(y===anioSel?'white':'var(--g700)')+';font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">'+y+'</button>';});
-  ha+='</div><div style="font-size:10px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Mes</div></div>';
+  var ha='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 12px;margin-bottom:1.25rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
+  [hoy.getFullYear(),hoy.getFullYear()-1,hoy.getFullYear()-2].forEach(function(y){
+    ha+='<button onclick="selAnio('+y+')" style="padding:3px 10px;border-radius:20px;border:1px solid '+(y===anioSel?'var(--v)':'#c1c7cd')+';background:'+(y===anioSel?'var(--v)':'white')+';color:'+(y===anioSel?'white':'var(--g700)')+';font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">'+y+'</button>';
+  });
+  ha+='<div style="width:1px;height:18px;background:#c1c7cd;flex-shrink:0;margin:0 2px"></div>';
   var hm='';for(var i=0;i<12;i++)hm+='<button class="pill'+(i+1===mesSel?' active':'')+'" onclick="selMes('+(i+1)+',this)">'+MC[i]+'</button>';
-  document.getElementById('pills').innerHTML=ha+hm;
+  ha+=hm+'</div>';
+  document.getElementById('pills').innerHTML=ha;
   loadR();
 }
 function selMes(m,el){mesSel=m;document.querySelectorAll('.pill').forEach(function(b){b.classList.remove('active');});el.classList.add('active');loadR();}
