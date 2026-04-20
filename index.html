@@ -459,11 +459,19 @@ tr:hover td{background:var(--g50)}
         <div class="dp" id="dp-cierres"><div id="dc"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-facturas"><div id="df"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-personal">
-          <div style="display:flex;border-bottom:2px solid #c1c7cd;margin-bottom:1.25rem">
-            <button id="ptab-pagos" onclick="swPersonalTab('pagos')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Pagos</button>
-            <button id="ptab-emps" onclick="swPersonalTab('emps')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Empleados</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;border-bottom:2px solid #c1c7cd;padding-bottom:0">
+            <div style="display:flex">
+              <button id="ptab-pagos" onclick="swPersonalTab('pagos')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Pagos</button>
+              <button id="ptab-emps" onclick="swPersonalTab('emps')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Empleados</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px">
+              <select id="pers-rep-mes" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+              <button onclick="mostrarResumenPersonal()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
+                📊 Resumen del mes
+              </button>
+            </div>
           </div>
-          <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div></div>
+          <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
           <div id="dp-personal-emps" style="display:none"><div id="dem"><div class="ld">Cargando...</div></div></div>
         </div>
         <div class="dp" id="dp-gastosfijos"><div id="dg"><div class="ld">Cargando...</div></div></div>
@@ -1302,6 +1310,209 @@ function verHistorialPrecio(nombre,proveedor,btn){
 }
 
 
+// ── Reporte Personal PDF ──
+function inicSelectMesPersonal(){
+  var sel=document.getElementById('pers-rep-mes');
+  if(!sel)return;
+  sel.innerHTML='';
+  var a=hoy.getFullYear();
+  for(var y=a;y>=a-1;y--){
+    for(var m=12;m>=1;m--){
+      if(y===a&&m>hoy.getMonth()+1)continue;
+      var opt=document.createElement('option');
+      opt.value=y+'-'+String(m).padStart(2,'0');
+      opt.textContent=MS[m-1]+' '+y;
+      if(y===a&&m===hoy.getMonth()+1)opt.selected=true;
+      sel.appendChild(opt);
+    }
+  }
+}
+
+async function generarReportePersonal(){
+  var sel=document.getElementById('pers-rep-mes');
+  if(!sel||!sel.value)return;
+  var parts=sel.value.split('-');
+  var mes=parseInt(parts[1]),a=parseInt(parts[0]);
+  var d=a+'-'+String(mes).padStart(2,'0')+'-01';
+  var mf=mes===12?1:mes+1,af=mes===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=empleado.asc,fecha.asc',{headers:H()});
+    var pagos=await r.json();
+    if(!pagos||!pagos.length){alert('No hay pagos registrados en '+MS[mes-1]+' '+a);return;}
+    var f2=function(n){return '$'+Math.round(n||0).toLocaleString('es-CL');};
+    var fd=function(fecha){return new Date(fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});};
+    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Otro':'#495057'};
+    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Otro':'#f4f5f6'};
+    // Agrupar por empleado
+    var empleados={};
+    var totalGeneral=0;
+    pagos.forEach(function(p){
+      if(!empleados[p.empleado])empleados[p.empleado]=[];
+      empleados[p.empleado].push(p);
+      totalGeneral+=(p.monto||0);
+    });
+    var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte Personal '+MS[mes-1]+' '+a+'</title>'
+      +'<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:700px}'
+      +'@media print{.no-print{display:none}}'
+      +'.hdr{background:#0d9e6e;color:white;padding:16px 20px;border-radius:6px 6px 0 0}'
+      +'.hdr h1{font-size:16px;margin:0 0 4px;font-weight:500}'
+      +'.hdr p{font-size:11px;margin:0;opacity:.85}'
+      +'.body{border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;padding:16px 20px}'
+      +'.sec{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin:16px 0 8px}'
+      +'.sec:first-child{margin-top:0}'
+      +'.resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}'
+      +'.res-card{border:1px solid #c1c7cd;border-radius:6px;padding:8px 10px;text-align:center}'
+      +'.res-lbl{font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px}'
+      +'.res-val{font-size:15px;font-weight:500}'
+      +'.emp-block{border:1px solid #c1c7cd;border-radius:6px;overflow:hidden;margin-bottom:8px}'
+      +'.emp-hdr{background:#f8f9fa;border-bottom:1px solid #c1c7cd;padding:8px 12px;display:flex;justify-content:space-between}'
+      +'.emp-name{font-size:13px;font-weight:500}'
+      +'.emp-total{font-size:13px;font-weight:500;color:#087a55}'
+      +'.pago-row{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f3f5;font-size:12px}'
+      +'.pago-row:last-child{border-bottom:none}'
+      +'.bdg{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}'
+      +'.liq-block{border:1px solid #c1c7cd;border-radius:6px;overflow:hidden;margin-bottom:8px;page-break-inside:avoid}'
+      +'.liq-hdr{background:#e8f7f2;border-bottom:1px solid #9FE1CB;padding:8px 12px;display:flex;justify-content:space-between}'
+      +'.liq-row{display:flex;justify-content:space-between;padding:6px 12px;border-bottom:1px solid #f1f3f5;font-size:12px;color:#495057}'
+      +'.liq-row:last-child{border-bottom:none}'
+      +'.liq-tot{display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;font-weight:500;border-top:2px solid #c1c7cd;color:#087a55}'
+      +'.footer{text-align:center;font-size:10px;color:#adb5bd;margin-top:16px;padding-top:10px;border-top:1px solid #e9ecef}'
+      +'</style></head><body>'
+      +'<div class="hdr"><h1>Reporte de personal &mdash; '+MS[mes-1]+' '+a+'</h1><p>'+cli.nombre_negocio+' &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
+      +'<div class="body">'
+      // 1. Resumen
+      +'<div class="sec">1. Resumen del mes</div>'
+      +'<div class="resumen">'
+      +'<div class="res-card"><div class="res-lbl">Empleados</div><div class="res-val">'+Object.keys(empleados).length+'</div></div>'
+      +'<div class="res-card"><div class="res-lbl">Pagos</div><div class="res-val">'+pagos.length+'</div></div>'
+      +'<div class="res-card"><div class="res-lbl">Total pagado</div><div class="res-val" style="color:#087a55">'+f2(totalGeneral)+'</div></div>'
+      +'</div>';
+    // 2. Detalle por empleado
+    html+='<div class="sec">2. Detalle por empleado</div>';
+    Object.keys(empleados).forEach(function(emp){
+      var ps=empleados[emp];
+      var tot=ps.reduce(function(s,p){return s+(p.monto||0);},0);
+      html+='<div class="emp-block"><div class="emp-hdr"><span class="emp-name">'+emp+'</span><span class="emp-total">'+f2(tot)+'</span></div>';
+      ps.forEach(function(p){
+        html+='<div class="pago-row"><span style="color:#adb5bd">'+fd(p.fecha)+'</span>'
+          +'<span><span class="bdg" style="background:'+(tipoBg[p.tipo]||'#f4f5f6')+';color:'+(tipoColor[p.tipo]||'#495057')+'">'+p.tipo+'</span></span>'
+          +'<span style="font-weight:500">'+f2(p.monto)+'</span></div>';
+      });
+      html+='</div>';
+    });
+    // 3. Comprobantes
+    html+='<div class="sec">3. Comprobantes de pago</div>';
+    Object.keys(empleados).forEach(function(emp){
+      var ps=empleados[emp];
+      var tot=ps.reduce(function(s,p){return s+(p.monto||0);},0);
+      html+='<div class="liq-block">'
+        +'<div class="liq-hdr"><span style="font-size:13px;font-weight:500;color:#087a55">'+emp+'</span><span style="font-size:11px;color:#087a55">'+MS[mes-1]+' '+a+'</span></div>';
+      ps.forEach(function(p){
+        html+='<div class="liq-row"><span>'+p.tipo+' ('+fd(p.fecha)+')'+(p.observacion?' — '+p.observacion:'')+'</span><span style="font-weight:500">'+f2(p.monto)+'</span></div>';
+      });
+      html+='<div class="liq-tot"><span>Total recibido</span><span>'+f2(tot)+'</span></div></div>';
+    });
+    html+='<div class="footer">AdminF&aacute;cil &middot; Reporte generado autom&aacute;ticamente</div></div></body></html>';
+    var win=window.open('','_blank');
+    if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
+  }catch(ex){alert('Error al generar reporte: '+ex.message);}
+}
+
+
+// ── Resumen personal en pantalla ──
+async function mostrarResumenPersonal(){
+  var sel=document.getElementById('pers-rep-mes');
+  var panel=document.getElementById('dp-personal-resumen');
+  if(!panel)return;
+  // Toggle
+  if(panel.style.display!=='none'){panel.style.display='none';return;}
+  panel.style.display='block';
+  panel.innerHTML='<div class="ld">Cargando...</div>';
+  var parts=(sel?sel.value:hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')).split('-');
+  var mes=parseInt(parts[1]),a=parseInt(parts[0]);
+  var d=a+'-'+String(mes).padStart(2,'0')+'-01';
+  var mf=mes===12?1:mes+1,af=mes===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=empleado.asc,fecha.asc',{headers:H()});
+    var pagos=await r.json();
+    if(!pagos||!pagos.length){panel.innerHTML='<div class="empty">Sin pagos en '+MS[mes-1]+' '+a+'</div>';return;}
+    var empleados={};var total=0;
+    pagos.forEach(function(p){if(!empleados[p.empleado])empleados[p.empleado]=[];empleados[p.empleado].push(p);total+=(p.monto||0);});
+    var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Otro:'otro'};
+    var h='<div style="background:#0d9e6e;border-radius:8px 8px 0 0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">'
+      +'<span style="font-size:14px;font-weight:500;color:white">Resumen personal — '+MS[mes-1]+' '+a+'</span>'
+      +'<span style="font-size:11px;color:rgba(255,255,255,.8)">'+Object.keys(empleados).length+' empleados · '+pagos.length+' pagos</span>'
+      +'</div>'
+      +'<div style="border:1px solid #c1c7cd;border-top:none;border-radius:0 0 8px 8px;padding:14px 16px">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
+      +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Empleados</div><div style="font-size:15px;font-weight:500">'+Object.keys(empleados).length+'</div></div>'
+      +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Pagos</div><div style="font-size:15px;font-weight:500">'+pagos.length+'</div></div>'
+      +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Total pagado</div><div style="font-size:15px;font-weight:500;color:#087a55">'+fmt(total)+'</div></div>'
+      +'</div>';
+    Object.keys(empleados).forEach(function(emp){
+      var ps=empleados[emp];
+      var tot=ps.reduce(function(s,p){return s+(p.monto||0);},0);
+      h+='<div style="border:1px solid #c1c7cd;border-radius:6px;overflow:hidden;margin-bottom:8px">'
+        +'<div style="background:#f8f9fa;border-bottom:1px solid #c1c7cd;padding:8px 12px;display:flex;justify-content:space-between">'
+        +'<span style="font-size:12px;font-weight:500;color:#212529">'+emp+'</span>'
+        +'<span style="font-size:12px;font-weight:500;color:#087a55">'+fmt(tot)+'</span></div>';
+      ps.forEach(function(p){
+        var fd=new Date(p.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f3f5;font-size:12px">'
+          +'<div><span style="color:#adb5bd">'+fd+' · </span><span class="bdg '+(tm[p.tipo]||'otro')+'">'+p.tipo+'</span>'+(p.observacion?'<span style="color:#adb5bd;margin-left:6px">'+p.observacion+'</span>':'')+'</div>'
+          +'<span style="font-weight:500">'+fmt(p.monto)+'</span></div>';
+      });
+      h+='</div>';
+    });
+    h+='</div>';
+    panel.innerHTML=h;
+  }catch(ex){panel.innerHTML='<div class="empty">Error: '+ex.message+'</div>';}
+}
+
+// ── PDF comprobante individual ──
+function generarPDFPers(r){
+  var f2=function(n){return '$'+Math.round(n||0).toLocaleString('es-CL');};
+  var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var mes=new Date(r.fecha+'T12:00:00');
+  var periodo=MS[mes.getMonth()]+' '+mes.getFullYear();
+  var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Otro':'#f4f5f6'};
+  var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Otro':'#495057'};
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante '+r.empleado+'</title>'
+    +'<style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:500px}'
+    +'.hdr{background:#0d9e6e!important;color:white!important;padding:16px 20px;border-radius:6px 6px 0 0}'
+    +'.hdr h1{font-size:15px;margin:0 0 4px;font-weight:500;color:white!important}'
+    +'.hdr p{font-size:11px;margin:0;opacity:.85;color:white!important}'
+    +'.body{border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;padding:16px 20px}'
+    +'.sec{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin:14px 0 7px}'
+    +'.sec:first-child{margin-top:0}'
+    +'.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f3f5;font-size:12px}'
+    +'.row:last-child{border-bottom:none}'
+    +'.bdg{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}'
+    +'.tot{display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid #c1c7cd;font-size:14px;font-weight:500;color:#087a55;margin-top:4px}'
+    +'.footer{text-align:center;font-size:10px;color:#adb5bd;margin-top:14px;padding-top:10px;border-top:1px solid #e9ecef}'
+    +'</style></head><body>'
+    +'<div class="hdr"><h1>Comprobante de pago</h1><p>'+cli.nombre_negocio+' &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
+    +'<div class="body">'
+    +'<div class="sec">Datos del empleado</div>'
+    +'<div class="row"><span style="color:#adb5bd">Nombre</span><span style="font-weight:500">'+r.empleado+'</span></div>'
+    +'<div class="row"><span style="color:#adb5bd">Período</span><span>'+periodo+'</span></div>'
+    +'<div class="row"><span style="color:#adb5bd">Fecha de pago</span><span>'+fd+'</span></div>'
+    +'<div class="sec">Detalle del pago</div>'
+    +'<div class="row"><span style="color:#adb5bd">Tipo de pago</span>'
+    +'<span class="bdg" style="background:'+(tipoBg[r.tipo]||'#f4f5f6')+'!important;color:'+(tipoColor[r.tipo]||'#495057')+'">'+r.tipo+'</span></div>';
+  if(r.observacion){
+    html+='<div class="row"><span style="color:#adb5bd">Observación</span><span style="color:#495057">'+r.observacion+'</span></div>';
+  }
+  html+='<div class="tot"><span>Monto recibido</span><span>'+f2(r.monto)+'</span></div>'
+    +'<div class="footer">AdminF&aacute;cil &middot; Comprobante generado autom&aacute;ticamente</div>'
+    +'</div></body></html>';
+  var win=window.open('','_blank');
+  if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
+}
+
+
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
@@ -1828,7 +2039,7 @@ function dpage(n,el){
   var t={resumen:'Dashboard',balance:'Balance anual',cierres:'Cierres de caja',facturas:'Facturas',personal:'Personal',gastosfijos:'Gastos fijos',creditos:'Créditos',precios:'Precios de compra'};
   document.getElementById('tbt').textContent=t[n]||n;
   if(n==='balance')loadB();
-  if(n==='personal'){loadTD('pagos_personal','dpe',renderPersonalTabla);}
+  if(n==='personal'){loadTD('pagos_personal','dpe',renderPersonalTabla);inicSelectMesPersonal();}
   if(n==='cierres')loadCierresDash();
   if(n==='facturas')loadFacturasDash();
   if(n==='gastosfijos')loadGastosFijosDash();
@@ -1964,7 +2175,7 @@ function renderPersonalTabla(d){
   var h='<div class="ecards">';Object.keys(pe).forEach(function(n){h+='<div class="ecard"><div class="ecard-n">'+n+'</div><div class="ecard-v">'+fmt(pe[n])+'</div></div>';});
   h+='<div class="ecard tot"><div class="ecard-n">Total</div><div class="ecard-v">'+fmt(tT)+'</div></div></div>';
   h+='<div class="tc"><div class="tc-h"><span class="tc-t">Pagos a personal</span><span class="tc-c">'+d.length+'</span></div><table><tr style="background:var(--g50)"><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Fecha</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Empleado</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Tipo</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Monto</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Observación</th><th style="background:var(--g50);border-bottom:1px solid #c1c7cd;padding:8px 1.25rem"></th></tr>';
-  d.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});h+='<tr><td>'+fd+'</td><td style="font-weight:500">'+r.empleado+'</td><td><span class="bdg '+(tm[r.tipo]||'otro')+'">'+r.tipo+'</span></td><td style="font-weight:500">'+fmt(r.monto)+'</td><td style="color:var(--g500)">'+(r.observacion||'—')+'</td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editPers('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarPers(\''+r.id+'\')">🗑️</button></td></tr>';});
+  d.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});h+='<tr><td>'+fd+'</td><td style="font-weight:500">'+r.empleado+'</td><td><span class="bdg '+(tm[r.tipo]||'otro')+'">'+r.tipo+'</span></td><td style="font-weight:500">'+fmt(r.monto)+'</td><td style="color:var(--g500)">'+(r.observacion||'—')+'</td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editPers('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarPers(\''+r.id+'\')">🗑️</button><button class="btn-edit" style="color:#0d9e6e;margin-left:4px" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="generarPDFPers(JSON.parse(decodeURIComponent(this.dataset.rec)))">📄</button></td></tr>';});
   return h+'<tr style="background:var(--g50);font-weight:500;border-top:1px solid #c1c7cd"><td colspan="3" style="padding:9px 1.25rem;font-size:13px">Total</td><td style="padding:9px 1.25rem;font-size:13px">'+fmt(tT)+'</td><td></td><td></td></tr></table></div>';
 }
 
