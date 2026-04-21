@@ -1640,7 +1640,30 @@ async function procesarFoto(input){
     var data=JSON.parse(txt);
     if(data.error)throw new Error(data.error);
     // Limpiar números con puntos de miles (1.400 -> 1400)
-    var limpiarNum=function(n){if(!n&&n!==0)return null;var s=String(n).replace(/\./g,'').replace(/,/g,'.');return parseFloat(s)||null;};
+    // Limpiar números chilenos: punto=miles, coma=decimal
+    var limpiarNum=function(n){
+      if(!n&&n!==0)return null;
+      var s=String(n).trim();
+      // Si tiene coma Y punto: 1.234,56 -> 1234.56
+      if(s.indexOf('.')!==-1&&s.indexOf(',')!==-1){
+        s=s.replace(/\./g,'').replace(',','.');
+      }
+      // Si solo tiene coma: puede ser decimal (33,47) o miles (1,400)
+      else if(s.indexOf(',')!==-1&&s.indexOf('.')===-1){
+        var partes=s.split(',');
+        // Si la parte decimal tiene 1-2 dígitos es decimal, si tiene 3 es miles
+        if(partes[1]&&partes[1].length===3){s=s.replace(',','');}
+        else{s=s.replace(',','.');}
+      }
+      // Si solo tiene punto: puede ser decimal (33.47) o miles (1.400)
+      else if(s.indexOf('.')!==-1&&s.indexOf(',')===-1){
+        var partes2=s.split('.');
+        // Si la parte decimal tiene 3 dígitos exactos es separador de miles
+        if(partes2[partes2.length-1].length===3){s=s.replace(/\./g,'');}
+        // Si tiene 1-2 dígitos es decimal, lo dejamos como está
+      }
+      return parseFloat(s)||null;
+    };
     var camposFaltantes=0;
     if(data.proveedor){document.getElementById('ft-pv').value=data.proveedor;marcarCampo('ft-pv',true);}
     else{marcarCampo('ft-pv',false);camposFaltantes++;}
