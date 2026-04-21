@@ -1182,7 +1182,7 @@ function agregarProductoCel(nombre,cantidad,unidad,precio,warn){
   var precioWarn=warn&&!precio;
   row.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-    +'<span style="font-size:11px;font-weight:500;color:'+(warn?'#e67700':'#0d9e6e')+'">'+( warn?'⚠ Completa los campos en amarillo':'✓ Producto detectado')+'</span>'
+    +'<span style="font-size:11px;font-weight:500;color:'+(warn?'#e67700':'#0d9e6e')+'">'+( warn?'⚠ Completa los campos en amarillo':'✏️ Revisa cantidad y unidad')+'</span>'
     +'<button type="button" onclick="this.closest(&quot;.prod-item-cel&quot;).remove()" style="width:24px;height:24px;border:1px solid #F09595;border-radius:6px;background:white;color:#e03131;font-size:16px;cursor:pointer;line-height:1;padding:0">×</button>'
     +'</div>'
     // Nombre
@@ -1712,9 +1712,13 @@ async function procesarFoto(input){
     }else{
       avisoEl.style.display='none';
     }
-    status.textContent=camposFaltantes>0?'⚠ Revisa los campos en amarillo':'✓ Factura leída — revisa y corrige si es necesario';
-    status.style.background=camposFaltantes>0?'var(--al)':'var(--vl)';
-    status.style.color=camposFaltantes>0?'var(--a)':'var(--vd)';
+    if(camposFaltantes>0){
+      status.innerHTML='⚠ <strong>'+camposFaltantes+' campo'+(camposFaltantes>1?'s':'')+' sin leer</strong> — completa los campos en amarillo antes de guardar';
+      status.style.background='var(--al)';status.style.color='var(--a)';
+    } else {
+      status.innerHTML='✓ Factura leída — <strong>revisa los productos y cantidades antes de guardar</strong>';
+      status.style.background='var(--vl)';status.style.color='var(--vd)';
+    }
   }catch(ex){
     console.error('Error procesarFoto:', ex);
     status.textContent='⚠️ Error: '+ex.message;
