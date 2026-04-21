@@ -726,11 +726,15 @@ async function loadR(){
     // Mes anterior
     var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0),GFp=gp.length>0?(gp[0].total||0):0,Gp=Pp+GFp,Up=Vp-Cp-Gp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
     var diasMes=new Date(a,mesSel,0).getDate(),sinReg=diasMes-c.length;
-    var h='<div class="kgrid"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Personal + fijos</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
-    // ── Alerta margen vs mes anterior ──
+    var nMal=c.filter(function(r){return(r.diferencia||0)!==0;}).length;
+    // ── 1. Fila superior: Utilidad + Alerta margen ──
+    var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">';
+    // Banner utilidad
+    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'"><div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div><div style="text-align:right"><div class="ub-ml">Margen</div><div class="ub-mv">'+M+'%</div></div></div>';
+    // Alerta margen
     if(V>0&&Vp>0){
       var diffM=M-Mp,subio=diffM>=0;
-      h+='<div style="border-radius:8px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:14px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
+      h+='<div style="border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
       h+='<div style="width:42px;height:42px;border-radius:8px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:22px;color:white">'+(subio?'↑':'↓')+'</span></div>';
       h+='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">';
       h+='<div><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:3px">'+MS[mesSel-1]+'</div><div style="font-size:24px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'%</div></div>';
@@ -738,10 +742,14 @@ async function loadR(){
       h+='<div><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:3px">'+MS[mesPrev-1]+'</div><div style="font-size:24px;font-weight:500;color:#adb5bd">'+Mp+'%</div></div>';
       h+='<div style="padding:5px 12px;border-radius:20px;font-size:14px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
       h+='</div></div>';
+    } else {
+      h+='<div style="border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:10px;border:1px solid #c1c7cd;background:#f8f9fa"><span style="font-size:12px;color:#adb5bd">Sin datos del mes anterior para comparar margen</span></div>';
     }
-    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'"><div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div><div style="text-align:right"><div class="ub-ml">Margen</div><div class="ub-mv">'+M+'%</div></div></div>';
-    var nMal=c.filter(function(r){return(r.diferencia||0)!==0;}).length;
-    var al=nMal>0?'<div class="alerta err"><span>⚠️</span><span><strong>'+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</strong></span></div>':'<div class="alerta ok"><span>✓</span><span>Todos los cierres cuadran</span></div>';
+    h+='</div>';
+    // ── 2. KPIs ──
+    h+='<div class="kgrid" style="margin-bottom:1.25rem"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Personal + fijos</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
+    // ── 3. Alertas ──
+    var al=nMal>0?'<div class="alerta err" style="margin-bottom:1.25rem"><span>⚠️</span><span><strong>'+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</strong></span></div>':'<div class="alerta ok" style="margin-bottom:1.25rem"><span>✓</span><span>Todos los cierres cuadran</span></div>';
     if(c.length>0){
       var tZ=0,tDif=0;c.forEach(function(r){tZ+=(r.total_z||0);tDif+=(r.diferencia||0);});
       // Generar pills de semanas del mes seleccionado
@@ -789,9 +797,10 @@ async function loadR(){
         +'</div>';
     }
     window._rdbData=c;
-    // Inyectar bloque créditos
+    // ── 4. Créditos ──
     var credBlock=await loadCreditosDashBloque(mesSel,anioSel);
-    if(credBlock)h=credBlock+h;
+    if(credBlock)h+=credBlock;
+    // ── 5. Tabla cierres ya incluida en h ──
     el.innerHTML=h;
   }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
@@ -965,16 +974,13 @@ async function loadDashCelResumen(mesParam,anioParam){
     var h='<select id="dash-mes-sel" style="width:100%;height:34px;background:white;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;color:#212529;margin-bottom:9px;font-family:inherit" onchange="dashCelCambiarMes(this.value)">';
     for(var mi=1;mi<=12;mi++){var selVal=a+'-'+String(mi).padStart(2,'0');h+='<option value="'+selVal+'"'+(mi===mes?' selected':'')+'>'+MS[mi-1]+' '+a+'</option>';}
     h+='</select>';
-    h+=nMal>0
-      ?'<div style="border-radius:8px;padding:7px 10px;font-size:11px;margin-bottom:9px;border:1px solid #F09595;background:#FCEBEB;color:#791F1F">⚠ '+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</div>'
-      :'<div style="border-radius:8px;padding:7px 10px;font-size:11px;margin-bottom:9px;border:1px solid #9FE1CB;background:#e8f7f2;color:#087a55">✓ Todos los cierres cuadran</div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">';
-    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#0d9e6e"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Ventas</div><div style="font-size:15px;font-weight:500;color:#087a55">'+fmtK(V)+'</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">'+c.length+' días reg.</div></div>';
-    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#e03131"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Compras</div><div style="font-size:15px;font-weight:500;color:#c0392b">'+fmtK(C)+'</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">'+f.length+' facturas</div></div>';
-    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#e67700"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Gastos</div><div style="font-size:15px;font-weight:500;color:#b45309">'+fmtK(G)+'</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">Personal + fijos</div></div>';
-    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#1971c2"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Sin registrar</div><div style="font-size:15px;font-weight:500;color:#1971c2">'+sinReg+' días</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">de '+diasMes+' días</div></div>';
+    // ── 1. Utilidad neta ──
+    h+='<div style="background:#0d9e6e;border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center">';
+    h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Utilidad neta — '+MS[mes-1]+'</div>';
+    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
+    h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div><div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div></div>';
     h+='</div>';
-    // Alerta margen vs mes anterior
+    // ── 2. Alerta margen ──
     if(V>0&&Vp>0){
       var diffM=M-Mp,subio=diffM>=0;
       h+='<div style="border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;align-items:center;gap:10px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
@@ -986,11 +992,17 @@ async function loadDashCelResumen(mesParam,anioParam){
       h+='<div style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
       h+='</div></div>';
     }
-    h+='<div style="background:#0d9e6e;border-radius:8px;padding:10px 12px">';
-    h+='<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Utilidad neta — '+MS[mes-1]+'</div>';
-    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div>';
-    h+='<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:1px">Margen '+(M>0?'+':'')+M+'%</div>';
+    // ── 3. KPIs ──
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">';
+    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#0d9e6e"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Ventas</div><div style="font-size:15px;font-weight:500;color:#087a55">'+fmtK(V)+'</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">'+c.length+' días reg.</div></div>';
+    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#e03131"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Compras</div><div style="font-size:15px;font-weight:500;color:#c0392b">'+fmtK(C)+'</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">'+f.length+' facturas</div></div>';
+    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#e67700"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Gastos</div><div style="font-size:15px;font-weight:500;color:#b45309">'+fmtK(G)+'</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">Personal + fijos</div></div>';
+    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:8px 10px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#1971c2"></div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">Sin registrar</div><div style="font-size:15px;font-weight:500;color:#1971c2">'+sinReg+' días</div><div style="font-size:10px;color:#adb5bd;margin-top:1px">de '+diasMes+' días</div></div>';
     h+='</div>';
+    // ── 4. Alerta cierres ──
+    h+=nMal>0
+      ?'<div style="border-radius:8px;padding:7px 10px;font-size:11px;margin-bottom:9px;border:1px solid #F09595;background:#FCEBEB;color:#791F1F">⚠ '+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</div>'
+      :'<div style="border-radius:8px;padding:7px 10px;font-size:11px;margin-bottom:9px;border:1px solid #9FE1CB;background:#e8f7f2;color:#087a55">✓ Todos los cierres cuadran</div>';
     el.innerHTML=h;
   }catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
 }
