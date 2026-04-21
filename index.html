@@ -2619,19 +2619,31 @@ async function loadCreditosDashBloque(mesS,anioS){
     var totalCuotas=d.reduce(function(s,c){return s+c.cuota_mensual;},0);
     var totalDeuda=d.reduce(function(s,c){return s+Math.max((c.monto_total||0)-((c.cuotas_pagadas||0)*(c.cuota_mensual||0)),0);},0);
     var pendientes=d.filter(function(c){return !pagos.find(function(p){return p.credito_id===c.id&&p.pagado;});});
-    var h='<div class="tc" style="margin-bottom:1.25rem"><div class="tc-h"><span class="tc-t">Créditos activos</span>';
-    if(pendientes.length>0)h+='<span style="background:var(--al);color:var(--a);font-size:11px;font-weight:500;padding:2px 10px;border-radius:10px">'+pendientes.length+' pendiente'+(pendientes.length>1?'s':'')+'</span>';
-    else h+='<span style="background:var(--vl);color:var(--vd);font-size:11px;font-weight:500;padding:2px 10px;border-radius:10px">Al día</span>';
+    var h='<div style="border:1px solid #1971c2;border-radius:8px;overflow:hidden;margin-bottom:1.25rem">';
+    // Header azul
+    h+='<div style="background:#e8f0fb;border-bottom:1px solid #B5D4F4;padding:10px 1.25rem;display:flex;justify-content:space-between;align-items:center">';
+    h+='<span style="font-size:13px;font-weight:500;color:#0C447C">Créditos activos</span>';
+    if(pendientes.length>0)h+='<span style="background:#1971c2;color:white;font-size:11px;font-weight:500;padding:2px 10px;border-radius:10px">'+pendientes.length+' pendiente'+(pendientes.length>1?'s':'')+'</span>';
+    else h+='<span style="background:#e8f7f2;color:var(--vd);font-size:11px;font-weight:500;padding:2px 10px;border-radius:10px;border:1px solid #9FE1CB">✓ Al día</span>';
     h+='</div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #c1c7cd">';
-    h+='<div style="padding:.85rem 1.25rem;border-right:1px solid var(--g100)"><div style="font-size:11px;color:var(--g500)">Cuotas '+MS[mesS-1]+'</div><div style="font-size:18px;font-weight:500;color:var(--r)">'+fmtDeuda(totalCuotas)+'</div></div>';
-    h+='<div style="padding:.85rem 1.25rem"><div style="font-size:11px;color:var(--g500)">Deuda total viva</div><div style="font-size:18px;font-weight:500;color:var(--g900)">'+fmtDeuda(totalDeuda)+'</div></div>';
+    // KPIs cuotas y deuda
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;background:white;border-bottom:1px solid #e9ecef">';
+    h+='<div style="padding:.85rem 1.25rem;border-right:1px solid #e9ecef"><div style="font-size:11px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Cuotas '+MS[mesS-1]+'</div><div style="font-size:18px;font-weight:500;color:#1971c2">'+fmtDeuda(totalCuotas)+'</div></div>';
+    h+='<div style="padding:.85rem 1.25rem"><div style="font-size:11px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Deuda total</div><div style="font-size:18px;font-weight:500;color:#212529">'+fmtDeuda(totalDeuda)+'</div></div>';
     h+='</div>';
+    // Filas por crédito
     d.forEach(function(c){
       var pag=pagos.find(function(p){return p.credito_id===c.id&&p.pagado;});
-      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;border-bottom:1px solid #dee2e6">';
-      h+='<div><div style="font-size:13px;font-weight:500">'+c.nombre+'</div><div style="font-size:11px;color:var(--g500)">'+fmtDeuda(c.cuota_mensual)+' / mes</div></div>';
-      h+='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;background:'+(pag?'var(--vl)':'var(--al)')+';color:'+(pag?'var(--vd)':'var(--a)')+'">'+( pag?'✓ Pagado':'Pendiente')+'</span>';
+      var pct=c.total_cuotas>0?Math.round((c.cuotas_pagadas/c.total_cuotas)*100):0;
+      var barColor=pct>=66?'var(--v)':pct>=33?'var(--a)':'var(--r)';
+      h+='<div style="padding:10px 1.25rem;border-bottom:1px solid #e9ecef;background:white">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+      h+='<div><div style="font-size:13px;font-weight:500;color:#212529">'+c.nombre+'</div>';
+      h+='<div style="font-size:11px;color:#adb5bd">'+fmtDeuda(c.cuota_mensual)+'/mes · '+(c.banco||'')+'</div></div>';
+      h+='<span style="font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:'+(pag?'#e8f7f2':'#FAEEDA')+';color:'+(pag?'#087a55':'#b45309')+'">'+( pag?'✓ Pagado':'⏳ Pendiente')+'</span>';
+      h+='</div>';
+      h+='<div style="background:#e9ecef;border-radius:4px;height:5px"><div style="background:'+barColor+';border-radius:4px;height:5px;width:'+pct+'%"></div></div>';
+      h+='<div style="font-size:10px;color:#adb5bd;margin-top:2px">'+pct+'% pagado · '+c.cuotas_pagadas+'/'+c.total_cuotas+' cuotas</div>';
       h+='</div>';
     });
     h+='</div>';
