@@ -1255,30 +1255,31 @@ async function loadPreciosDash(){
       +'<input id="precio-search" type="text" placeholder="Buscar producto..." oninput="filtrarPrecios()" style="height:34px;border:1px solid #c1c7cd;border-radius:8px;padding:0 12px;font-size:13px;width:200px;font-family:inherit">'
       +'<span style="font-size:12px;color:var(--g500)">'+productos.length+' productos</span>'
       +'</div>';
-    h+='<div class="tc" id="precios-tabla"><div style="display:grid;grid-template-columns:1fr 110px 110px 100px 100px;gap:8px;padding:8px 16px;background:var(--g50);border-bottom:1px solid #c1c7cd">';
-    h+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)">Producto / Proveedor</div>';
-    h+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);text-align:right">Precio actual</div>';
-    h+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);text-align:right">Compra anterior</div>';
-    h+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);text-align:right">Variación</div>';
-    h+='<div></div></div>';
+    h+='<div class="tc" id="precios-tabla">';
+    h+='<table><tr style="background:var(--g50)">';
+    h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;text-align:left">Producto / Proveedor</th>';
+    h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;text-align:right">Precio actual</th>';
+    h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;text-align:right">Compra anterior</th>';
+    h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;text-align:right">Variación</th>';
+    h+='<th style="padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;background:var(--g50)"></th></tr>';
     productos.forEach(function(p){
-      var subio=p.varPct>0,bajo=p.varPct<0,igual=p.varPct===0;
-      var borderColor=subio?'#e03131':bajo?'#0d9e6e':'#c1c7cd';
-      var bg=subio?'#fffbfb':bajo?'#fafffe':'white';
+      var subio=p.varPct>0,bajo=p.varPct<0;
+      var bl=subio?'border-left:4px solid #e03131':bajo?'border-left:4px solid #0d9e6e':'border-left:4px solid #c1c7cd';
+      var bg=subio?'background:#fffbfb;':bajo?'background:#fafffe;':'';
       var precioColor=subio?'#c0392b':bajo?'#087a55':'#212529';
       var badgeBg=subio?'#FCEBEB':bajo?'#e8f7f2':'#f4f5f6';
       var badgeColor=subio?'#c0392b':bajo?'#087a55':'#adb5bd';
       var badgeTxt=p.varPct!==null?(subio?'↑ +':'↓ ')+p.varPct+'%':'— Sin datos';
       var unidad=p.unidad?'/'+p.unidad:'';
-      h+='<div style="display:grid;grid-template-columns:1fr 110px 110px 100px 100px;gap:8px;padding:9px 16px;border-bottom:1px solid #e9ecef;border-left:4px solid '+borderColor+';background:'+bg+'" class="precio-row">';
-      h+='<div><div style="font-size:13px;font-weight:500;color:#212529">'+p.nombre+'</div><div style="font-size:11px;color:var(--g500);margin-top:2px">'+(p.proveedor||'Sin proveedor')+' · '+(p.unidad||'unidad')+'</div></div>';
-      h+='<div style="text-align:right;font-size:14px;font-weight:500;color:'+precioColor+'">'+fmt(p.precioAct||0)+(unidad?'<span style="font-size:11px;color:var(--g500)">'+unidad+'</span>':'')+'</div>';
-      h+='<div style="text-align:right;font-size:13px;color:var(--g500)'+(p.precioAnt?';text-decoration:line-through':'')+'">'+( p.precioAnt?fmt(p.precioAnt):'—')+'</div>';
-      h+='<div style="text-align:right"><span style="font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeTxt+'</span></div>';
-      h+='<div><button onclick="verHistorialPrecio(\''+encodeURIComponent(p.nombre)+'\''+',\''+encodeURIComponent(p.proveedor||'')+'\',this)" style="font-size:11px;color:#1971c2;border:1px solid #B5D4F4;border-radius:6px;padding:3px 8px;background:#e8f0fb;cursor:pointer;font-weight:500">Ver historial</button></div>';
-      h+='</div>';
+      h+='<tr class="precio-row" style="border-bottom:1px solid #e9ecef;'+bl+';'+bg+'">';
+      h+='<td style="padding:9px 1.25rem"><div style="font-size:13px;font-weight:500;color:#212529">'+p.nombre+'</div><div style="font-size:11px;color:var(--g500);margin-top:2px">'+(p.proveedor||'Sin proveedor')+' · '+(p.unidad||'unidad')+'</div></td>';
+      h+='<td style="padding:9px 1.25rem;text-align:right;font-size:14px;font-weight:500;color:'+precioColor+'">'+fmt(p.precioAct||0)+(unidad?'<span style="font-size:11px;color:var(--g500)">'+unidad+'</span>':'')+'</td>';
+      h+='<td style="padding:9px 1.25rem;text-align:right;font-size:13px;color:var(--g500);'+(p.precioAnt?'text-decoration:line-through':'')+'">'+( p.precioAnt?fmt(p.precioAnt):'—')+'</td>';
+      h+='<td style="padding:9px 1.25rem;text-align:right"><span style="font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeTxt+'</span></td>';
+      h+='<td style="padding:9px 1.25rem;white-space:nowrap"><button data-n="'+encodeURIComponent(p.nombre)+'" data-p="'+encodeURIComponent(p.proveedor||'')+'" onclick="verHistorialPrecio(decodeURIComponent(this.dataset.n),decodeURIComponent(this.dataset.p),this)" style="font-size:11px;color:#1971c2;border:1px solid #B5D4F4;border-radius:6px;padding:3px 8px;background:#e8f0fb;cursor:pointer;font-weight:500">Ver historial</button></td>';
+      h+='</tr>';
     });
-    h+='</div>';
+    h+='</table></div>';
     window._preciosData=productos;
     el.innerHTML=h;
   }catch(ex){el.innerHTML='<div class="empty">Error: '+ex.message+'</div>';}
