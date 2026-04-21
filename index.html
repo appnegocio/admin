@@ -1639,22 +1639,26 @@ async function procesarFoto(input){
     console.log('Respuesta texto:', txt);
     var data=JSON.parse(txt);
     if(data.error)throw new Error(data.error);
+    // Limpiar números con puntos de miles (1.400 -> 1400)
+    var limpiarNum=function(n){if(!n&&n!==0)return null;var s=String(n).replace(/\./g,'').replace(/,/g,'.');return parseFloat(s)||null;};
     var camposFaltantes=0;
     if(data.proveedor){document.getElementById('ft-pv').value=data.proveedor;marcarCampo('ft-pv',true);}
     else{marcarCampo('ft-pv',false);camposFaltantes++;}
     if(data.numero_factura){document.getElementById('ft-nm').value=data.numero_factura;marcarCampo('ft-nm',true);}
     else{marcarCampo('ft-nm',false);camposFaltantes++;}
-    if(data.monto_neto){document.getElementById('ft-ne').value=data.monto_neto;marcarCampo('ft-ne',true);}
-    if(data.iva){document.getElementById('ft-iv').value=data.iva;marcarCampo('ft-iv',true);}
-    if(data.impuesto){document.getElementById('ft-im').value=data.impuesto;}
-    if(data.total){document.getElementById('ft-to').value=data.total;marcarCampo('ft-to',true);}
+    if(data.monto_neto){document.getElementById('ft-ne').value=limpiarNum(data.monto_neto);marcarCampo('ft-ne',true);}
+    if(data.iva){document.getElementById('ft-iv').value=limpiarNum(data.iva);marcarCampo('ft-iv',true);}
+    if(data.impuesto){document.getElementById('ft-im').value=limpiarNum(data.impuesto);}
+    if(data.total){document.getElementById('ft-to').value=limpiarNum(data.total);marcarCampo('ft-to',true);}
     else{marcarCampo('ft-to',false);camposFaltantes++;}
     // Cargar productos si los detectó
     if(data.productos&&data.productos.length){
       document.getElementById('ft-productos-lista').innerHTML='';
       data.productos.forEach(function(p){
-        agregarProductoCel(p.nombre||'',p.cantidad||'',p.unidad||'',p.precio_unitario||'',!p.nombre||!p.precio_unitario);
-        if(!p.nombre||!p.precio_unitario)camposFaltantes++;
+        var precioLimpio=limpiarNum(p.precio_unitario);
+        var cantLimpia=limpiarNum(p.cantidad);
+        agregarProductoCel(p.nombre||'',cantLimpia||'',p.unidad||'',precioLimpio||'',!p.nombre||!precioLimpio);
+        if(!p.nombre||!precioLimpio)camposFaltantes++;
       });
     }
     // Mostrar aviso si hay campos faltantes
