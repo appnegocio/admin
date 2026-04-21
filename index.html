@@ -797,10 +797,15 @@ async function loadR(){
         +'</div>';
     }
     window._rdbData=c;
-    // ── 4. Créditos ──
+    // ── 4. Créditos — insertar antes de la tabla de cierres ──
     var credBlock=await loadCreditosDashBloque(mesSel,anioSel);
-    if(credBlock)h+=credBlock;
-    // ── 5. Tabla cierres ya incluida en h ──
+    if(credBlock){
+      // Insertar antes del bloque de cierres (antes de la alerta + tc)
+      var idxCierres=h.indexOf(al+'<div class="tc">');
+      if(idxCierres===-1)idxCierres=h.lastIndexOf('<div class="tc">');
+      if(idxCierres>-1){h=h.substring(0,idxCierres)+credBlock+'<div style="margin-bottom:1.25rem"></div>'+h.substring(idxCierres);}
+      else h+=credBlock;
+    }
     el.innerHTML=h;
   }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
