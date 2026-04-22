@@ -199,6 +199,8 @@ tr:hover td{background:var(--g50)}
 .btn-edit:hover{background:var(--azl);border-color:var(--az)}
 .btn-del{background:none;border:var(--border);border-radius:var(--rad);padding:3px 8px;cursor:pointer;font-size:12px;color:var(--r)}
 .btn-del:hover{background:var(--rl);border-color:var(--r)}
+.btn-pdf{background:none;border:1px solid #9FE1CB;border-radius:var(--rad);padding:3px 8px;cursor:pointer;font-size:12px;color:#0d9e6e;margin-left:4px}
+.btn-pdf:hover{background:var(--vl)}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:1rem}
 .modal-bg.vis{display:flex}
 .modal{background:white;border-radius:var(--radlg);padding:1.5rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;border:1px solid #c1c7cd}
@@ -2416,7 +2418,7 @@ function renderPersonalTabla(d){
     h+='<table><tr style="background:var(--g50)"><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Fecha</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Tipo</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Monto</th><th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Observacion</th><th style="background:var(--g50);border-bottom:1px solid #c1c7cd;padding:8px 1.25rem"></th></tr>';
     pagos.forEach(function(r){
       var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});
-      h+='<tr><td>'+fd+'</td><td><span class="bdg '+(tm[r.tipo]||'otro')+'">'+r.tipo+'</span></td><td style="font-weight:500">'+fmt(r.monto)+'</td><td style="color:var(--g500)">'+(r.observacion||'&#8212;')+'</td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editPers('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarPers(\''+r.id+'\')">🗑️</button></td></tr>';
+      h+='<tr><td>'+fd+'</td><td><span class="bdg '+(tm[r.tipo]||'otro')+'">'+r.tipo+'</span></td><td style="font-weight:500">'+fmt(r.monto)+'</td><td style="color:var(--g500)">'+(r.observacion||'—')+'</td><td style="white-space:nowrap"><button class="btn-edit" onclick=\'editPers('+JSON.stringify(r)+')\'>✏️</button><button class="btn-del" onclick="eliminarPers(\''+r.id+'\')">🗑️</button></td></tr>';
     });
     h+='</table></div>';
   });
@@ -2457,7 +2459,7 @@ async function loadCierresDash(){
         h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.total_z)+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.retiros)+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:500;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td>';
-        h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button><button class="btn-edit" style="color:#0d9e6e;border-color:#9FE1CB;margin-left:4px" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="generarPDFCierre(JSON.parse(decodeURIComponent(this.dataset.rec)))">📄 PDF</button></td>';
+        h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button><button class="btn-pdf" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="generarPDFCierre(JSON.parse(decodeURIComponent(this.dataset.rec)))">📄 PDF</button></td>';
         h+='</tr>';
       });
       h+='</table></div></div>';
