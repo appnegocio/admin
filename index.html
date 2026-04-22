@@ -1576,6 +1576,63 @@ function swFactTab(tab){
 }
 
 
+async function loadCreditosCel(){
+  var el=document.getElementById('cred-lista-cel');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var mes=hoy.getMonth()+1,a=hoy.getFullYear();
+    var d=a+'-'+String(mes).padStart(2,'0')+'-01';
+    var mf=mes===12?1:mes+1,af=mes===12?a+1:a;
+    var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+    var [rC,rP]=await Promise.all([
+      fetch(SU+'/rest/v1/creditos?select=*&cliente_id=eq.'+cli.id+'&activo=eq.true&order=created_at.asc',{headers:H()}),
+      fetch(SU+'/rest/v1/pagos_creditos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()})
+    ]);
+    var creds=await rC.json(),pagos=await rP.json();
+    if(!creds||!creds.length){el.innerHTML='<div class="empty">No hay créditos activos registrados</div>';return;}
+    var h='';
+    creds.forEach(function(c){
+      var pag=pagos.find(function(p){return p.credito_id===c.id&&p.pagado;});
+      var pct=c.total_cuotas>0?Math.round((c.cuotas_pagadas/c.total_cuotas)*100):0;
+      var barColor=pct>=66?'#0d9e6e':pct>=33?'#e67700':'#e03131';
+      var deudaRestante=Math.max((c.monto_total||0)-((c.cuotas_pagadas||0)*(c.cuota_mensual||0)),0);
+      h+='<div style="background:white;border:1px solid #1971c2;border-radius:8px;overflow:hidden;margin-bottom:10px">';
+      // Header azul
+      h+='<div style="background:#e8f0fb;border-bottom:1px solid #B5D4F4;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">';
+      h+='<div><div style="font-size:13px;font-weight:500;color:#0C447C">'+c.nombre+'</div>';
+      h+='<div style="font-size:11px;color:#adb5bd">'+(c.banco||'')+' · '+fmt(c.cuota_mensual)+'/mes</div></div>';
+      h+='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:'+(pag?'#e8f7f2':'#FAEEDA')+';color:'+(pag?'#087a55':'#b45309')+'">'+(pag?'✓ Pagado':'⏳ Pendiente')+'</span>';
+      h+='</div>';
+      // Barra progreso
+      h+='<div style="padding:10px 12px">';
+      h+='<div style="background:#e9ecef;border-radius:4px;height:6px;margin-bottom:4px"><div style="background:'+barColor+';border-radius:4px;height:6px;width:'+pct+'%"></div></div>';
+      h+='<div style="display:flex;justify-content:space-between;font-size:11px;color:#adb5bd"><span>'+pct+'% pagado · '+c.cuotas_pagadas+'/'+(c.total_cuotas||'?')+' cuotas</span><span>Restante: '+fmt(deudaRestante)+'</span></div>';
+      h+='</div>';
+      // Botón registrar pago
+      if(!pag){
+        h+='<div style="padding:0 12px 10px">';
+        h+='<button data-id="'+c.id+'" data-monto="'+c.cuota_mensual+'" onclick="registrarPagoCreditoCel(this.dataset.id,this.dataset.monto)" style="width:100%;height:36px;border:none;border-radius:8px;background:#1971c2;color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago de '+fmt(c.cuota_mensual)+'</button>';
+        h+='</div>';
+      }
+      h+='</div>';
+    });
+    el.innerHTML=h;
+  }catch(ex){el.innerHTML='<div class="empty">Error: '+ex.message+'</div>';}
+}
+
+async function registrarPagoCreditoCel(creditoId,monto){
+  if(!confirm('¿Registrar pago de '+fmt(parseFloat(monto))+'?'))return;
+  try{
+    var mes=hoy.getMonth()+1,a=hoy.getFullYear();
+    var r=await fetch(SU+'/rest/v1/pagos_creditos',{method:'POST',headers:HJ(),body:JSON.stringify({credito_id:creditoId,cliente_id:cli.id,monto:parseFloat(monto),mes:mes,anio:a,pagado:true,fecha:hoy.toISOString().substring(0,10)})});
+    if(r.ok){
+      await fetch(SU+'/rest/v1/creditos?id=eq.'+creditoId+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({cuotas_pagadas:undefined})});
+      loadCreditosCel();
+    }else throw new Error(await r.text());
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
