@@ -1635,6 +1635,29 @@ async function registrarPagoCreditoCel(creditoId,monto){
 }
 
 
+async function toggleFactProds(elId, factId){
+  var el=document.getElementById(elId);
+  if(!el)return;
+  if(el.style.display==='block'){el.style.display='none';return;}
+  el.style.display='block';
+  if(el.dataset.loaded)return;
+  try{
+    var r=await fetch(SU+'/rest/v1/productos_factura?select=*&factura_id=eq.'+factId+'&orden=created_at.asc',{headers:H()});
+    var prods=await r.json();
+    if(!prods||!prods.length){el.innerHTML='<span style="font-size:11px;color:#adb5bd">Sin productos registrados</span>';el.dataset.loaded='1';return;}
+    var h='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:5px">Productos</div>';
+    prods.forEach(function(p){
+      h+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e9ecef;font-size:12px">';
+      h+='<span style="color:#212529">'+p.nombre+(p.cantidad?' · '+p.cantidad+(p.unidad?' '+p.unidad:''):'')+'</span>';
+      h+='<span style="font-weight:500;color:#e03131">'+(p.precio_unitario?fmt(p.precio_unitario)+'/'+(p.unidad||'u'):'—')+'</span>';
+      h+='</div>';
+    });
+    el.innerHTML=h;
+    el.dataset.loaded='1';
+  }catch(ex){el.innerHTML='<span style="font-size:11px;color:#adb5bd">Error al cargar</span>';}
+}
+
+
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
@@ -1999,14 +2022,20 @@ function renderFactHist(d){
     meses[k].forEach(function(r,i){
       var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
       var last=i===meses[k].length-1;
-      h+='<div style="padding:10px 12px;'+(last?'':'border-bottom:1px solid #c1c7cd;')+'">';
+      var fid='fprod-'+r.id;
+      h+='<div style="'+(last?'':'border-bottom:1px solid #c1c7cd;')+'">';
+      h+='<div data-fid="'+fid+'" data-rid="'+r.id+'" onclick="toggleFactProds(this.dataset.fid,this.dataset.rid)" style="padding:10px 12px;cursor:pointer">';
       h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">';
       h+='<span style="font-size:13px;font-weight:500;color:var(--g900)">'+r.proveedor+'</span>';
       h+='<span style="font-size:13px;font-weight:500;color:var(--r)">'+fmt(r.total)+'</span></div>';
       h+='<div style="display:flex;justify-content:space-between;align-items:center">';
       h+='<span style="font-size:11px;color:var(--g500)">'+fd+' · N°'+(r.numero_factura||'—')+'</span>';
+      h+='<div style="display:flex;align-items:center;gap:6px">';
       h+='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:'+(r.pagado?'var(--vl)':'var(--al)')+';color:'+(r.pagado?'var(--vd)':'var(--a)')+'">'+(r.pagado?'✅ Pagado':'⏳ Pendiente')+'</span>';
-      h+='</div></div>';
+      h+='<span style="font-size:11px;color:var(--g500)">▼</span>';
+      h+='</div></div></div>';
+      h+='<div id="'+fid+'" style="display:none;background:#f8f9fa;border-top:1px solid #e9ecef;padding:8px 12px"><div class="ld" style="font-size:11px">Cargando productos...</div></div>';
+      h+='</div>';
     });
     h+='</div></div>';
   });
