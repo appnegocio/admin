@@ -2165,6 +2165,13 @@ async function cambiarPassword(){
 }
 
 
+function toggleOtrosDetalle(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'':'none';
+}
+
+
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
@@ -2904,10 +2911,18 @@ async function loadGastosFijosDash(){
       var tdFinal=lastRow?'font-size:13px;color:var(--g900);padding:10px 14px':'font-size:13px;color:var(--g900);padding:10px 14px;border-bottom:1px solid #c1c7cd';
       h+='<tr style="'+rowBg+'">';
       h+='<td style="'+tdFinal+';font-weight:600;color:'+(ea?'var(--vd)':'var(--g900)')+(ea?';border-left:4px solid #0d9e6e':';border-left:4px solid transparent')+'">'+MS[r.mes-1]+' '+r.anio+'</td>';
-      [r.previred,r.sueldos,r.arriendo,r.luz,r.credito,r.iva,r.contabilidad,r.otros].forEach(function(v){
+      [r.previred,r.sueldos,r.arriendo,r.luz,r.credito,r.iva,r.contabilidad].forEach(function(v){
         h+='<td style="'+tdFinal+';color:'+(ea?'#087a55':'var(--g900)')+'">'+fmt(v)+'</td>';
       });
+      // Otros con tooltip si tiene desglose
+      var otrosDetalle=r.otros_detalle&&r.otros_detalle.length?r.otros_detalle.map(function(g){return g.desc+': '+fmt(g.monto);}).join('&#10;'):'';
+      h+='<td style="'+tdFinal+';color:'+(ea?'#087a55':'var(--g900)')+(otrosDetalle?';cursor:help;text-decoration:underline dotted;text-underline-offset:3px':'')+'"'+(otrosDetalle?' title="'+otrosDetalle+'"':'')+'>'+fmt(r.otros||0)+'</td>';
       h+='<td style="'+tdFinal+';font-weight:600;color:'+(ea?'#087a55':'var(--g900)')+'">'+fmt(r.total)+'</td>';
+      // Celda Otros con tooltip si hay desglose
+      var otrosTooltip='';
+      if(r.otros_detalle&&r.otros_detalle.length){
+        otrosTooltip=r.otros_detalle.map(function(g){return g.desc+': '+fmt(g.monto);}).join('&#10;');
+      }
       h+='<td style="'+tdFinal+';white-space:nowrap">'
         +'<button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editGF(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button>'
         +'<button class="btn-del" data-id="'+r.id+'" onclick="eliminarGF(this.dataset.id)">🗑️</button>'
