@@ -483,6 +483,9 @@ tr:hover td{background:var(--g50)}
               <button onclick="mostrarResumenPersonal()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
                 📊 Resumen del mes
               </button>
+              <button onclick="generarPDFPersonalCompleto()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
+                📄 PDF contador
+              </button>
             </div>
           </div>
           <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
@@ -1655,6 +1658,87 @@ async function toggleFactProds(elId, factId){
     el.innerHTML=h;
     el.dataset.loaded='1';
   }catch(ex){el.innerHTML='<span style="font-size:11px;color:#adb5bd">Error al cargar</span>';}
+}
+
+
+async function generarPDFPersonalCompleto(){
+  var sel=document.getElementById('pers-rep-mes');
+  var parts=(sel?sel.value:hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')).split('-');
+  var mes=parseInt(parts[1]),a=parseInt(parts[0]);
+  var d=a+'-'+String(mes).padStart(2,'0')+'-01';
+  var mf=mes===12?1:mes+1,af=mes===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=empleado.asc,fecha.asc',{headers:H()});
+    var pagos=await r.json();
+    if(!pagos||!pagos.length){alert('Sin registros en '+MS[mes-1]+' '+a);return;}
+    var f2=function(n){return '$'+Math.round(n||0).toLocaleString('es-CL');};
+    var fd2=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});};
+    var periodo=MS[mes-1]+' '+a;
+    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Otro':'#f4f5f6'};
+    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Otro':'#495057'};
+    // Agrupar por empleado
+    var empleados={};
+    var totalGeneral=0;
+    pagos.forEach(function(p){
+      if(!empleados[p.empleado])empleados[p.empleado]=[];
+      empleados[p.empleado].push(p);
+      totalGeneral+=(p.monto||0);
+    });
+    var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Personal '+periodo+'</title>'
+      +'<style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:700px}'
+      +'.hdr{background:#e67700!important;color:white!important;padding:16px 20px;border-radius:6px 6px 0 0}'
+      +'.hdr h1{font-size:16px;margin:0 0 4px;font-weight:500;color:white!important}'
+      +'.hdr p{font-size:11px;margin:0;opacity:.85;color:white!important}'
+      +'.body{border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;padding:16px 20px}'
+      +'.resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}'
+      +'.res-card{border:1px solid #c1c7cd;border-radius:6px;padding:8px 10px;text-align:center}'
+      +'.res-lbl{font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px}'
+      +'.res-val{font-size:15px;font-weight:500}'
+      +'.emp-block{margin-bottom:16px;page-break-inside:avoid}'
+      +'.emp-hdr{background:#f8f9fa!important;border:1px solid #c1c7cd;border-radius:6px 6px 0 0;padding:8px 12px;display:flex;justify-content:space-between}'
+      +'.emp-name{font-size:13px;font-weight:500}'
+      +'.emp-total{font-size:13px;font-weight:500;color:#e67700}'
+      +'.emp-table{width:100%;border-collapse:collapse;border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;overflow:hidden}'
+      +'.emp-table th{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;padding:6px 10px;background:#f8f9fa!important;border-bottom:1px solid #c1c7cd;text-align:left}'
+      +'.emp-table td{font-size:12px;padding:7px 10px;border-bottom:1px solid #f1f3f5}'
+      +'.emp-table tr:last-child td{border-bottom:none}'
+      +'.tot-row td{font-weight:500;border-top:2px solid #c1c7cd!important;background:#f8f9fa!important}'
+      +'.bdg{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}'
+      +'.footer{text-align:center;font-size:10px;color:#adb5bd;margin-top:16px;padding-top:10px;border-top:1px solid #e9ecef}'
+      +'</style></head><body>'
+      +'<div class="hdr"><h1>Informe de personal &mdash; '+periodo+'</h1><p>'+cli.nombre_negocio+' &middot; Para el contador &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
+      +'<div class="body">'
+      // Resumen general
+      +'<div class="resumen">'
+      +'<div class="res-card"><div class="res-lbl">Empleados</div><div class="res-val">'+Object.keys(empleados).length+'</div></div>'
+      +'<div class="res-card"><div class="res-lbl">Registros</div><div class="res-val">'+pagos.length+'</div></div>'
+      +'<div class="res-card"><div class="res-lbl">Total pagado</div><div class="res-val" style="color:#e67700">'+f2(totalGeneral)+'</div></div>'
+      +'</div>';
+    // Detalle por empleado
+    Object.keys(empleados).forEach(function(emp){
+      var ps=empleados[emp];
+      var tot=ps.reduce(function(s,p){return s+(p.monto||0);},0);
+      html+='<div class="emp-block">'
+        +'<div class="emp-hdr"><span class="emp-name">'+emp+'</span><span class="emp-total">'+f2(tot)+'</span></div>'
+        +'<table class="emp-table">'
+        +'<tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Observaci&oacute;n</th></tr>';
+      ps.forEach(function(p){
+        html+='<tr>'
+          +'<td>'+fd2(p.fecha)+'</td>'
+          +'<td><span class="bdg" style="background:'+(tipoBg[p.tipo]||'#f4f5f6')+'!important;color:'+(tipoColor[p.tipo]||'#495057')+'">'+p.tipo+'</span></td>'
+          +'<td style="font-weight:500">'+(p.monto>0?f2(p.monto):'—')+'</td>'
+          +'<td style="color:#495057">'+(p.observacion||'—')+'</td>'
+          +'</tr>';
+      });
+      html+='<tr class="tot-row"><td colspan="2">Total '+emp+'</td><td>'+f2(tot)+'</td><td></td></tr>'
+        +'</table></div>';
+    });
+    html+='<div class="footer">AdminF&aacute;cil &middot; Informe generado autom&aacute;ticamente para uso del contador</div>'
+      +'</div></body></html>';
+    var win=window.open('','_blank');
+    if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
+  }catch(ex){alert('Error: '+ex.message);}
 }
 
 
