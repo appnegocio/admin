@@ -2853,7 +2853,7 @@ async function loadGastosFijosDash(){
     chart+='</div>';
     // Área del gráfico con scroll horizontal si hay muchos meses
     chart+='<div style="overflow-x:auto;padding-bottom:4px">';
-    chart+='<div style="display:flex;align-items:flex-end;gap:'+GROUP_GAP+'px;height:'+(BAR_H+50)+'px;padding-bottom:26px;position:relative;min-width:max-content">';
+    chart+='<div style="display:flex;align-items:flex-end;gap:'+GROUP_GAP+'px;height:'+(BAR_H+74)+'px;padding-bottom:26px;padding-top:24px;position:relative;min-width:max-content">';
     // Líneas guía
     chart+='<div style="position:absolute;bottom:26px;left:0;right:0;border-top:1px solid #c1c7cd"></div>';
     chart+='<div style="position:absolute;bottom:'+Math.round(26+BAR_H*0.25)+'px;left:0;right:0;border-top:1px dashed #dee2e6"></div>';
@@ -3392,7 +3392,8 @@ async function loadFacturasDash(){
     var BAR_H=160,BAR_W=40;
     h+='<div class="cc2" style="margin-bottom:1.25rem">';
     h+='<div class="cc2-t" style="margin-bottom:12px">Compras por mes — clic en barra para ver facturas</div>';
-    h+='<div style="overflow-x:auto"><div style="display:flex;align-items:flex-end;gap:12px;height:'+(BAR_H+44)+'px;padding-bottom:22px;position:relative;min-width:max-content">';
+    var TOP_PAD=24; // espacio para el label del valor
+    h+='<div style="overflow-x:auto"><div style="display:flex;align-items:flex-end;gap:12px;height:'+(BAR_H+44+TOP_PAD)+'px;padding-bottom:22px;padding-top:'+TOP_PAD+'px;position:relative;min-width:max-content">';
     h+='<div style="position:absolute;bottom:22px;left:0;right:0;border-top:1px solid #c1c7cd"></div>';
     h+='<div style="position:absolute;bottom:'+Math.round(22+BAR_H*0.5)+'px;left:0;right:0;border-top:1px dashed #dee2e6"></div>';
     h+='<div style="position:absolute;bottom:'+Math.round(22+BAR_H*0.75)+'px;left:0;right:0;border-top:1px dashed #dee2e6"></div>';
@@ -3402,8 +3403,8 @@ async function loadFacturasDash(){
       var label=MC[parseInt(parts[1])-1]+' '+parts[0].substring(2);
       var isActual=k===mesActual;
       var bh=Math.max(Math.round((total/maxM)*BAR_H),3)||0;
-      h+='<div class="fact-bar-col" data-mes="'+k+'" style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;cursor:pointer" onclick="mostrarFactMes(this.dataset.mes)">';
-      h+='<div style="font-size:11px;color:var(--g500);margin-bottom:2px">'+fmtK(total)+'</div>';
+      h+='<div class="fact-bar-col" data-mes="'+k+'" style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;cursor:pointer;justify-content:flex-end" onclick="mostrarFactMes(this.dataset.mes)">';
+      h+='<div style="font-size:11px;color:var(--g500);white-space:nowrap">'+fmtK(total)+'</div>';
       h+='<div style="width:'+BAR_W+'px;height:'+bh+'px;background:'+(isActual?'#c0392b':'#e74c3c')+';border-radius:4px 4px 0 0;opacity:'+(isActual?'1':'0.6')+'" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6"></div>';
       h+='<div style="font-size:11px;font-weight:'+(isActual?'600':'400')+';color:'+(isActual?'var(--r)':'var(--g500)')+'">'+label+'</div>';
       h+='</div>';
