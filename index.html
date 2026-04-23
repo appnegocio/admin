@@ -483,9 +483,7 @@ tr:hover td{background:var(--g50)}
               <button onclick="mostrarResumenPersonal()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
                 📊 Resumen del mes
               </button>
-              <button onclick="generarPDFPersonalCompleto()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
-                📄 PDF contador
-              </button>
+
             </div>
           </div>
           <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
@@ -1509,6 +1507,7 @@ async function mostrarResumenPersonal(){
       h+='</div>';
     });
     h+='</div>';
+    h+='<div style="display:flex;justify-content:flex-end;margin-top:12px"><button onclick="generarPDFPersonalCompleto()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">&#128196; Descargar informe</button></div>';
     panel.innerHTML=h;
   }catch(ex){panel.innerHTML='<div class="empty">Error: '+ex.message+'</div>';}
 }
