@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AdminFácil</title>
+<title>EZadmin</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--v:#0d9e6e;--vd:#087a55;--vl:#e8f7f2;--vm:#9FE1CB;--r:#e03131;--rl:#FCEBEB;--a:#e67700;--al:#FAEEDA;--az:#1971c2;--azl:#e8f0fb;--g50:#f8f9fa;--g100:#f4f5f6;--g200:#c1c7cd;--g300:#b0b8c1;--g500:#adb5bd;--g700:#495057;--g900:#212529;--rad:8px;--radlg:12px;--sh:none;--border:1px solid #c1c7cd}
@@ -1352,7 +1352,7 @@ function generarPDFCierre(r){
   }else if(r.gastos){
     html+='<div class="sec">Gastos del dia</div><div class="row"><span>Gastos</span><span class="neg">'+f2(r.gastos)+'</span></div>';
   }
-  html+='<div class="footer">AdminFacil &middot; Reporte generado automaticamente</div></div></body></html>';
+  html+='<div class="footer">EZadmin &middot; Reporte generado automaticamente</div></div></body></html>';
   var win=window.open('','_blank');
   if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
 }
