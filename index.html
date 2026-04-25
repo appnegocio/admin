@@ -775,7 +775,8 @@ async function entrar(){
   if(!e||!p){document.getElementById('lerr').style.display='block';document.getElementById('lerr').textContent='Ingresa email y contraseña';return;}
   try{
     // 1. Buscar en clientes (dueño/admin)
-    var r=await fetch(SU+'/rest/v1/clientes?email=eq.'+encodeURIComponent(e)+'&password=eq.'+encodeURIComponent(p)+'&activo=eq.true&select=*',{headers:H()});
+    var ph=await hashPassword(p);
+    var r=await fetch(SU+'/rest/v1/clientes?email=eq.'+encodeURIComponent(e)+'&password=eq.'+encodeURIComponent(ph)+'&activo=eq.true&select=*',{headers:H()});
     var d=await r.json();
     if(d&&d.length){
       cli=d[0];
@@ -787,7 +788,7 @@ async function entrar(){
       return;
     }
     // 2. Buscar en usuarios_negocio (jefe de local)
-    var r2=await fetch(SU+'/rest/v1/usuarios_negocio?email=eq.'+encodeURIComponent(e)+'&password_hash=eq.'+encodeURIComponent(p)+'&activo=eq.true&select=*',{headers:H()});
+    var r2=await fetch(SU+'/rest/v1/usuarios_negocio?email=eq.'+encodeURIComponent(e)+'&password_hash=eq.'+encodeURIComponent(ph)+'&activo=eq.true&select=*',{headers:H()});
     var d2=await r2.json();
     if(d2&&d2.length){
       var usr=d2[0];
@@ -2007,7 +2008,8 @@ async function guardarUsuario(){
   if(!nombre||!email||!pass||!clienteId){alert('Completa todos los campos');return;}
   var btn=document.getElementById('musr-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var payload={nombre,email,password_hash:pass,cliente_id:clienteId,rol,activo:true};
+    var passHash2=await hashPassword(pass);
+    var payload={nombre,email,password_hash:passHash2,cliente_id:clienteId,rol,activo:true};
     var r;
     if(id){
       r=await fetch(SU+'/rest/v1/usuarios_negocio?id=eq.'+id,{method:'PATCH',headers:HJ(),body:JSON.stringify(payload)});
@@ -2113,7 +2115,8 @@ async function guardarUsuarioDueno(){
   if(!nombre||!email||!pass){alert('Completa todos los campos');return;}
   var btn=document.getElementById('musr2-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var payload={nombre,email,password_hash:pass,cliente_id:cli.id,rol,activo:true};
+    var passHash=await hashPassword(pass);
+  var payload={nombre,email,password_hash:passHash,cliente_id:cli.id,rol,activo:true};
     var r;
     if(id){
       r=await fetch(SU+'/rest/v1/usuarios_negocio?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify(payload)});
@@ -2144,13 +2147,15 @@ async function cambiarPassword(){
   if(nueva.length<6){
     msg.style.display='block';msg.style.color='#e03131';msg.textContent='La contraseña debe tener al menos 6 caracteres';return;
   }
-  if(act!==cli.password){
+  var actHash=await hashPassword(act);
+  if(actHash!==cli.password){
     msg.style.display='block';msg.style.color='#e03131';msg.textContent='La contraseña actual es incorrecta';return;
   }
   try{
-    var r=await fetch(SU+'/rest/v1/clientes?id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({password:nueva,password_temporal:false})});
+    var nuevaHash=await hashPassword(nueva);
+    var r=await fetch(SU+'/rest/v1/clientes?id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({password:nuevaHash,password_temporal:false})});
     if(r.ok){
-      cli.password=nueva;
+      cli.password=nuevaHash;
       cli.password_temporal=false;
       msg.style.display='block';msg.style.color='#087a55';msg.textContent='✓ Contraseña cambiada correctamente';
       document.getElementById('cfg-pass-act').value='';
@@ -2430,6 +2435,12 @@ function cargarOtrosGFEnLista(listaId,totalId,hiddenId,detalle){
     detalle.forEach(function(g){agregarOtroGFItem(listaId,totalId,hiddenId,g.desc,g.monto);});
     calcTotalOtrosGF(listaId,totalId,hiddenId);
   }
+}
+
+
+async function hashPassword(pass){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
 
@@ -3097,7 +3108,8 @@ async function guardarCliente(){
       r=await fetch(SU+'/rest/v1/clientes?id=eq.'+id,{method:'PATCH',headers:HJ(),body:JSON.stringify(payload)});
     }else{
       if(!pass){alert('Ingresa una contraseña inicial');btn.disabled=false;btn.textContent='Crear cliente';return;}
-      payload.password=pass;
+      var passHashCli=await hashPassword(pass);
+      payload.password=passHashCli;
       payload.password_temporal=true;
       r=await fetch(SU+'/rest/v1/clientes',{method:'POST',headers:HJ(),body:JSON.stringify(payload)});
     }
