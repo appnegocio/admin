@@ -2295,11 +2295,16 @@ async function procesarFoto(input){
     });
     var mime=file.type||'image/jpeg';
     console.log('Enviando foto a Edge Function, mime:', mime, 'tamaño base64:', base64.length);
+    // Timeout de 30 segundos para la IA
+    var controller=new AbortController();
+    var timeoutId=setTimeout(function(){controller.abort();},30000);
     var r=await fetch('https://xeitfaxkatsejyyokhwa.supabase.co/functions/v1/bright-processor',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SK},
-      body:JSON.stringify({image:base64,mime:mime,extractProducts:true})
+      body:JSON.stringify({image:base64,mime:mime,extractProducts:true}),
+      signal:controller.signal
     });
+    clearTimeout(timeoutId);
     console.log('Respuesta status:', r.status);
     var txt=await r.text();
     console.log('Respuesta texto:', txt);
@@ -2368,8 +2373,13 @@ async function procesarFoto(input){
     }
   }catch(ex){
     console.error('Error procesarFoto:', ex);
-    status.textContent='⚠️ Error: '+ex.message;
-    status.style.background='var(--al)';status.style.color='var(--a)';
+    if(ex.name==='AbortError'){
+      status.textContent='⏱ La IA tardó demasiado. Puedes ingresar los datos manualmente.';
+      status.style.background='#FAEEDA';status.style.color='#b45309';
+    }else{
+      status.textContent='⚠️ No se pudo leer la factura. Ingresa los datos manualmente.';
+      status.style.background='#FCEBEB';status.style.color='#c0392b';
+    }
   }
   btn.disabled=false;
   input.value='';
