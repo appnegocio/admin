@@ -540,15 +540,15 @@ tr:hover td{background:var(--g50)}
 
       <div class="dcont">
         <div class="dp active" id="dp-resumen"><div class="pills" id="pills"></div><div id="rc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-balance"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteBalance()">📄 Reporte anual</button></div><div id="bc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-cierres"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteCierres()">📄 Reporte del mes</button></div><div id="dc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-factventas"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteFactVenta()">📄 Reporte del mes</button></div><div id="dfv"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-balance"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:1rem"><select id="rep-mes-bal" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select><button onclick="reporteBalance()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">&#128196; Reporte anual</button></div><div id="bc"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-cierres"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:1rem"><select id="rep-mes-cierres" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select><button onclick="reporteCierres()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">&#128196; Reporte del mes</button></div><div id="dc"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-factventas"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:1rem"><select id="rep-mes-factv" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select><button onclick="reporteFactVenta()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">&#128196; Reporte del mes</button></div><div id="dfv"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-facturas">
           <div style="display:flex;border-bottom:2px solid #c1c7cd;margin-bottom:1.25rem">
             <button id="ftab-facturas" onclick="swFactTab('facturas')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Facturas</button>
             <button id="ftab-precios" onclick="swFactTab('precios')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Precios de compra</button>
           </div>
-          <div id="dp-fact-facturas"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteFactCompra()">📄 Reporte del mes</button></div><div id="df"><div class="ld">Cargando...</div></div></div>
+          <div id="dp-fact-facturas"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:1rem"><select id="rep-mes-factc" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select><button onclick="reporteFactCompra()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">&#128196; Reporte del mes</button></div><div id="df"><div class="ld">Cargando...</div></div></div>
           <div id="dp-fact-precios" style="display:none"><div id="dprecios"><div class="ld">Cargando...</div></div></div>
         </div>
         <div class="dp" id="dp-personal">
@@ -568,8 +568,8 @@ tr:hover td{background:var(--g50)}
           <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
           <div id="dp-personal-emps" style="display:none"><div id="dem"><div class="ld">Cargando...</div></div></div>
         </div>
-        <div class="dp" id="dp-gastosfijos"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteGastosFijos()">📄 Reporte del mes</button></div><div id="dg"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-creditos"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteCreditos()">📄 Reporte actual</button></div><div id="dcred"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-gastosfijos"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:1rem"><select id="rep-mes-gf" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select><button onclick="reporteGastosFijos()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">&#128196; Reporte del mes</button></div><div id="dg"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-creditos"><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:1rem"><select id="rep-mes-cred" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select><button onclick="reporteCreditos()" style="height:32px;padding:0 14px;border:1px solid #9FE1CB;border-radius:8px;background:#e8f7f2;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">&#128196; Reporte actual</button></div><div id="dcred"><div class="ld">Cargando...</div></div></div>
       </div>
     </div>
   </div>
@@ -2630,8 +2630,9 @@ function f2(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
 
 // ── 1. Reporte Cierres de caja ──
 async function reporteCierres(){
-  var anio=anioSel||new Date().getFullYear();
-  var mes=mesSel||new Date().getMonth()+1;
+  var vm=getMesAnioDeSelect('rep-mes-cierres');
+  if(!vm){alert('Selecciona un período');return;}
+  var anio=vm.anio,mes=vm.mes;
   var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
   var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
   var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta+'&order=fecha.asc',{headers:H()});
@@ -2661,8 +2662,9 @@ async function reporteCierres(){
 
 // ── 2. Reporte Facturas de compra ──
 async function reporteFactCompra(){
-  var anio=anioSel||new Date().getFullYear();
-  var mes=mesSel||new Date().getMonth()+1;
+  var vm=getMesAnioDeSelect('rep-mes-factc');
+  if(!vm){alert('Selecciona un período');return;}
+  var anio=vm.anio,mes=vm.mes;
   var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
   var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
   var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta+'&order=fecha.asc',{headers:H()});
@@ -2691,8 +2693,9 @@ async function reporteFactCompra(){
 
 // ── 3. Reporte Facturas de venta ──
 async function reporteFactVenta(){
-  var anio=anioSel||new Date().getFullYear();
-  var mes=mesSel||new Date().getMonth()+1;
+  var vm=getMesAnioDeSelect('rep-mes-factv');
+  if(!vm){alert('Selecciona un período');return;}
+  var anio=vm.anio,mes=vm.mes;
   var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
   var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
   var r=await fetch(SU+'/rest/v1/facturas_venta?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta+'&order=fecha.asc',{headers:H()});
@@ -2724,8 +2727,9 @@ async function reporteFactVenta(){
 
 // ── 4. Reporte Gastos fijos ──
 async function reporteGastosFijos(){
-  var anio=anioSel||new Date().getFullYear();
-  var mes=mesSel||new Date().getMonth()+1;
+  var vm=getMesAnioDeSelect('rep-mes-gf');
+  if(!vm){alert('Selecciona un período');return;}
+  var anio=vm.anio,mes=vm.mes;
   var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
   var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
   var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=gte.'+desde+'&mes=lte.'+hasta,{headers:H()});
@@ -2756,6 +2760,7 @@ async function reporteGastosFijos(){
 
 // ── 5. Reporte Créditos ──
 async function reporteCreditos(){
+  var vm=getMesAnioDeSelect('rep-mes-cred');
   var r=await fetch(SU+'/rest/v1/creditos?select=*&cliente_id=eq.'+cli.id+'&order=created_at.asc',{headers:H()});
   var d=await r.json();
   if(!d||!d.length){alert('Sin créditos registrados');return;}
@@ -2780,7 +2785,8 @@ async function reporteCreditos(){
 
 // ── 6. Reporte Balance anual ──
 async function reporteBalance(){
-  var anio=anioSel||new Date().getFullYear();
+  var vmb=getMesAnioDeSelect('rep-mes-bal');
+  var anio=vmb?vmb.anio:new Date().getFullYear();
   var r=await fetch(SU+'/rest/v1/rpc/balance_anual?cliente_id='+cli.id+'&anio='+anio,{headers:H()}).catch(function(){return null;});
   // Fallback: construir desde tablas
   var desde=anio+'-01-01';var hasta=anio+'-12-31';
@@ -2829,6 +2835,42 @@ async function reporteBalance(){
     +'<div class="sec">Detalle por mes</div>'
     +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Personal</th><th>G.Fijos</th><th>Resultado</th><th>Margen</th></tr>'+filas+'</table>';
   pdfBase('Balance anual — '+anio, c2);
+}
+
+
+// ── Inicializar selectores de mes para reportes ──
+function inicSelectMes(id, soloAnio){
+  var sel=document.getElementById(id);
+  if(!sel)return;
+  sel.innerHTML='';
+  var a=hoy.getFullYear();
+  if(soloAnio){
+    for(var y=a;y>=a-2;y--){
+      var opt=document.createElement('option');
+      opt.value=String(y);
+      opt.textContent=String(y);
+      if(y===a)opt.selected=true;
+      sel.appendChild(opt);
+    }
+  }else{
+    for(var y2=a;y2>=a-1;y2--){
+      for(var m=12;m>=1;m--){
+        if(y2===a&&m>hoy.getMonth()+1)continue;
+        var opt2=document.createElement('option');
+        opt2.value=y2+'-'+String(m).padStart(2,'0');
+        opt2.textContent=MS[m-1]+' '+y2;
+        if(y2===a&&m===hoy.getMonth()+1)opt2.selected=true;
+        sel.appendChild(opt2);
+      }
+    }
+  }
+}
+
+function getMesAnioDeSelect(id){
+  var sel=document.getElementById(id);
+  if(!sel||!sel.value)return null;
+  var parts=sel.value.split('-');
+  return {anio:parseInt(parts[0]),mes:parseInt(parts[1]||1)};
 }
 
 
@@ -3504,8 +3546,12 @@ function dpage(n,el){
     }
     loadCierresDash();
   }
-  if(n==='facturas')loadFacturasDash();
-  if(n==='factventas')loadFactVentasDash();
+  if(n==='facturas'){inicSelectMes('rep-mes-factc');loadFacturasDash();}
+  if(n==='factventas'){inicSelectMes('rep-mes-factv');loadFactVentasDash();}
+  if(n==='cierres')inicSelectMes('rep-mes-cierres');
+  if(n==='gastosfijos')inicSelectMes('rep-mes-gf');
+  if(n==='creditos')inicSelectMes('rep-mes-cred');
+  if(n==='balance')inicSelectMes('rep-mes-bal');
   if(n==='gastosfijos')loadGastosFijosDash();
   if(n==='creditos')loadCreditosDash();
 
