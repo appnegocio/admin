@@ -2308,10 +2308,10 @@ async function loadFactVentasDash(){
     });
 
     var h='<div class="kgrid" style="margin-bottom:1.25rem">';
-    h+='<div class="kpi u"><div class="kl">Total emitido</div><div class="kv" style="color:#1971c2">'+fmtK(totalEmitido)+'</div><div class="ks">histórico</div></div>';
-    h+='<div class="kpi v"><div class="kl">Cobrado</div><div class="kv">'+fmtK(totalPagado)+'</div><div class="ks">pagado</div></div>';
-    h+='<div class="kpi g"><div class="kl">Por cobrar</div><div class="kv">'+fmtK(totalPendiente)+'</div><div class="ks">pendiente</div></div>';
-    h+='<div class="kpi c"><div class="kl">Vencido</div><div class="kv">'+fmtK(totalVencido)+'</div><div class="ks">sin pagar</div></div>';
+    h+='<div class="kpi u"><div class="kl">Total emitido</div><div class="kv" style="color:#1971c2">'+fmt(totalEmitido)+'</div><div class="ks">histórico</div></div>';
+    h+='<div class="kpi v"><div class="kl">Cobrado</div><div class="kv">'+fmt(totalPagado)+'</div><div class="ks">pagado</div></div>';
+    h+='<div class="kpi g"><div class="kl">Por cobrar</div><div class="kv">'+fmt(totalPendiente)+'</div><div class="ks">pendiente</div></div>';
+    h+='<div class="kpi c"><div class="kl">Vencido</div><div class="kv">'+fmt(totalVencido)+'</div><div class="ks">sin pagar</div></div>';
     h+='</div>';
 
     // Alerta vencidas
