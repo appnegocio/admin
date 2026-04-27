@@ -540,15 +540,15 @@ tr:hover td{background:var(--g50)}
 
       <div class="dcont">
         <div class="dp active" id="dp-resumen"><div class="pills" id="pills"></div><div id="rc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-balance"><div id="bc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-cierres"><div id="dc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-factventas"><div id="dfv"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-balance"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteBalance()">📄 Reporte anual</button></div><div id="bc"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-cierres"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteCierres()">📄 Reporte del mes</button></div><div id="dc"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-factventas"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteFactVenta()">📄 Reporte del mes</button></div><div id="dfv"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-facturas">
           <div style="display:flex;border-bottom:2px solid #c1c7cd;margin-bottom:1.25rem">
             <button id="ftab-facturas" onclick="swFactTab('facturas')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Facturas</button>
             <button id="ftab-precios" onclick="swFactTab('precios')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Precios de compra</button>
           </div>
-          <div id="dp-fact-facturas"><div id="df"><div class="ld">Cargando...</div></div></div>
+          <div id="dp-fact-facturas"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteFactCompra()">📄 Reporte del mes</button></div><div id="df"><div class="ld">Cargando...</div></div></div>
           <div id="dp-fact-precios" style="display:none"><div id="dprecios"><div class="ld">Cargando...</div></div></div>
         </div>
         <div class="dp" id="dp-personal">
@@ -568,8 +568,8 @@ tr:hover td{background:var(--g50)}
           <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
           <div id="dp-personal-emps" style="display:none"><div id="dem"><div class="ld">Cargando...</div></div></div>
         </div>
-        <div class="dp" id="dp-gastosfijos"><div id="dg"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-creditos"><div id="dcred"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-gastosfijos"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteGastosFijos()">📄 Reporte del mes</button></div><div id="dg"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-creditos"><div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="btn-pdf" onclick="reporteCreditos()">📄 Reporte actual</button></div><div id="dcred"><div class="ld">Cargando...</div></div></div>
       </div>
     </div>
   </div>
@@ -2586,6 +2586,271 @@ async function marcarCobradaCel(id, btn){
   var r=await fetch(SU+'/rest/v1/facturas_venta?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({estado:'pagado'})});
   if(r.ok)loadHistFactVentas();
   else{btn.disabled=false;btn.textContent='Marcar como cobrada';}
+}
+
+
+// ══════════════════════════════════════
+// REPORTES MENSUALES — PDF
+// ══════════════════════════════════════
+var MC2=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function pdfBase(titulo, contenido){
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+titulo+'</title>'
+    +'<style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'
+    +'body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:700px}'
+    +'.hdr{background:#0d9e6e!important;color:white!important;padding:16px 20px;border-radius:6px 6px 0 0}'
+    +'.hdr h1{font-size:16px;margin:0 0 4px;font-weight:500;color:white!important}'
+    +'.hdr p{font-size:11px;margin:0;opacity:.85;color:white!important}'
+    +'.body{border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;padding:16px 20px}'
+    +'.sec{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin:14px 0 7px}'
+    +'.sec:first-child{margin-top:0}'
+    +'.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f1f3f5;font-size:12px}'
+    +'.row:last-child{border-bottom:none}'
+    +'.tot{font-weight:bold;border-top:2px solid #c1c7cd!important;border-bottom:none!important;padding-top:8px!important;margin-top:4px}'
+    +'.pos{color:#087a55}.neg{color:#e03131}.pen{color:#b45309}.az{color:#1971c2}'
+    +'.badge{font-size:10px;font-weight:bold;padding:1px 7px;border-radius:10px}'
+    +'.badge-v{background:#e8f7f2;color:#087a55}'
+    +'.badge-r{background:#FCEBEB;color:#c0392b}'
+    +'.badge-a{background:#FAEEDA;color:#b45309}'
+    +'table{width:100%;border-collapse:collapse;margin-top:6px}'
+    +'th{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;padding:5px 8px;border-bottom:2px solid #c1c7cd;text-align:left}'
+    +'td{font-size:11px;padding:5px 8px;border-bottom:1px solid #f1f3f5}'
+    +'tr:last-child td{border-bottom:none}'
+    +'.footer{text-align:center;font-size:10px;color:#adb5bd;margin-top:16px;padding-top:10px;border-top:1px solid #e9ecef}'
+    +'</style></head><body>'
+    +'<div class="hdr"><h1>'+titulo+'</h1><p>'+cli.nombre_negocio+' &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
+    +'<div class="body">'+contenido+'</div>'
+    +'<div class="footer">EZadmin &middot; Reporte generado autom&aacute;ticamente</div>'
+    +'</body></html>';
+  var win=window.open('','_blank');
+  if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
+}
+
+function f2(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
+
+// ── 1. Reporte Cierres de caja ──
+async function reporteCierres(){
+  var anio=document.getElementById('yanio')?parseInt(document.getElementById('yanio').querySelector('.active')||0):new Date().getFullYear();
+  var mes=document.getElementById('ymes')?parseInt(document.getElementById('ymes').querySelector('.active')||0):new Date().getMonth()+1;
+  // Obtener año y mes del selector activo
+  var btnAnio=document.querySelector('#yanio .active');
+  var btnMes=document.querySelector('#ymes .active');
+  if(!btnAnio||!btnMes){alert('Selecciona un mes para generar el reporte');return;}
+  anio=parseInt(btnAnio.textContent);
+  mes=parseInt(btnMes.dataset.m||btnMes.textContent==='Ene'?1:btnMes.textContent==='Feb'?2:btnMes.textContent==='Mar'?3:btnMes.textContent==='Abr'?4:btnMes.textContent==='May'?5:btnMes.textContent==='Jun'?6:btnMes.textContent==='Jul'?7:btnMes.textContent==='Ago'?8:btnMes.textContent==='Sep'?9:btnMes.textContent==='Oct'?10:btnMes.textContent==='Nov'?11:12);
+  var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
+  var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
+  var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta+'&order=fecha.asc',{headers:H()});
+  var d=await r.json();
+  if(!d||!d.length){alert('Sin cierres registrados en '+MC2[mes-1]+' '+anio);return;}
+  var totalV=0,totalR=0,totalG=0,diasDesc=0;
+  var filas='';
+  d.forEach(function(c){
+    var dif=c.diferencia||0;
+    totalV+=(c.total_z||0);totalR+=(c.retiros||0);
+    var gastos=c.gastos_detalle?c.gastos_detalle.reduce(function(s,g){return s+(g.monto||0);},0):(c.gastos||0);
+    totalG+=gastos;
+    if(dif!==0)diasDesc++;
+    var fec=new Date(c.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
+    filas+='<tr><td>'+fec+'</td><td class="pos">'+f2(c.total_z)+'</td><td>'+f2(c.retiros)+'</td><td class="'+(dif===0?'pos':'neg')+'">'+f2(dif)+'</td><td>'+f2(gastos)+'</td></tr>';
+  });
+  var c2='<div class="sec">Resumen — '+MC2[mes-1]+' '+anio+'</div>'
+    +'<div class="row"><span>Total ventas</span><span class="pos">'+f2(totalV)+'</span></div>'
+    +'<div class="row"><span>Total retiros</span><span>'+f2(totalR)+'</span></div>'
+    +'<div class="row"><span>Total gastos del día</span><span class="neg">'+f2(totalG)+'</span></div>'
+    +'<div class="row"><span>Días registrados</span><span>'+d.length+'</span></div>'
+    +'<div class="row tot"><span>Días con descuadre</span><span class="'+(diasDesc>0?'neg':'pos')+'">'+diasDesc+'</span></div>'
+    +'<div class="sec">Detalle por día</div>'
+    +'<table><tr><th>Fecha</th><th>Ventas</th><th>Retiros</th><th>Diferencia</th><th>Gastos</th></tr>'+filas+'</table>';
+  pdfBase('Cierres de caja — '+MC2[mes-1]+' '+anio, c2);
+}
+
+// ── 2. Reporte Facturas de compra ──
+async function reporteFactCompra(){
+  var btnAnio=document.querySelector('#yanio .active');
+  var btnMes=document.querySelector('#ymes .active');
+  if(!btnAnio||!btnMes){alert('Selecciona un mes para generar el reporte');return;}
+  var anio=parseInt(btnAnio.textContent);
+  var mesNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var mes=mesNames.indexOf(btnMes.textContent)+1;
+  if(mes<=0)mes=new Date().getMonth()+1;
+  var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
+  var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
+  var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta+'&order=fecha.asc',{headers:H()});
+  var d=await r.json();
+  if(!d||!d.length){alert('Sin facturas en '+MC2[mes-1]+' '+anio);return;}
+  var totalNeto=0,totalIva=0,totalTotal=0,pagadas=0,pendientes=0;
+  var filas='';
+  d.forEach(function(f){
+    totalNeto+=(f.monto_neto||0);totalIva+=(f.iva||0);totalTotal+=(f.total||0);
+    if(f.estado==='pagado')pagadas++;else pendientes++;
+    var fec=new Date(f.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
+    var badge=f.estado==='pagado'?'<span class="badge badge-v">Pagado</span>':'<span class="badge badge-a">Pendiente</span>';
+    filas+='<tr><td>'+(f.numero_factura||'—')+'</td><td>'+fec+'</td><td>'+(f.proveedor||'—')+'</td><td>'+f2(f.monto_neto)+'</td><td>'+f2(f.iva)+'</td><td class="neg">'+f2(f.total)+'</td><td>'+badge+'</td></tr>';
+  });
+  var c2='<div class="sec">Resumen — '+MC2[mes-1]+' '+anio+'</div>'
+    +'<div class="row"><span>Total neto</span><span class="neg">'+f2(totalNeto)+'</span></div>'
+    +'<div class="row"><span>IVA total</span><span class="pen">'+f2(totalIva)+'</span></div>'
+    +'<div class="row"><span>Total con IVA</span><span class="neg">'+f2(totalTotal)+'</span></div>'
+    +'<div class="row"><span>Facturas registradas</span><span>'+d.length+'</span></div>'
+    +'<div class="row"><span>Pagadas</span><span class="pos">'+pagadas+'</span></div>'
+    +'<div class="row tot"><span>Pendientes</span><span class="pen">'+pendientes+'</span></div>'
+    +'<div class="sec">Detalle facturas</div>'
+    +'<table><tr><th>N°</th><th>Fecha</th><th>Proveedor</th><th>Neto</th><th>IVA</th><th>Total</th><th>Estado</th></tr>'+filas+'</table>';
+  pdfBase('Facturas de compra — '+MC2[mes-1]+' '+anio, c2);
+}
+
+// ── 3. Reporte Facturas de venta ──
+async function reporteFactVenta(){
+  var btnAnio=document.querySelector('#yanio .active');
+  var btnMes=document.querySelector('#ymes .active');
+  if(!btnAnio||!btnMes){alert('Selecciona un mes para generar el reporte');return;}
+  var anio=parseInt(btnAnio.textContent);
+  var mesNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var mes=mesNames.indexOf(btnMes.textContent)+1;
+  if(mes<=0)mes=new Date().getMonth()+1;
+  var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
+  var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
+  var r=await fetch(SU+'/rest/v1/facturas_venta?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta+'&order=fecha.asc',{headers:H()});
+  var d=await r.json();
+  if(!d||!d.length){alert('Sin facturas de venta en '+MC2[mes-1]+' '+anio);return;}
+  var hoy2=new Date();hoy2.setHours(0,0,0,0);
+  var totalEmit=0,totalCob=0,totalPend=0,totalVenc=0;
+  var filas='';
+  d.forEach(function(f){
+    totalEmit+=(f.total||0);
+    var venc=f.fecha_vencimiento?new Date(f.fecha_vencimiento+'T12:00:00'):null;
+    var isVenc=venc&&venc<hoy2&&f.estado!=='pagado';
+    if(f.estado==='pagado')totalCob+=(f.total||0);
+    else if(isVenc)totalVenc+=(f.total||0);
+    else totalPend+=(f.total||0);
+    var fec=new Date(f.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
+    var badge=f.estado==='pagado'?'<span class="badge badge-v">Cobrado</span>':isVenc?'<span class="badge badge-r">Vencida</span>':'<span class="badge badge-a">Pendiente</span>';
+    filas+='<tr><td>'+(f.numero_factura||'—')+'</td><td>'+fec+'</td><td>'+(f.cliente_nombre||'—')+'</td><td>'+(f.rut_cliente||'—')+'</td><td class="pos">'+f2(f.total)+'</td><td>'+badge+'</td></tr>';
+  });
+  var c2='<div class="sec">Resumen — '+MC2[mes-1]+' '+anio+'</div>'
+    +'<div class="row"><span>Total emitido</span><span class="az">'+f2(totalEmit)+'</span></div>'
+    +'<div class="row"><span>Cobrado</span><span class="pos">'+f2(totalCob)+'</span></div>'
+    +'<div class="row"><span>Por cobrar</span><span class="pen">'+f2(totalPend)+'</span></div>'
+    +'<div class="row tot"><span>Vencido sin cobrar</span><span class="neg">'+f2(totalVenc)+'</span></div>'
+    +'<div class="sec">Detalle facturas</div>'
+    +'<table><tr><th>N°</th><th>Fecha</th><th>Cliente</th><th>RUT</th><th>Total</th><th>Estado</th></tr>'+filas+'</table>';
+  pdfBase('Facturas de venta — '+MC2[mes-1]+' '+anio, c2);
+}
+
+// ── 4. Reporte Gastos fijos ──
+async function reporteGastosFijos(){
+  var btnAnio=document.querySelector('#yanio .active');
+  var btnMes=document.querySelector('#ymes .active');
+  if(!btnAnio||!btnMes){alert('Selecciona un mes para generar el reporte');return;}
+  var anio=parseInt(btnAnio.textContent);
+  var mesNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var mes=mesNames.indexOf(btnMes.textContent)+1;
+  if(mes<=0)mes=new Date().getMonth()+1;
+  var desde=anio+'-'+String(mes).padStart(2,'0')+'-01';
+  var hasta=anio+'-'+String(mes).padStart(2,'0')+'-31';
+  var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=gte.'+desde+'&mes=lte.'+hasta,{headers:H()});
+  var d=await r.json();
+  if(!d||!d.length){alert('Sin gastos fijos en '+MC2[mes-1]+' '+anio);return;}
+  var g=d[0];
+  var otros=g.otros_detalle||[];
+  var totalOtros=otros.reduce(function(s,o){return s+(o.monto||0);},0)||(g.otros||0);
+  var total=(g.previred||0)+(g.sueldos||0)+(g.arriendo||0)+(g.luz||0)+(g.credito||0)+(g.iva||0)+(g.contabilidad||0)+totalOtros;
+  var c2='<div class="sec">Detalle — '+MC2[mes-1]+' '+anio+'</div>'
+    +'<div class="row"><span>Previred</span><span class="neg">'+f2(g.previred)+'</span></div>'
+    +'<div class="row"><span>Sueldos</span><span class="neg">'+f2(g.sueldos)+'</span></div>'
+    +'<div class="row"><span>Arriendo</span><span class="neg">'+f2(g.arriendo)+'</span></div>'
+    +'<div class="row"><span>Luz</span><span class="neg">'+f2(g.luz)+'</span></div>'
+    +'<div class="row"><span>Crédito</span><span class="neg">'+f2(g.credito)+'</span></div>'
+    +'<div class="row"><span>IVA</span><span class="neg">'+f2(g.iva)+'</span></div>'
+    +'<div class="row"><span>Contabilidad</span><span class="neg">'+f2(g.contabilidad)+'</span></div>';
+  if(otros.length){
+    c2+='<div class="sec">Otros gastos</div>';
+    otros.forEach(function(o){c2+='<div class="row"><span>'+o.desc+'</span><span class="neg">'+f2(o.monto)+'</span></div>';});
+    c2+='<div class="row tot"><span>Total otros</span><span class="neg">'+f2(totalOtros)+'</span></div>';
+  }else{
+    c2+='<div class="row"><span>Otros</span><span class="neg">'+f2(g.otros)+'</span></div>';
+  }
+  c2+='<div class="row tot"><span>Total gastos fijos</span><span class="neg">'+f2(total)+'</span></div>';
+  pdfBase('Gastos fijos — '+MC2[mes-1]+' '+anio, c2);
+}
+
+// ── 5. Reporte Créditos ──
+async function reporteCreditos(){
+  var r=await fetch(SU+'/rest/v1/creditos?select=*&cliente_id=eq.'+cli.id+'&order=created_at.asc',{headers:H()});
+  var d=await r.json();
+  if(!d||!d.length){alert('Sin créditos registrados');return;}
+  var totalDeuda=0,totalCuotas=0;
+  var c2='<div class="sec">Estado actual de créditos</div>';
+  d.forEach(function(c){
+    totalDeuda+=(c.monto_restante||0);
+    totalCuotas+=(c.cuota_mensual||0);
+    var pct=c.total_cuotas?Math.round((c.cuotas_pagadas||0)/c.total_cuotas*100):0;
+    var estado=c.pagado_mes_actual?'<span class="badge badge-v">Pagado '+new Date().toLocaleDateString('es-CL',{month:'short'})+'</span>':'<span class="badge badge-a">Pendiente</span>';
+    c2+='<div class="row"><span><strong>'+c.nombre+'</strong> &mdash; '+(c.banco||'')+'</span><span>'+estado+'</span></div>';
+    c2+='<div class="row"><span>Cuota mensual</span><span class="neg">'+f2(c.cuota_mensual)+'</span></div>';
+    c2+='<div class="row"><span>Deuda restante</span><span class="neg">'+f2(c.monto_restante)+'</span></div>';
+    c2+='<div class="row"><span>Cuotas pagadas</span><span>'+( c.cuotas_pagadas||0)+' / '+(c.total_cuotas||0)+' ('+pct+'%)</span></div>';
+    var term=c.fecha_termino?new Date(c.fecha_termino).toLocaleDateString('es-CL',{month:'short',year:'numeric'}):'—';
+    c2+='<div class="row" style="margin-bottom:12px"><span>Termina</span><span>'+term+'</span></div>';
+  });
+  c2+='<div class="row tot"><span>Total deuda</span><span class="neg">'+f2(totalDeuda)+'</span></div>';
+  c2+='<div class="row tot"><span>Total cuotas mensuales</span><span class="neg">'+f2(totalCuotas)+'</span></div>';
+  pdfBase('Créditos — Estado actual '+new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'}), c2);
+}
+
+// ── 6. Reporte Balance anual ──
+async function reporteBalance(){
+  var btnAnio=document.querySelector('#ba-yr .active')||document.querySelector('#yanio .active');
+  var anio=btnAnio?parseInt(btnAnio.textContent):new Date().getFullYear();
+  var r=await fetch(SU+'/rest/v1/rpc/balance_anual?cliente_id='+cli.id+'&anio='+anio,{headers:H()}).catch(function(){return null;});
+  // Fallback: construir desde tablas
+  var desde=anio+'-01-01';var hasta=anio+'-12-31';
+  var [rC,rF,rG,rP]=await Promise.all([
+    fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta,{headers:H()}),
+    fetch(SU+'/rest/v1/facturas?select=fecha,total&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta,{headers:H()}),
+    fetch(SU+'/rest/v1/gastos_fijos?select=mes,sueldos,previred,arriendo,luz,credito,iva,contabilidad,otros&cliente_id=eq.'+cli.id+'&mes=gte.'+desde+'&mes=lte.'+hasta,{headers:H()}),
+    fetch(SU+'/rest/v1/personal?select=fecha,monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+desde+'&fecha=lte.'+hasta,{headers:H()})
+  ]);
+  var cierres=await rC.json();
+  var facturas=await rF.json();
+  var gastos=await rG.json();
+  var personal=await rP.json();
+
+  // Agrupar por mes
+  var mesesData={};
+  for(var m=1;m<=12;m++)mesesData[m]={ventas:0,compras:0,gastosFijos:0,personal:0};
+  cierres.forEach(function(c){var m=parseInt(c.fecha.substring(5,7));mesesData[m].ventas+=(c.total_z||0);});
+  facturas.forEach(function(f){var m=parseInt(f.fecha.substring(5,7));mesesData[m].compras+=(f.total||0);});
+  gastos.forEach(function(g){
+    var m=parseInt(g.mes.substring(5,7));
+    mesesData[m].gastosFijos+=(g.sueldos||0)+(g.previred||0)+(g.arriendo||0)+(g.luz||0)+(g.credito||0)+(g.iva||0)+(g.contabilidad||0)+(g.otros||0);
+  });
+  personal.forEach(function(p){var m=parseInt(p.fecha.substring(5,7));mesesData[m].personal+=(p.monto||0);});
+
+  var totalV=0,totalC=0,totalGF=0,totalP=0;
+  var filas='';
+  var mesesConDatos=Object.keys(mesesData).filter(function(m){
+    var d=mesesData[m];return d.ventas||d.compras||d.gastosFijos||d.personal;
+  });
+  mesesConDatos.forEach(function(m){
+    var d=mesesData[m];
+    var res=d.ventas-d.compras-d.gastosFijos-d.personal;
+    totalV+=d.ventas;totalC+=d.compras;totalGF+=d.gastosFijos;totalP+=d.personal;
+    var pct=d.ventas?Math.round(res/d.ventas*100):0;
+    filas+='<tr><td>'+MC2[m-1]+'</td><td class="pos">'+f2(d.ventas)+'</td><td class="neg">'+f2(d.compras)+'</td><td class="pen">'+f2(d.personal)+'</td><td class="neg">'+f2(d.gastosFijos)+'</td><td class="'+(res>=0?'pos':'neg')+'">'+f2(res)+'</td><td class="'+(pct>=0?'pos':'neg')+'">'+(pct>=0?'+':'')+pct+'%</td></tr>';
+  });
+  var totalRes=totalV-totalC-totalGF-totalP;
+  var totalPct=totalV?Math.round(totalRes/totalV*100):0;
+  var c2='<div class="sec">Resumen anual — '+anio+'</div>'
+    +'<div class="row"><span>Total ventas</span><span class="pos">'+f2(totalV)+'</span></div>'
+    +'<div class="row"><span>Total compras</span><span class="neg">'+f2(totalC)+'</span></div>'
+    +'<div class="row"><span>Total personal</span><span class="pen">'+f2(totalP)+'</span></div>'
+    +'<div class="row"><span>Total gastos fijos</span><span class="neg">'+f2(totalGF)+'</span></div>'
+    +'<div class="row tot"><span>Resultado anual</span><span class="'+(totalRes>=0?'pos':'neg')+'">'+f2(totalRes)+' ('+totalPct+'%)</span></div>'
+    +'<div class="sec">Detalle por mes</div>'
+    +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Personal</th><th>G.Fijos</th><th>Resultado</th><th>Margen</th></tr>'+filas+'</table>';
+  pdfBase('Balance anual — '+anio, c2);
 }
 
 
