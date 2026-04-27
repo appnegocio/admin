@@ -923,7 +923,7 @@ function inicDashJefe(){
   var ini=cli.nombre_negocio.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
   document.getElementById('tbav').textContent=ini;
   // Ocultar módulos no permitidos para jefe_local
-  var modOcultar=['resumen','balance','gastosfijos','creditos','precios'];
+  var modOcultar=['resumen','balance','gastosfijos','creditos','precios','cierres'];
   document.querySelectorAll('.sb-item').forEach(function(el){
     var oc=el.getAttribute('onclick')||'';
     modOcultar.forEach(function(m){
