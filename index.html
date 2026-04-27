@@ -451,7 +451,8 @@ tr:hover td{background:var(--g50)}
         <div class="sb-item" onclick="dpage('balance',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Balance anual</div>
         <div class="sb-sec">Datos</div>
         <div class="sb-item" onclick="dpage('cierres',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Cierres de caja</div>
-        <div class="sb-item" onclick="dpage('facturas',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Facturas</div>
+        <div class="sb-item" onclick="dpage('facturas',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Facturas de compra</div>
+        <div class="sb-item" onclick="dpage('factventas',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="12" y1="10" x2="12" y2="16"/></svg>Facturas de venta</div>
         <div class="sb-item" onclick="dpage('personal',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Personal</div>
         <div class="sb-item" onclick="dpage('gastosfijos',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Gastos fijos</div>
         <div class="sb-item" onclick="dpage('creditos',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Créditos</div>
@@ -496,6 +497,7 @@ tr:hover td{background:var(--g50)}
         <div class="dp active" id="dp-resumen"><div class="pills" id="pills"></div><div id="rc"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-balance"><div id="bc"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-cierres"><div id="dc"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-factventas"><div id="dfv"><div class="ld">Cargando...</div></div></div>
         <div class="dp" id="dp-facturas">
           <div style="display:flex;border-bottom:2px solid #c1c7cd;margin-bottom:1.25rem">
             <button id="ftab-facturas" onclick="swFactTab('facturas')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Facturas</button>
@@ -682,6 +684,59 @@ tr:hover td{background:var(--g50)}
   </div>
 </div>
 
+<!-- MODAL FACTURA DE VENTA -->
+<div class="modal-bg" id="modal-factv">
+  <div class="modal">
+    <div class="modal-t"><span id="mfv-titulo">Nueva factura de venta</span><button class="modal-x" onclick="cerrarModal('factv')">×</button></div>
+    <input type="hidden" id="mfv-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label class="modal-label">N° Factura</label>
+        <input class="modal-input" type="text" id="mfv-num" placeholder="Ej: 001245">
+      </div>
+      <div>
+        <label class="modal-label">Fecha emisión</label>
+        <input class="modal-input" type="date" id="mfv-fecha">
+      </div>
+      <div>
+        <label class="modal-label">Cliente</label>
+        <input class="modal-input" type="text" id="mfv-cliente" placeholder="Nombre del cliente">
+      </div>
+      <div>
+        <label class="modal-label">RUT cliente</label>
+        <input class="modal-input" type="text" id="mfv-rut" placeholder="Ej: 76.543.210-9">
+      </div>
+      <div>
+        <label class="modal-label">Monto neto</label>
+        <input class="modal-input" type="number" id="mfv-neto" placeholder="0" oninput="calcModalFV()">
+      </div>
+      <div>
+        <label class="modal-label">IVA</label>
+        <input class="modal-input" type="number" id="mfv-iva" placeholder="0" oninput="calcModalFV()">
+      </div>
+      <div>
+        <label class="modal-label">Total</label>
+        <input class="modal-input" type="number" id="mfv-total" placeholder="0" readonly style="background:var(--g50)">
+      </div>
+      <div>
+        <label class="modal-label">Fecha vencimiento</label>
+        <input class="modal-input" type="date" id="mfv-venc">
+      </div>
+      <div style="grid-column:span 2">
+        <label class="modal-label">Estado</label>
+        <select class="modal-select" id="mfv-estado">
+          <option value="pendiente">⏳ Pendiente</option>
+          <option value="pagado">✓ Pagado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="cerrarModal('factv')">Cancelar</button>
+      <button class="modal-save" id="mfv-btn" onclick="guardarFactVenta()">Guardar factura</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL USUARIO DUEÑO -->
 <div class="modal-bg" id="modal-usuario-dueno">
   <div class="modal">
@@ -823,7 +878,7 @@ function inicDashJefe(){
   var ini=cli.nombre_negocio.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
   document.getElementById('tbav').textContent=ini;
   // Ocultar módulos no permitidos para jefe_local
-  var modOcultar=['resumen','balance','gastosfijos','creditos','precios'];
+  var modOcultar=['resumen','balance','gastosfijos','creditos','precios','factventas'];
   document.querySelectorAll('.sb-item').forEach(function(el){
     var oc=el.getAttribute('onclick')||'';
     modOcultar.forEach(function(m){
@@ -2177,6 +2232,206 @@ function toggleOtrosDetalle(id){
 }
 
 
+// ══════════════════════════════════════
+// FACTURAS DE VENTA
+// ══════════════════════════════════════
+function calcModalFV(){
+  var n=parseFloat(document.getElementById('mfv-neto').value)||0;
+  var i=parseFloat(document.getElementById('mfv-iva').value)||0;
+  document.getElementById('mfv-total').value=Math.round(n+i)||'';
+}
+
+async function loadFactVentasDash(){
+  var el=document.getElementById('dfv');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas_venta?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc',{headers:H()});
+    var d=await r.json();
+    var hoy2=new Date();hoy2.setHours(0,0,0,0);
+
+    // KPIs
+    var totalEmitido=0,totalPagado=0,totalPendiente=0,totalVencido=0;
+    d.forEach(function(f){
+      totalEmitido+=(f.total||0);
+      if(f.estado==='pagado') totalPagado+=(f.total||0);
+      else{
+        var venc=f.fecha_vencimiento?new Date(f.fecha_vencimiento+'T12:00:00'):null;
+        if(venc&&venc<hoy2) totalVencido+=(f.total||0);
+        else totalPendiente+=(f.total||0);
+      }
+    });
+
+    var h='<div class="kgrid" style="margin-bottom:1.25rem">';
+    h+='<div class="kpi u"><div class="kl">Total emitido</div><div class="kv" style="color:#1971c2">'+fmtK(totalEmitido)+'</div><div class="ks">histórico</div></div>';
+    h+='<div class="kpi v"><div class="kl">Cobrado</div><div class="kv">'+fmtK(totalPagado)+'</div><div class="ks">pagado</div></div>';
+    h+='<div class="kpi g"><div class="kl">Por cobrar</div><div class="kv">'+fmtK(totalPendiente)+'</div><div class="ks">pendiente</div></div>';
+    h+='<div class="kpi c"><div class="kl">Vencido</div><div class="kv">'+fmtK(totalVencido)+'</div><div class="ks">sin pagar</div></div>';
+    h+='</div>';
+
+    // Alerta vencidas
+    var vencidas=d.filter(function(f){
+      if(f.estado==='pagado') return false;
+      var v=f.fecha_vencimiento?new Date(f.fecha_vencimiento+'T12:00:00'):null;
+      return v&&v<hoy2;
+    });
+    if(vencidas.length>0){
+      h+='<div class="alerta err" style="margin-bottom:1.25rem"><span>⚠️</span><span><strong>'+vencidas.length+' factura'+(vencidas.length>1?'s':'')+' vencida'+(vencidas.length>1?'s':'')+' por cobrar</strong> — '+fmt(vencidas.reduce(function(s,f){return s+(f.total||0);},0))+'</span></div>';
+    }
+
+    if(!d||!d.length){
+      h+='<div class="empty">Sin facturas de venta registradas</div>';
+      el.innerHTML=h;return;
+    }
+
+    // Agrupar por mes
+    var meses={};
+    d.forEach(function(f){
+      var k=f.fecha.substring(0,7);
+      if(!meses[k])meses[k]=[];
+      meses[k].push(f);
+    });
+
+    var MC=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    var mesActual=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+
+    Object.keys(meses).forEach(function(k){
+      var filas=meses[k];
+      var totalMes=filas.reduce(function(s,f){return s+(f.total||0);},0);
+      var parts=k.split('-');
+      var label=MC[parseInt(parts[1])-1]+' '+parts[0];
+      var esActual=k===mesActual;
+      var openStyle=esActual?'':'display:none';
+
+      h+='<div class="tc" style="margin-bottom:1rem">';
+      h+='<div class="tc-h" style="cursor:pointer" data-fvk="fvmes-'+k+'" onclick="toggleMesFV(this.dataset.fvk)">';
+      h+='<span class="tc-t" style="color:'+(esActual?'var(--vd)':'var(--g900)')+'">'+label+'</span>';
+      h+='<div style="display:flex;align-items:center;gap:12px"><span style="font-size:13px;font-weight:500;color:var(--r)">'+filas.length+' facturas · '+fmt(totalMes)+'</span>';
+      h+='<span style="color:var(--g500);font-size:12px">'+(esActual?'▲':'▼')+'</span></div>';
+      h+='</div>';
+      h+='<div id="fvmes-'+k+'" style="'+openStyle+'">';
+      h+='<table><tr style="background:var(--g50)">';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">N° Factura</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Cliente</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">RUT</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Emisión</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Vencimiento</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Total</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Estado</th>';
+      h+='<th style="background:var(--g50);border-bottom:1px solid #c1c7cd;padding:8px 1.25rem"></th></tr>';
+
+      filas.forEach(function(f){
+        var fd=new Date(f.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});
+        var venc=f.fecha_vencimiento?new Date(f.fecha_vencimiento+'T12:00:00'):null;
+        var vencStr=venc?venc.toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—';
+        var isVencida=venc&&venc<hoy2&&f.estado!=='pagado';
+        var estadoBadge=f.estado==='pagado'
+          ?'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#e8f7f2;color:#087a55">✓ Pagado</span>'
+          :isVencida
+          ?'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#FCEBEB;color:#c0392b">⚠ Vencida</span>'
+          :'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#FAEEDA;color:#b45309">⏳ Pendiente</span>';
+
+        h+='<tr>';
+        h+='<td style="color:var(--g500)">'+(f.numero_factura||'—')+'</td>';
+        h+='<td style="font-weight:500">'+(f.cliente_nombre||'—')+'</td>';
+        h+='<td style="color:var(--g500)">'+(f.rut_cliente||'—')+'</td>';
+        h+='<td>'+fd+'</td>';
+        h+='<td style="color:'+(isVencida?'#c0392b':'var(--g900)')+'">'+vencStr+(isVencida?' ⚠':'')+'</td>';
+        h+='<td style="font-weight:500;color:var(--r)">'+fmt(f.total)+'</td>';
+        h+='<td>'+estadoBadge+'</td>';
+        h+='<td style="white-space:nowrap">';
+        if(f.estado!=='pagado'){
+          h+='<button class="btn-edit" style="color:#087a55;border-color:#9FE1CB;background:#e8f7f2;font-size:11px;padding:3px 7px" data-fvid="'+f.id+'" onclick="marcarCobradaFV(this.dataset.fvid)">Cobrada</button> ';
+        }
+        h+='<button class="btn-edit" data-fvrec="'+encodeURIComponent(JSON.stringify(f))+'" onclick="editFactVenta(JSON.parse(decodeURIComponent(this.dataset.fvrec)))">✏️</button>';
+        h+='<button class="btn-del" data-fvid="'+f.id+'" onclick="eliminarFactVenta(this.dataset.fvid)">🗑️</button>';
+        h+='</td></tr>';
+      });
+      h+='</table></div></div>';
+    });
+
+    // Botón nueva factura arriba
+    el.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button onclick="abrirNuevaFactVenta()" style="padding:8px 18px;background:var(--v);color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Nueva factura</button></div>'+h;
+  }catch(ex){el.innerHTML='<div class="empty">'+mensajeError(ex)+'</div>';}
+}
+
+function toggleMesFV(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'';
+}
+
+function abrirNuevaFactVenta(){
+  document.getElementById('mfv-titulo').textContent='Nueva factura de venta';
+  document.getElementById('mfv-id').value='';
+  document.getElementById('mfv-num').value='';
+  document.getElementById('mfv-fecha').value=hoy.toISOString().substring(0,10);
+  document.getElementById('mfv-cliente').value='';
+  document.getElementById('mfv-rut').value='';
+  document.getElementById('mfv-neto').value='';
+  document.getElementById('mfv-iva').value='';
+  document.getElementById('mfv-total').value='';
+  document.getElementById('mfv-venc').value='';
+  document.getElementById('mfv-estado').value='pendiente';
+  document.getElementById('mfv-btn').textContent='Guardar factura';
+  abrirModal('factv');
+}
+
+function editFactVenta(f){
+  document.getElementById('mfv-titulo').textContent='Editar factura';
+  document.getElementById('mfv-id').value=f.id;
+  document.getElementById('mfv-num').value=f.numero_factura||'';
+  document.getElementById('mfv-fecha').value=f.fecha||'';
+  document.getElementById('mfv-cliente').value=f.cliente_nombre||'';
+  document.getElementById('mfv-rut').value=f.rut_cliente||'';
+  document.getElementById('mfv-neto').value=f.monto_neto||'';
+  document.getElementById('mfv-iva').value=f.iva||'';
+  document.getElementById('mfv-total').value=f.total||'';
+  document.getElementById('mfv-venc').value=f.fecha_vencimiento||'';
+  document.getElementById('mfv-estado').value=f.estado||'pendiente';
+  document.getElementById('mfv-btn').textContent='Guardar cambios';
+  abrirModal('factv');
+}
+
+async function guardarFactVenta(){
+  var id=document.getElementById('mfv-id').value;
+  var num=document.getElementById('mfv-num').value.trim();
+  var fecha=document.getElementById('mfv-fecha').value;
+  var cliente=document.getElementById('mfv-cliente').value.trim();
+  var rut=document.getElementById('mfv-rut').value.trim();
+  var neto=parseFloat(document.getElementById('mfv-neto').value)||0;
+  var iva=parseFloat(document.getElementById('mfv-iva').value)||0;
+  var total=parseFloat(document.getElementById('mfv-total').value)||0;
+  var venc=document.getElementById('mfv-venc').value;
+  var estado=document.getElementById('mfv-estado').value;
+  if(!fecha||!cliente||!total){alert('Completa cliente, fecha y total');return;}
+  var btn=document.getElementById('mfv-btn');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    var payload={numero_factura:num,fecha,cliente_nombre:cliente,rut_cliente:rut,monto_neto:neto,iva,total,fecha_vencimiento:venc||null,estado,cliente_id:cli.id};
+    var r;
+    if(id){r=await fetch(SU+'/rest/v1/facturas_venta?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify(payload)});}
+    else{r=await fetch(SU+'/rest/v1/facturas_venta',{method:'POST',headers:HJ(),body:JSON.stringify(payload)});}
+    if(r.ok){cerrarModal('factv');loadFactVentasDash();}
+    else throw new Error(await r.text());
+  }catch(ex){alert(mensajeError(ex));}
+  btn.disabled=false;btn.textContent=id?'Guardar cambios':'Guardar factura';
+}
+
+async function marcarCobradaFV(id){
+  if(!confirm('¿Marcar esta factura como cobrada?'))return;
+  var r=await fetch(SU+'/rest/v1/facturas_venta?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({estado:'pagado'})});
+  if(r.ok)loadFactVentasDash();
+  else alert(mensajeError(new Error(await r.text())));
+}
+
+async function eliminarFactVenta(id){
+  if(!confirm('¿Eliminar esta factura?'))return;
+  var r=await fetch(SU+'/rest/v1/facturas_venta?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'DELETE',headers:H()});
+  if(r.ok)loadFactVentasDash();
+  else alert(mensajeError(new Error(await r.text())));
+}
+
+
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
@@ -2837,7 +3092,7 @@ function dpage(n,el){
   document.querySelectorAll('.dp').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.sb-item').forEach(function(s){s.classList.remove('active');});
   document.getElementById('dp-'+n).classList.add('active');el.classList.add('active');
-  var t={resumen:'Dashboard',balance:'Balance anual',cierres:'Cierres de caja',facturas:'Facturas',personal:'Personal',gastosfijos:'Gastos fijos',creditos:'Créditos',precios:'Precios de compra',admin:'Admin clientes',usuarios:'Usuarios'};
+  var t={resumen:'Dashboard',balance:'Balance anual',cierres:'Cierres de caja',facturas:'Facturas de compra',factventas:'Facturas de venta',personal:'Personal',gastosfijos:'Gastos fijos',creditos:'Créditos',precios:'Precios de compra',admin:'Admin clientes',usuarios:'Usuarios'};
   document.getElementById('tbt').textContent=t[n]||n;
   if(n==='balance')loadB();
   if(n==='personal'){loadTD('pagos_personal','dpe',renderPersonalTabla);inicSelectMesPersonal();}
@@ -2850,6 +3105,7 @@ function dpage(n,el){
     loadCierresDash();
   }
   if(n==='facturas')loadFacturasDash();
+  if(n==='factventas')loadFactVentasDash();
   if(n==='gastosfijos')loadGastosFijosDash();
   if(n==='creditos')loadCreditosDash();
 
