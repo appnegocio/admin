@@ -539,14 +539,43 @@ tr:hover td{background:var(--g50)}
       <div id="config-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99" onclick="cerrarConfig()"></div>
 
       <div class="dcont">
-        <div class="dp active" id="dp-resumen"><div class="pills" id="pills"></div><div id="rc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-balance"><div id="bc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-cierres"><div id="dc"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-factventas"><div id="dfv"><div class="ld">Cargando...</div></div></div>
+        <div class="dp active" id="dp-resumen">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+            <button onclick="reporteDashboard()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte del mes</button>
+          </div>
+          <div class="pills" id="pills"></div><div id="rc"><div class="ld">Cargando...</div></div>
+        </div>
+        <div class="dp" id="dp-balance">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+            <select id="rep-mes-bal" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+            <button onclick="reporteBalance()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;margin-left:8px">📊 Reporte anual</button>
+          </div>
+          <div id="bc"><div class="ld">Cargando...</div></div>
+        </div>
+        <div class="dp" id="dp-cierres">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+            <select id="rep-mes-cierres" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+            <button onclick="reporteCierres()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;margin-left:8px">📊 Reporte mensual</button>
+          </div>
+          <div id="dc"><div class="ld">Cargando...</div></div>
+        </div>
+        <div class="dp" id="dp-factventas">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+            <select id="rep-mes-fv" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+            <button onclick="reporteFactVenta()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;margin-left:8px">📊 Reporte mensual</button>
+          </div>
+          <div id="dfv"><div class="ld">Cargando...</div></div>
+        </div>
         <div class="dp" id="dp-facturas">
-          <div style="display:flex;border-bottom:2px solid #c1c7cd;margin-bottom:1.25rem">
-            <button id="ftab-facturas" onclick="swFactTab('facturas')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Facturas</button>
-            <button id="ftab-precios" onclick="swFactTab('precios')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Precios de compra</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #c1c7cd;margin-bottom:1.25rem">
+            <div style="display:flex">
+              <button id="ftab-facturas" onclick="swFactTab('facturas')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Facturas</button>
+              <button id="ftab-precios" onclick="swFactTab('precios')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Precios de compra</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px">
+              <select id="rep-mes-fc" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+              <button onclick="reporteFactCompra()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte mensual</button>
+            </div>
           </div>
           <div id="dp-fact-facturas"><div id="df"><div class="ld">Cargando...</div></div></div>
           <div id="dp-fact-precios" style="display:none"><div id="dprecios"><div class="ld">Cargando...</div></div></div>
@@ -568,8 +597,19 @@ tr:hover td{background:var(--g50)}
           <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
           <div id="dp-personal-emps" style="display:none"><div id="dem"><div class="ld">Cargando...</div></div></div>
         </div>
-        <div class="dp" id="dp-gastosfijos"><div id="dg"><div class="ld">Cargando...</div></div></div>
-        <div class="dp" id="dp-creditos"><div id="dcred"><div class="ld">Cargando...</div></div></div>
+        <div class="dp" id="dp-gastosfijos">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+            <select id="rep-mes-gf" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+            <button onclick="reporteGastosFijos()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;margin-left:8px">📊 Reporte mensual</button>
+          </div>
+          <div id="dg"><div class="ld">Cargando...</div></div>
+        </div>
+        <div class="dp" id="dp-creditos">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+            <button onclick="reporteCreditos()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte créditos</button>
+          </div>
+          <div id="dcred"><div class="ld">Cargando...</div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2627,7 +2667,290 @@ function pdfBase(titulo, contenido){
 
 function f2(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
 
+// ── Helpers reportes mensuales ──
+function fmtR(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
+function inicSelectMes(id){
+  var sel=document.getElementById(id);
+  if(!sel)return;
+  sel.innerHTML='';
+  var a=hoy.getFullYear();
+  for(var y=a;y>=a-1;y--){
+    for(var m=12;m>=1;m--){
+      if(y===a&&m>hoy.getMonth()+1)continue;
+      var opt=document.createElement('option');
+      opt.value=y+'-'+String(m).padStart(2,'0');
+      opt.textContent=MS[m-1]+' '+y;
+      if(y===a&&m===hoy.getMonth()+1)opt.selected=true;
+      sel.appendChild(opt);
+    }
+  }
+}
+function inicSelAnio(id){
+  var sel=document.getElementById(id);
+  if(!sel)return;
+  sel.innerHTML='';
+  var a=hoy.getFullYear();
+  for(var y=a;y>=a-3;y--){
+    var opt=document.createElement('option');
+    opt.value=y;opt.textContent=y;
+    if(y===a)opt.selected=true;
+    sel.appendChild(opt);
+  }
+}
+function getSelMesAnio(id){
+  var sel=document.getElementById(id);
+  if(!sel||!sel.value)return{a:hoy.getFullYear(),m:hoy.getMonth()+1};
+  var parts=sel.value.split('-');
+  return{a:parseInt(parts[0]),m:parseInt(parts[1])};
+}
+
 // ── 1. Reporte Cierres de caja ──
+async function reporteCierres(){
+  var v=getSelMesAnio('rep-mes-cierres');
+  var a=v.a,m=v.m;
+  var d=a+'-'+String(m).padStart(2,'0')+'-01';
+  var mf=m===12?1:m+1,af=m===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.asc',{headers:H()});
+    var datos=await r.json();
+    if(!datos||!datos.length){alert('Sin cierres en '+MS[m-1]+' '+a);return;}
+    var fd=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});};
+    var totZ=datos.reduce(function(s,r){return s+(r.total_z||0);},0);
+    var totRet=datos.reduce(function(s,r){return s+(r.retiros||0);},0);
+    var totDif=datos.reduce(function(s,r){return s+(r.diferencia||0);},0);
+    var nDesc=datos.filter(function(r){return (r.diferencia||0)!==0;}).length;
+    var cuerpo='<div class="sec">Resumen del mes</div>'
+      +'<div class="row"><span>Días registrados</span><span>'+datos.length+'</span></div>'
+      +'<div class="row"><span>Total ventas (Z)</span><span class="pos">'+fmtR(totZ)+'</span></div>'
+      +'<div class="row"><span>Total retiros</span><span>'+fmtR(totRet)+'</span></div>'
+      +'<div class="row tot"><span>Diferencia acumulada</span><span class="'+(totDif===0?'pos':'neg')+'">'+fmtR(totDif)+'</span></div>'
+      +(nDesc>0?'<div style="margin:8px 0;padding:6px 10px;background:#FCEBEB;border-radius:6px;font-size:11px;color:#c0392b">⚠️ '+nDesc+' cierre'+(nDesc>1?'s':'')+' con descuadre</div>':'')
+      +'<div class="sec">Detalle por día</div>'
+      +'<table><tr><th>Fecha</th><th>Ventas Z</th><th>Retiros</th><th>Diferencia</th><th>Gastos</th></tr>';
+    datos.forEach(function(r){
+      var gastos=0;
+      if(r.gastos_detalle&&Array.isArray(r.gastos_detalle))gastos=r.gastos_detalle.reduce(function(s,g){return s+(g.monto||0);},0);
+      cuerpo+='<tr><td>'+fd(r.fecha)+'</td><td class="pos">'+fmtR(r.total_z)+'</td><td>'+fmtR(r.retiros)+'</td>'
+        +'<td class="'+(r.diferencia===0?'pos':'neg')+'">'+fmtR(r.diferencia)+'</td><td>'+fmtR(gastos)+'</td></tr>';
+    });
+    cuerpo+='</table>';
+    pdfBase('Cierres de caja — '+MS[m-1]+' '+a,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+// ── 2. Reporte Facturas de compra ──
+async function reporteFactCompra(){
+  var v=getSelMesAnio('rep-mes-fc');
+  var a=v.a,m=v.m;
+  var d=a+'-'+String(m).padStart(2,'0')+'-01';
+  var mf=m===12?1:m+1,af=m===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.asc',{headers:H()});
+    var datos=await r.json();
+    if(!datos||!datos.length){alert('Sin facturas de compra en '+MS[m-1]+' '+a);return;}
+    var fd=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});};
+    var totNeto=datos.reduce(function(s,r){return s+(r.monto_neto||0);},0);
+    var totIva=datos.reduce(function(s,r){return s+(r.iva||0);},0);
+    var totTotal=datos.reduce(function(s,r){return s+(r.total||0);},0);
+    var pagadas=datos.filter(function(r){return r.estado==='pagada';}).length;
+    var cuerpo='<div class="sec">Resumen del mes</div>'
+      +'<div class="row"><span>Facturas registradas</span><span>'+datos.length+'</span></div>'
+      +'<div class="row"><span>Pagadas</span><span class="pos">'+pagadas+'</span></div>'
+      +'<div class="row"><span>Monto neto</span><span>'+fmtR(totNeto)+'</span></div>'
+      +'<div class="row"><span>IVA</span><span>'+fmtR(totIva)+'</span></div>'
+      +'<div class="row tot"><span>Total</span><span>'+fmtR(totTotal)+'</span></div>'
+      +'<div class="sec">Detalle</div>'
+      +'<table><tr><th>Fecha</th><th>Nº</th><th>Proveedor</th><th>Neto</th><th>IVA</th><th>Total</th><th>Estado</th></tr>';
+    datos.forEach(function(r){
+      var bdg=r.estado==='pagada'?'badge-v':'badge-a';
+      cuerpo+='<tr><td>'+fd(r.fecha)+'</td><td>'+r.numero_factura+'</td><td>'+r.proveedor+'</td>'
+        +'<td>'+fmtR(r.monto_neto)+'</td><td>'+fmtR(r.iva)+'</td><td>'+fmtR(r.total)+'</td>'
+        +'<td><span class="badge '+bdg+'">'+r.estado+'</span></td></tr>';
+    });
+    cuerpo+='</table>';
+    pdfBase('Facturas de compra — '+MS[m-1]+' '+a,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+// ── 3. Reporte Facturas de venta ──
+async function reporteFactVenta(){
+  var v=getSelMesAnio('rep-mes-fv');
+  var a=v.a,m=v.m;
+  var d=a+'-'+String(m).padStart(2,'0')+'-01';
+  var mf=m===12?1:m+1,af=m===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas_venta?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.asc',{headers:H()});
+    var datos=await r.json();
+    if(!datos||!datos.length){alert('Sin facturas de venta en '+MS[m-1]+' '+a);return;}
+    var fd=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'});};
+    var totTotal=datos.reduce(function(s,r){return s+(r.total||0);},0);
+    var totPag=datos.filter(function(r){return r.estado==='pagado';}).reduce(function(s,r){return s+(r.total||0);},0);
+    var hoy2=new Date();hoy2.setHours(0,0,0,0);
+    var totVenc=datos.filter(function(r){
+      if(r.estado==='pagado')return false;
+      var venc=r.fecha_vencimiento?new Date(r.fecha_vencimiento+'T12:00:00'):null;
+      return venc&&venc<hoy2;
+    }).reduce(function(s,r){return s+(r.total||0);},0);
+    var cuerpo='<div class="sec">Resumen del mes</div>'
+      +'<div class="row"><span>Facturas emitidas</span><span>'+datos.length+'</span></div>'
+      +'<div class="row"><span>Total emitido</span><span>'+fmtR(totTotal)+'</span></div>'
+      +'<div class="row"><span>Cobrado</span><span class="pos">'+fmtR(totPag)+'</span></div>'
+      +'<div class="row tot"><span>Vencido sin pago</span><span class="'+(totVenc>0?'neg':'pos')+'">'+fmtR(totVenc)+'</span></div>'
+      +'<div class="sec">Detalle</div>'
+      +'<table><tr><th>Fecha</th><th>Nº</th><th>Cliente</th><th>RUT</th><th>Total</th><th>Estado</th></tr>';
+    datos.forEach(function(r){
+      var vencida=r.estado!=='pagado'&&r.fecha_vencimiento&&new Date(r.fecha_vencimiento+'T12:00:00')<hoy2;
+      var bdg=r.estado==='pagado'?'badge-v':vencida?'badge-r':'badge-a';
+      var est=r.estado==='pagado'?'pagado':vencida?'vencida':'pendiente';
+      cuerpo+='<tr><td>'+fd(r.fecha)+'</td><td>'+r.numero_factura+'</td><td>'+r.cliente_nombre+'</td>'
+        +'<td>'+r.rut_cliente+'</td><td>'+fmtR(r.total)+'</td>'
+        +'<td><span class="badge '+bdg+'">'+est+'</span></td></tr>';
+    });
+    cuerpo+='</table>';
+    pdfBase('Facturas de venta — '+MS[m-1]+' '+a,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+// ── 4. Reporte Gastos fijos ──
+async function reporteGastosFijos(){
+  var v=getSelMesAnio('rep-mes-gf');
+  var a=v.a,m=v.m;
+  try{
+    var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+m+'&anio=eq.'+a,{headers:H()});
+    var datos=await r.json();
+    if(!datos||!datos.length){alert('Sin gastos fijos en '+MS[m-1]+' '+a);return;}
+    var row=datos[0];
+    var cats=[
+      {key:'previred',label:'Previred'},{key:'sueldos',label:'Sueldos'},{key:'arriendo',label:'Arriendo'},
+      {key:'luz',label:'Luz'},{key:'credito',label:'Crédito'},{key:'iva',label:'IVA'},
+      {key:'contabilidad',label:'Contabilidad'},{key:'otros',label:'Otros'}
+    ];
+    var total=cats.reduce(function(s,c){return s+(row[c.key]||0);},0);
+    var cuerpo='<div class="sec">Gastos del mes</div>';
+    cats.forEach(function(c){
+      if(row[c.key])cuerpo+='<div class="row"><span>'+c.label+'</span><span>'+fmtR(row[c.key])+'</span></div>';
+    });
+    cuerpo+='<div class="row tot"><span>Total</span><span>'+fmtR(total)+'</span></div>';
+    if(row.otros_detalle&&row.otros_detalle.length){
+      cuerpo+='<div class="sec">Detalle Otros</div>';
+      row.otros_detalle.forEach(function(g){
+        cuerpo+='<div class="row"><span>'+g.desc+'</span><span>'+fmtR(g.monto)+'</span></div>';
+      });
+    }
+    pdfBase('Gastos fijos — '+MS[m-1]+' '+a,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+// ── 5. Reporte Créditos ──
+async function reporteCreditos(){
+  try{
+    var r=await fetch(SU+'/rest/v1/creditos?select=*&cliente_id=eq.'+cli.id+'&activo=eq.true&order=created_at.asc',{headers:H()});
+    var datos=await r.json();
+    if(!datos||!datos.length){alert('Sin créditos activos');return;}
+    var mesA=hoy.getMonth()+1,anioA=hoy.getFullYear();
+    var rp=await fetch(SU+'/rest/v1/pagos_creditos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+mesA+'&anio=eq.'+anioA,{headers:H()});
+    var pagos=await rp.json()||[];
+    var totCuotas=datos.reduce(function(s,c){return s+c.cuota_mensual;},0);
+    var totDeuda=datos.reduce(function(s,c){return s+Math.max((c.monto_total||0)-((c.cuotas_pagadas||0)*(c.cuota_mensual||0)),0);},0);
+    var pendientes=datos.filter(function(c){return !pagos.find(function(p){return p.credito_id===c.id&&p.pagado;});}).length;
+    var cuerpo='<div class="sec">Resumen créditos activos</div>'
+      +'<div class="row"><span>Créditos activos</span><span>'+datos.length+'</span></div>'
+      +'<div class="row"><span>Cuotas '+MS[mesA-1]+'</span><span>'+fmtR(totCuotas)+'</span></div>'
+      +'<div class="row"><span>Pendientes '+MS[mesA-1]+'</span><span class="'+(pendientes>0?'neg':'pos')+'">'+pendientes+'</span></div>'
+      +'<div class="row tot"><span>Deuda total</span><span class="neg">'+fmtR(totDeuda)+'</span></div>'
+      +'<div class="sec">Detalle por crédito</div>'
+      +'<table><tr><th>Nombre</th><th>Banco</th><th>Cuota/mes</th><th>Pagadas</th><th>Total</th><th>Estado '+MS[mesA-1]+'</th></tr>';
+    datos.forEach(function(c){
+      var pagado=pagos.find(function(p){return p.credito_id===c.id&&p.pagado;});
+      var pct=c.total_cuotas>0?Math.round((c.cuotas_pagadas/c.total_cuotas)*100):0;
+      cuerpo+='<tr><td>'+c.nombre+'</td><td>'+(c.banco||'—')+'</td><td>'+fmtR(c.cuota_mensual)+'</td>'
+        +'<td>'+c.cuotas_pagadas+'/'+c.total_cuotas+' ('+pct+'%)</td>'
+        +'<td>'+fmtR(c.monto_total)+'</td>'
+        +'<td><span class="badge '+(pagado?'badge-v':'badge-a')+'">'+(pagado?'Pagado':'Pendiente')+'</span></td></tr>';
+    });
+    cuerpo+='</table>';
+    pdfBase('Créditos activos — '+MS[mesA-1]+' '+anioA,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+// ── 6. Reporte Balance anual ──
+async function reporteBalance(){
+  var sel=document.getElementById('rep-mes-bal');
+  var a=sel&&sel.value?parseInt(sel.value.split('-')[0]):hoy.getFullYear();
+  try{
+    var res=await Promise.all([
+      fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
+      fetch(SU+'/rest/v1/facturas?select=fecha,total&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
+      fetch(SU+'/rest/v1/pagos_personal?select=fecha,monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
+      fetch(SU+'/rest/v1/gastos_fijos?select=mes,total&cliente_id=eq.'+cli.id+'&anio=eq.'+a,{headers:H()})
+    ]);
+    var c=await res[0].json(),f=await res[1].json(),p=await res[2].json(),g=await res[3].json();
+    var meses=[];
+    for(var m=1;m<=12;m++){
+      var pf=a+'-'+String(m).padStart(2,'0');
+      var vv=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total_z||0);},0);
+      var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
+      var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
+      var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
+      meses.push({m:m,v:vv,co:co,su:su,gf:gf,eg:co+su+gf,u:vv-co-su-gf});
+    }
+    var tV=meses.reduce(function(s,r){return s+r.v;},0);
+    var tC=meses.reduce(function(s,r){return s+r.co;},0);
+    var tS=meses.reduce(function(s,r){return s+r.su;},0);
+    var tG=meses.reduce(function(s,r){return s+r.gf;},0);
+    var tU=tV-tC-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
+    var cuerpo='<div class="sec">Resumen anual '+a+'</div>'
+      +'<div class="row"><span>Ventas totales</span><span class="pos">'+fmtR(tV)+'</span></div>'
+      +'<div class="row"><span>Facturas compra</span><span class="neg">'+fmtR(tC)+'</span></div>'
+      +'<div class="row"><span>Personal</span><span class="neg">'+fmtR(tS)+'</span></div>'
+      +'<div class="row"><span>Gastos fijos</span><span class="neg">'+fmtR(tG)+'</span></div>'
+      +'<div class="row tot"><span>Utilidad neta</span><span class="'+(tU>=0?'pos':'neg')+'">'+fmtR(tU)+' ('+tM+'%)</span></div>'
+      +'<div class="sec">Detalle mensual</div>'
+      +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Personal</th><th>G.Fijos</th><th>Utilidad</th></tr>';
+    meses.forEach(function(r){
+      cuerpo+='<tr><td>'+MS[r.m-1]+'</td><td class="pos">'+fmtR(r.v)+'</td><td>'+fmtR(r.co)+'</td>'
+        +'<td>'+fmtR(r.su)+'</td><td>'+fmtR(r.gf)+'</td>'
+        +'<td class="'+(r.u>=0?'pos':'neg')+'">'+fmtR(r.u)+'</td></tr>';
+    });
+    cuerpo+='</table>';
+    pdfBase('Balance anual '+a,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+// ── 7. Reporte Dashboard ──
+async function reporteDashboard(){
+  var a=anioSel,m=mesSel;
+  var d=a+'-'+String(m).padStart(2,'0')+'-01';
+  var mf=m===12?1:m+1,af=m===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var res=await Promise.all([
+      fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
+      fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
+      fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
+      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+m+'&anio=eq.'+a,{headers:H()})
+    ]);
+    var c=await res[0].json(),f=await res[1].json(),p=await res[2].json(),g=await res[3].json();
+    var ventas=(c||[]).reduce(function(s,r){return s+(r.total_z||0);},0);
+    var compras=(f||[]).reduce(function(s,r){return s+(r.total||0);},0);
+    var personal=(p||[]).reduce(function(s,r){return s+(r.monto||0);},0);
+    var gastos=(g&&g.length?g[0].total:0)||0;
+    var utilidad=ventas-compras-personal-gastos;
+    var margen=ventas>0?Math.round((utilidad/ventas)*100):0;
+    var cuerpo='<div class="sec">Resumen ejecutivo — '+MS[m-1]+' '+a+'</div>'
+      +'<div class="row"><span>Ventas (Z)</span><span class="pos">'+fmtR(ventas)+'</span></div>'
+      +'<div class="row"><span>Facturas de compra</span><span class="neg">'+fmtR(compras)+'</span></div>'
+      +'<div class="row"><span>Personal</span><span class="neg">'+fmtR(personal)+'</span></div>'
+      +'<div class="row"><span>Gastos fijos</span><span class="neg">'+fmtR(gastos)+'</span></div>'
+      +'<div class="row tot"><span>Utilidad neta</span><span class="'+(utilidad>=0?'pos':'neg')+'">'+fmtR(utilidad)+' ('+margen+'%)</span></div>';
+    pdfBase('Dashboard — '+MS[m-1]+' '+a,cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
+
 
 
 
@@ -3323,6 +3646,8 @@ function dpage(n,el){
   if(n==='gastosfijos')inicSelectMes('rep-mes-gf');
   if(n==='creditos')inicSelectMes('rep-mes-cred');
   if(n==='balance')inicSelectMes('rep-mes-bal');
+  if(n==='facturas')inicSelectMes('rep-mes-fc');
+  if(n==='factventas')inicSelectMes('rep-mes-fv');
   if(n==='gastosfijos')loadGastosFijosDash();
   if(n==='creditos')loadCreditosDash();
 
