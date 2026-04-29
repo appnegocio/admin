@@ -3846,7 +3846,7 @@ async function loadCierresDash(){
       var parts=k.split('-');
       var label=MS[parseInt(parts[1])-1]+' '+parts[0];
       var isActual=k===mesActual;
-      var totalZ=meses[k].reduce(function(s,r){return s+(r.total_z||0);},0);
+      var totalZ=meses[k].reduce(function(s,r){return s+(r.total_z||0)+(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);},0);
       var nMal=meses[k].filter(function(r){return (r.diferencia||0)!==0;}).length;
       var mid='cdm-'+k.replace('-','');
       h+='<div style="border:1px solid '+(isActual?'var(--v)':nMal>0?'#ffc9c9':'var(--g200)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">';
@@ -3856,13 +3856,17 @@ async function loadCierresDash(){
       h+='</div>';
       h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' días</span><span style="font-size:13px;font-weight:500;color:var(--vd)">'+fmt(totalZ)+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
-      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Ventas</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
+      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Ventas local</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Delivery</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
       meses[k].forEach(function(r){
         var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
         var dif=r.diferencia||0;
+        var del=(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);
+        var tot=(r.total_z||0)+del;
         h+='<tr style="border-bottom:1px solid var(--g50);'+(dif!==0?'background:#fff8f8;':'')+'">';
         h+='<td style="padding:8px 1.25rem;font-size:13px">'+fd+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.total_z)+'</td>';
+        h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right;'+(del>0?'color:#087a55;font-weight:500':'')+'">'+( del>0?fmt(del):'<span style="color:var(--g300)">—</span>')+'</td>';
+        h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right;font-weight:500">'+fmt(tot)+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;text-align:right">'+fmt(r.retiros)+'</td>';
         h+='<td style="padding:8px 1.25rem;font-size:13px;font-weight:500;text-align:right;color:'+(dif<0?'var(--r)':dif>0?'var(--vd)':'var(--g500)')+'">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td>';
         h+='<td style="padding:8px 1.25rem;white-space:nowrap"><button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="editCaja(JSON.parse(decodeURIComponent(this.dataset.rec)))">✏️</button><button class="btn-del" data-id="'+r.id+'" onclick="eliminarCaja(this.dataset.id)">🗑️</button><button class="btn-pdf" data-rec="'+encodeURIComponent(JSON.stringify(r))+'" onclick="generarPDFCierre(JSON.parse(decodeURIComponent(this.dataset.rec)))">📄 PDF</button></td>';
