@@ -278,8 +278,11 @@ tr:hover td{background:var(--g50)}
         <label class="fl">Fecha</label><input class="fi" type="date" id="cj-f">
         <div class="fdiv">Caja física</div>
         <div class="fg2"><div><label class="fl">Caja inicial</label><input class="fi" type="number" id="cj-ci" placeholder="0" oninput="calcCaja()"></div><div><label class="fl">Caja final</label><input class="fi" type="number" id="cj-cf" placeholder="0" oninput="calcCaja()"></div></div>
-        <div class="fdiv">Registradora</div>
-        <label class="fl">Ventas</label><input class="fi" type="number" id="cj-z" placeholder="0" oninput="calcCaja()">
+        <div class="fdiv">Registradora — Local</div>
+        <label class="fl">Ventas local</label><input class="fi" type="number" id="cj-z" placeholder="0" oninput="calcCaja()">
+        <div class="fdiv">Delivery</div>
+        <div class="fg2"><div><label class="fl">Delivery efectivo</label><input class="fi" type="number" id="cj-del-ef" placeholder="0" oninput="calcCaja()"></div><div><label class="fl">Delivery tarjeta</label><input class="fi" type="number" id="cj-del-tj" placeholder="0" oninput="calcCaja()"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:2px;margin-bottom:8px"><span style="color:#212529">Total delivery</span><span id="cj-del-total" style="color:#087a55">$0</span></div>
         <div class="fdiv">Medios de pago Redbanc</div>
         <label class="fl">Redcompra</label><input class="fi" type="number" id="cj-rc" placeholder="0" oninput="calcCaja()">
         <label class="fl">Créditos Redbanc</label><input class="fi" type="number" id="cj-cr" placeholder="0" oninput="calcCaja()">
@@ -622,8 +625,11 @@ tr:hover td{background:var(--g50)}
     <label class="modal-label">Fecha</label><input class="modal-input" type="date" id="mcj-f">
     <div class="modal-div">Caja física</div>
     <div class="modal-grid2"><div><label class="modal-label">Caja inicial</label><input class="modal-input" type="number" id="mcj-ci" oninput="calcModalCaja()"></div><div><label class="modal-label">Caja final</label><input class="modal-input" type="number" id="mcj-cf" oninput="calcModalCaja()"></div></div>
-    <div class="modal-div">Registradora</div>
-    <label class="modal-label">Ventas</label><input class="modal-input" type="number" id="mcj-z" oninput="calcModalCaja()">
+    <div class="modal-div">Registradora — Local</div>
+    <label class="modal-label">Ventas local</label><input class="modal-input" type="number" id="mcj-z" oninput="calcModalCaja()">
+    <div class="modal-div">Delivery</div>
+    <div class="modal-grid2"><div><label class="modal-label">Delivery efectivo</label><input class="modal-input" type="number" id="mcj-del-ef" oninput="calcModalCaja()"></div><div><label class="modal-label">Delivery tarjeta</label><input class="modal-input" type="number" id="mcj-del-tj" oninput="calcModalCaja()"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-bottom:6px"><span>Total delivery</span><span id="mcj-del-total" style="color:#087a55">$0</span></div>
     <div class="modal-div">Redbanc</div>
     <div class="modal-grid2"><div><label class="modal-label">Redcompra</label><input class="modal-input" type="number" id="mcj-rc" oninput="calcModalCaja()"></div><div><label class="modal-label">Créditos Redbanc</label><input class="modal-input" type="number" id="mcj-cr" oninput="calcModalCaja()"></div></div>
     <label class="modal-label">Otro Redbanc</label><input class="modal-input" type="number" id="mcj-ot" oninput="calcModalCaja()">
@@ -1111,9 +1117,10 @@ async function loadR(){
         +'<input type="date" id="rdb-fecha" value="'+primerDiaMes+'" min="'+primerDiaMes+'" max="'+ultimoDiaMes+'" onchange="aplicarRdbFiltroDia()" style="display:none;height:30px;padding:0 8px;border:1px solid #c1c7cd;border-radius:8px;font-size:12px;font-family:inherit;color:var(--g900)">'
         +'</div></div>'
         +'<div id="rdb-semanas" style="display:none;padding:8px 1.25rem 0"><div style="font-size:11px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Selecciona una semana</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+semPills+'</div></div>'
-        +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Ventas</th><th>Retiros</th><th>Diferencia</th></tr>';
-      c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;h+='<tr data-fecha="'+r.fecha+'" style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td>'+fmt(r.total_z)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:500">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
-      h+='<tr id="rdb-total" style="background:var(--g50);font-weight:500;border-top:1px solid #c1c7cd"><td>Total mes</td><td>'+fmt(tZ)+'</td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr>'
+        +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Ventas local</th><th>Delivery</th><th>Total</th><th>Retiros</th><th>Diferencia</th></tr>';
+      c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;var del=(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);var tot=(r.total_z||0)+del;h+='<tr data-fecha="'+r.fecha+'" style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td>'+fmt(r.total_z)+'</td><td>'+(del>0?'<span style="color:#087a55;font-weight:500">'+fmt(del)+'</span>':'<span style="color:#aaa">—</span>')+'</td><td style="font-weight:500">'+fmt(tot)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:500">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
+      var tDel=c.reduce(function(s,r){return s+(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);},0);
+      h+='<tr id="rdb-total" style="background:var(--g50);font-weight:500;border-top:1px solid #c1c7cd"><td>Total mes</td><td>'+fmt(tZ)+'</td><td style="color:#087a55">'+fmt(tDel)+'</td><td>'+fmt(tZ+tDel)+'</td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr>'
         +'</table></div>'
         +'<div id="rdb-empty" style="display:none;text-align:center;padding:1.5rem;color:var(--g500);font-size:13px">Sin cierre para el período seleccionado</div>'
         +'</div>';
@@ -2967,9 +2974,14 @@ async function reporteDashboard(){
 
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
-  var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
+  var delEf=v('cj-del-ef'),delTj=v('cj-del-tj');
+  var delTotal=delEf+delTj;
+  var delEl=document.getElementById('cj-del-total');
+  if(delEl)delEl.textContent=fmt(delTotal);
+  var totalVentas=z+delTotal;
+  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
   var box=document.getElementById('cj-res'),val=document.getElementById('cj-rv'),hint=document.getElementById('cj-rh');
-  if(!z){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';return;}
+  if(!z&&!delTotal){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';return;}
   val.textContent=fmt(dif);
   if(dif===0){box.className='fres ok';hint.textContent='✓ Caja cuadra perfectamente';}
   else if(dif<0){box.className='fres bad';hint.textContent='Falta dinero — revisar caja';}
@@ -2977,16 +2989,18 @@ function calcCaja(){
 }
 
 async function guardarCaja(){
-  var z=v('cj-z');if(!z){alert('Ingresa el Ventas');return;}
+  var z=v('cj-z'),delEf=v('cj-del-ef'),delTj=v('cj-del-tj');
+  if(!z&&!delEf&&!delTj){alert('Ingresa al menos las ventas del local o delivery');return;}
   var fecha=document.getElementById('cj-f').value;if(!fecha){alert('Selecciona la fecha');return;}
   var ci=v('cj-ci'),cf=v('cj-cf'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
-  var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
+  var totalVentas=z+(delEf+delTj);
+  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
-      setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
+      setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
   }catch(ex){document.getElementById('cj-err').style.display='block';document.getElementById('cj-err').textContent=mensajeError(ex);btn.disabled=false;btn.textContent='Guardar cierre del día';}
 }
@@ -4430,11 +4444,17 @@ function editCaja(r){
   document.getElementById('mcj-re').value=r.retiros||0;
   cargarGastosEnLista('mcj-gastos-lista','mcj-ga-total','mcj-ga',r.gastos_detalle||[]);
   if((!r.gastos_detalle||!r.gastos_detalle.length)&&r.gastos){document.getElementById('mcj-ga').value=r.gastos||0;}
+  document.getElementById('mcj-del-ef').value=r.delivery_efectivo||0;
+  document.getElementById('mcj-del-tj').value=r.delivery_tarjeta||0;
   calcModalCaja();abrirModal('caja');
 }
 function calcModalCaja(){
   var ci=mv('mcj-ci'),cf=mv('mcj-cf'),z=mv('mcj-z'),rc=mv('mcj-rc'),cr=mv('mcj-cr'),ot=mv('mcj-ot'),tr=mv('mcj-tr'),nu=mv('mcj-nu'),re=mv('mcj-re'),ga=mv('mcj-ga');
-  var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
+  var delEf=mv('mcj-del-ef'),delTj=mv('mcj-del-tj');
+  var delTotal=delEf+delTj;
+  var dtEl=document.getElementById('mcj-del-total');if(dtEl)dtEl.textContent=fmt(delTotal);
+  var totalVentas=z+delTotal;
+  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
   var el=document.getElementById('mcj-dif');
   el.textContent=fmt(dif);
   el.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
@@ -4442,11 +4462,13 @@ function calcModalCaja(){
 async function guardarEditCaja(){
   var id=document.getElementById('mcj-id').value;
   var ci=mv('mcj-ci'),cf=mv('mcj-cf'),z=mv('mcj-z'),rc=mv('mcj-rc'),cr=mv('mcj-cr'),ot=mv('mcj-ot'),tr=mv('mcj-tr'),nu=mv('mcj-nu'),re=mv('mcj-re'),ga=mv('mcj-ga');
-  var dif=-(ci+z-rc-cr-ot-tr-nu-re-cf-ga);
+  var delEf=mv('mcj-del-ef'),delTj=mv('mcj-del-tj');
+  var totalVentas=z+(delEf+delTj);
+  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
   var btn=document.getElementById('mcj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('mcj-gastos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:z,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:z,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif})});
     if(r.ok){cerrarModal('caja');dpage('cierres',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
