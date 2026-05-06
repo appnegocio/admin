@@ -1070,44 +1070,34 @@ async function loadR(){
     var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0),GFp=gp.length>0?(gp[0].total||0):0,Gp=Pp+GFp,Up=Vp-Cp-Gp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
     var diasMes=new Date(a,mesSel,0).getDate(),sinReg=diasMes-c.length;
     var nMal=c.filter(function(r){return(r.diferencia||0)!==0;}).length;
-    // ── 1. Fila superior: Utilidad + Alerta margen ──
-    var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">';
-    // Banner utilidad
-    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'"><div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div><div style="text-align:right"><div class="ub-ml">Margen</div><div class="ub-mv">'+M+'%</div></div></div>';
-    // Alerta margen
-    if(V>0&&Vp>0){
-      var diffM=M-Mp,subio=diffM>=0;
-      h+='<div style="border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
-      h+='<div style="width:42px;height:42px;border-radius:8px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:22px;color:white">'+(subio?'↑':'↓')+'</span></div>';
-      h+='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">';
-      h+='<div><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:3px">'+MS[mesSel-1]+'</div><div style="font-size:24px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'%</div></div>';
-      h+='<div style="font-size:18px;color:#adb5bd">→</div>';
-      h+='<div><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:3px">'+MS[mesPrev-1]+'</div><div style="font-size:24px;font-weight:500;color:#adb5bd">'+Mp+'%</div></div>';
-      h+='<div style="padding:5px 12px;border-radius:20px;font-size:14px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
-      h+='</div></div>';
-    } else {
-      h+='<div style="border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:10px;border:1px solid #c1c7cd;background:#f8f9fa"><span style="font-size:12px;color:#adb5bd">Sin datos del mes anterior para comparar margen</span></div>';
-    }
-    h+='</div>';
-    // ── NUEVOS BLOQUES DASHBOARD ──
-    // ── A. Explicación del cambio de margen ──
-    var textoMargen='';
+    // ── 1. Banner utilidad con margen y explicación integrada ──
+    var diffM=V>0&&Vp>0?M-Mp:null;
+    var textoExpl='';
     if(V>0&&Vp>0){
       var diffV=V-Vp,diffC=C-Cp,diffG=G-Gp;
       var causas=[];
-      if(Math.abs(diffV)>1000){causas.push((diffV<0?'vendiste menos (':'vendiste más (')+fmt(Math.abs(diffV))+')');}
-      if(Math.abs(diffC)>1000){causas.push((diffC>0?'tus compras subieron (':'tus compras bajaron (')+fmt(Math.abs(diffC))+')');}
-      if(Math.abs(diffG)>1000){causas.push((diffG>0?'tus gastos subieron (':'tus gastos bajaron (')+fmt(Math.abs(diffG))+')');}
-      if(causas.length>0){
-        var diffM=M-Mp;
-        var intro=diffM===0?'El margen se mantuvo igual que en '+MS[mesPrev-1]:diffM>0?'El margen subió '+diffM+'% respecto a '+MS[mesPrev-1]:'El margen bajó '+Math.abs(diffM)+'% respecto a '+MS[mesPrev-1];
-        textoMargen='<div style="border-radius:8px;padding:12px 16px;margin-bottom:1.25rem;border:1px solid '+(diffM>=0?'var(--vm)':'#F09595')+';background:'+(diffM>=0?'var(--vl)':'var(--rl)')+'">'
-          +'<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+(diffM>=0?'var(--vd)':'var(--r)')+';margin-bottom:4px">¿Por qué cambió el margen?</div>'
-          +'<div style="font-size:13px;color:var(--g900);line-height:1.6">'+intro+' — principalmente porque '+causas.join(' y ')+'.</div>'
-          +'</div>';
-      }
+      if(Math.abs(diffV)>1000)causas.push(diffV<0?'vendiste menos ('+fmt(Math.abs(diffV))+')':'vendiste más ('+fmt(Math.abs(diffV))+')');
+      if(Math.abs(diffC)>1000)causas.push(diffC>0?'tus compras subieron ('+fmt(Math.abs(diffC))+')':'tus compras bajaron ('+fmt(Math.abs(diffC))+')');
+      if(Math.abs(diffG)>1000)causas.push(diffG>0?'tus gastos subieron ('+fmt(Math.abs(diffG))+')':'tus gastos bajaron ('+fmt(Math.abs(diffG))+')');
+      if(causas.length>0)textoExpl='Bajó principalmente porque '+causas.join(' y ')+'.';
+      if(diffM>=0&&causas.length>0)textoExpl='Subió principalmente porque '+causas.join(' y ')+'.';
     }
-    h+=textoMargen;
+    var h='<div style="margin-bottom:1.25rem">';
+    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'" style="border-radius:'+(textoExpl?'8px 8px 0 0':'8px')+'">';
+    h+='<div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div>';
+    h+='<div style="text-align:right">';
+    h+='<div class="ub-ml">Margen</div>';
+    h+='<div class="ub-mv">'+M+'%</div>';
+    if(diffM!==null){
+      h+='<div style="margin-top:4px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffM>=0?'↑ +':'↓ ')+diffM+'% vs '+MS[mesPrev-1]+'</div>';
+    }
+    h+='</div></div>';
+    if(textoExpl){
+      h+='<div style="border-radius:0 0 8px 8px;padding:10px 16px;border:1px solid '+(diffM>=0?'var(--vm)':'#F09595')+';border-top:none;background:'+(diffM>=0?'var(--vl)':'var(--rl)')+'">';
+      h+='<div style="font-size:12px;color:'+(diffM>=0?'var(--vd)':'#791F1F')+';line-height:1.5">'+textoExpl+'</div>';
+      h+='</div>';
+    }
+    h+='</div>';
     // ── B. Punto de equilibrio ──
     if(GF>0){
       var diasReg=c.length;
@@ -1402,33 +1392,30 @@ async function loadDashCelResumen(mesParam,anioParam){
     h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
     h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div><div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div></div>';
     h+='</div>';
-    // ── 2. Alerta margen ──
-    if(V>0&&Vp>0){
-      var diffM=M-Mp,subio=diffM>=0;
-      h+='<div style="border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;align-items:center;gap:10px;border:1px solid '+(subio?'var(--vm)':'#F09595')+';background:'+(subio?'var(--vl)':'var(--rl)')+'">';
-      h+='<div style="width:36px;height:36px;border-radius:6px;background:'+(subio?'var(--v)':'var(--r)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:18px;color:white">'+(subio?'↑':'↓')+'</span></div>';
-      h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
-      h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">'+MS[mes-1]+'</div><div style="font-size:20px;font-weight:500;color:'+(subio?'var(--vd)':'var(--r)')+'">'+M+'%</div></div>';
-      h+='<div style="font-size:14px;color:#adb5bd">→</div>';
-      h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">'+MS[mesPrev-1]+'</div><div style="font-size:20px;font-weight:500;color:#adb5bd">'+Mp+'%</div></div>';
-      h+='<div style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
-      h+='</div></div>';
-    }
-    // ── A. Explicación del cambio de margen (celular) ──
+    // ── 2. Banner utilidad + margen + explicación integrada (celular) ──
+    var diffMc=V>0&&Vp>0?M-Mp:null;
+    var textoExplC='';
     if(V>0&&Vp>0){
       var diffVc=V-Vp,diffCc=C-Cp,diffGc=G-(Pp+GFp);
       var causasc=[];
       if(Math.abs(diffVc)>1000)causasc.push(diffVc<0?'vendiste menos':'vendiste más');
       if(Math.abs(diffCc)>1000)causasc.push(diffCc>0?'tus compras subieron':'tus compras bajaron');
       if(Math.abs(diffGc)>1000)causasc.push(diffGc>0?'tus gastos subieron':'tus gastos bajaron');
-      if(causasc.length>0){
-        var diffMc=M-Mp;
-        var introC=diffMc===0?'Margen igual que '+MS[mesPrev-1]:diffMc>0?'↑ Margen subió '+diffMc+'% vs '+MS[mesPrev-1]:'↓ Margen bajó '+Math.abs(diffMc)+'% vs '+MS[mesPrev-1];
-        h+='<div style="border-radius:8px;padding:9px 11px;margin-bottom:9px;border:1px solid '+(diffMc>=0?'var(--vm)':'#F09595')+';background:'+(diffMc>=0?'var(--vl)':'var(--rl)')+'">'
-          +'<div style="font-size:11px;font-weight:500;color:'+(diffMc>=0?'var(--vd)':'var(--r)')+';margin-bottom:3px">'+introC+'</div>'
-          +'<div style="font-size:12px;color:var(--g700)">Principalmente porque '+causasc.join(' y ')+'.</div>'
-          +'</div>';
-      }
+      if(causasc.length>0)textoExplC=(diffMc>=0?'Subió':'Bajó')+' principalmente porque '+causasc.join(' y ')+'.';
+    }
+    h+='<div style="background:#0d9e6e;border-radius:'+(textoExplC?'8px 8px 0 0':'8px')+';padding:10px 12px;margin-bottom:'+(textoExplC?'0':'9px')+';display:flex;justify-content:space-between;align-items:flex-start">';
+    h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Utilidad neta — '+MS[mes-1]+'</div>';
+    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
+    h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div>';
+    h+='<div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div>';
+    if(diffMc!==null)h+='<div style="margin-top:3px;display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffMc>=0?'↑ +':'↓ ')+diffMc+'% vs '+MS[mesPrev-1]+'</div>';
+    h+='</div></div>';
+    if(textoExplC){
+      h+='<div style="border-radius:0 0 8px 8px;padding:8px 12px;margin-bottom:9px;border:1px solid '+(diffMc>=0?'var(--vm)':'#F09595')+';border-top:none;background:'+(diffMc>=0?'var(--vl)':'var(--rl)')+'">';
+      h+='<div style="font-size:12px;color:'+(diffMc>=0?'var(--vd)':'#791F1F')+';line-height:1.5">'+textoExplC+'</div>';
+      h+='</div>';
+    } else {
+      h=h.replace('margin-bottom:0','margin-bottom:9px');
     }
     // ── B. Punto de equilibrio (celular) ──
     if(GF>0){
