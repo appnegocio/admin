@@ -1116,20 +1116,19 @@ async function loadR(){
       if(diffM>=0&&causas.length>0)textoExpl='Subió principalmente porque '+causas.join(' y ')+'.';
     }
     var h='<div style="margin-bottom:1.25rem">';
-    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'" style="border-radius:'+(textoExpl?'8px 8px 0 0':'8px')+'">';
+    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'">';
     h+='<div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div>';
     h+='<div style="text-align:right">';
     h+='<div class="ub-ml">Margen</div>';
     h+='<div class="ub-mv">'+M+'%</div>';
     if(diffM!==null){
-      h+='<div style="margin-top:4px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffM>=0?'↑ +':'↓ ')+diffM+'% vs '+MS[mesPrev-1]+'</div>';
-    }
-    h+='</div></div>';
-    if(textoExpl){
-      h+='<div style="border-radius:0 0 8px 8px;padding:10px 16px;border:1px solid '+(diffM>=0?'var(--vm)':'#F09595')+';border-top:none;background:'+(diffM>=0?'var(--vl)':'var(--rl)')+'">';
-      h+='<div style="font-size:12px;color:'+(diffM>=0?'var(--vd)':'#791F1F')+';line-height:1.5">'+textoExpl+'</div>';
+      var pilColor=diffM>=0?'rgba(255,255,255,.25)':'rgba(255,255,255,.2)';
+      h+='<div style="margin-top:5px;display:flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap">';
+      h+='<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:'+pilColor+';color:white">'+(diffM>=0?'↑ +':'↓ ')+diffM+'% vs '+MS[mesPrev-1]+'</span>';
+      if(textoExpl)h+='<span style="font-size:11px;color:rgba(255,255,255,.85)">'+textoExpl+'</span>';
       h+='</div>';
     }
+    h+='</div></div>';
     h+='</div>';
     // ── B. Punto de equilibrio ──
     if(GF>0){
@@ -1165,12 +1164,12 @@ async function loadR(){
       var fmtDia=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'short'});};
       h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">'
         +'<div style="border-radius:8px;padding:12px 14px;border:1px solid var(--vm);background:var(--vl)">'
-        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--vd);margin-bottom:6px">🏆 Mejor día del mes</div>'
+        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--vd);margin-bottom:6px">🏆 Mayor venta del mes</div>'
         +'<div style="font-size:20px;font-weight:500;color:var(--vd)">'+fmt(mejorDia.total_z||0)+'</div>'
         +'<div style="font-size:12px;color:var(--g500);margin-top:3px;text-transform:capitalize">'+fmtDia(mejorDia.fecha)+'</div>'
         +'</div>'
         +'<div style="border-radius:8px;padding:12px 14px;border:1px solid #F09595;background:var(--rl)">'
-        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--r);margin-bottom:6px">📉 Día más flojo del mes</div>'
+        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--r);margin-bottom:6px">📉 Menor venta del mes</div>'
         +'<div style="font-size:20px;font-weight:500;color:var(--r)">'+fmt(peorDia.total_z||0)+'</div>'
         +'<div style="font-size:12px;color:var(--g500);margin-top:3px;text-transform:capitalize">'+fmtDia(peorDia.fecha)+'</div>'
         +'</div>'
@@ -1436,20 +1435,18 @@ async function loadDashCelResumen(mesParam,anioParam){
       if(Math.abs(diffGc)>1000)causasc.push(diffGc>0?'tus gastos subieron':'tus gastos bajaron');
       if(causasc.length>0)textoExplC=(diffMc>=0?'Subió':'Bajó')+' principalmente porque '+causasc.join(' y ')+'.';
     }
-    h+='<div style="background:#0d9e6e;border-radius:'+(textoExplC?'8px 8px 0 0':'8px')+';padding:10px 12px;margin-bottom:'+(textoExplC?'0':'9px')+';display:flex;justify-content:space-between;align-items:flex-start">';
+    h+='<div style="background:#0d9e6e;border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:flex-start">';
     h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Utilidad neta — '+MS[mes-1]+'</div>';
     h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
     h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div>';
     h+='<div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div>';
-    if(diffMc!==null)h+='<div style="margin-top:3px;display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffMc>=0?'↑ +':'↓ ')+diffMc+'% vs '+MS[mesPrev-1]+'</div>';
-    h+='</div></div>';
-    if(textoExplC){
-      h+='<div style="border-radius:0 0 8px 8px;padding:8px 12px;margin-bottom:9px;border:1px solid '+(diffMc>=0?'var(--vm)':'#F09595')+';border-top:none;background:'+(diffMc>=0?'var(--vl)':'var(--rl)')+'">';
-      h+='<div style="font-size:12px;color:'+(diffMc>=0?'var(--vd)':'#791F1F')+';line-height:1.5">'+textoExplC+'</div>';
+    if(diffMc!==null){
+      h+='<div style="margin-top:4px;display:flex;flex-direction:column;align-items:flex-end;gap:2px">';
+      h+='<span style="display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffMc>=0?'↑ +':'↓ ')+diffMc+'% vs '+MS[mesPrev-1]+'</span>';
+      if(textoExplC)h+='<span style="font-size:10px;color:rgba(255,255,255,.8)">'+textoExplC+'</span>';
       h+='</div>';
-    } else {
-      h=h.replace('margin-bottom:0','margin-bottom:9px');
     }
+    h+='</div></div>';
     // ── B. Punto de equilibrio (celular) ──
     if(GF>0){
       var yaLoCubrioC=V>=GF;
@@ -1473,12 +1470,12 @@ async function loadDashCelResumen(mesParam,anioParam){
       var fD2=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});};
       h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">'
         +'<div style="border-radius:8px;padding:8px 10px;border:1px solid var(--vm);background:var(--vl)">'
-        +'<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--vd);margin-bottom:3px">🏆 Mejor día</div>'
+        +'<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--vd);margin-bottom:3px">🏆 Mayor venta del mes</div>'
         +'<div style="font-size:14px;font-weight:500;color:var(--vd)">'+fmt(mD.total_z||0)+'</div>'
         +'<div style="font-size:10px;color:var(--g500);text-transform:capitalize">'+fD2(mD.fecha)+'</div>'
         +'</div>'
         +'<div style="border-radius:8px;padding:8px 10px;border:1px solid #F09595;background:var(--rl)">'
-        +'<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--r);margin-bottom:3px">📉 Día más flojo</div>'
+        +'<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--r);margin-bottom:3px">📉 Menor venta del mes</div>'
         +'<div style="font-size:14px;font-weight:500;color:var(--r)">'+fmt(pD.total_z||0)+'</div>'
         +'<div style="font-size:10px;color:var(--g500);text-transform:capitalize">'+fD2(pD.fecha)+'</div>'
         +'</div></div>';
