@@ -1089,6 +1089,70 @@ async function loadR(){
       h+='<div style="border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:10px;border:1px solid #c1c7cd;background:#f8f9fa"><span style="font-size:12px;color:#adb5bd">Sin datos del mes anterior para comparar margen</span></div>';
     }
     h+='</div>';
+    // ── NUEVOS BLOQUES DASHBOARD ──
+    // ── A. Explicación del cambio de margen ──
+    var textoMargen='';
+    if(V>0&&Vp>0){
+      var diffV=V-Vp,diffC=C-Cp,diffG=G-Gp;
+      var causas=[];
+      if(Math.abs(diffV)>1000){causas.push((diffV<0?'vendiste menos (':'vendiste más (')+fmt(Math.abs(diffV))+')');}
+      if(Math.abs(diffC)>1000){causas.push((diffC>0?'tus compras subieron (':'tus compras bajaron (')+fmt(Math.abs(diffC))+')');}
+      if(Math.abs(diffG)>1000){causas.push((diffG>0?'tus gastos subieron (':'tus gastos bajaron (')+fmt(Math.abs(diffG))+')');}
+      if(causas.length>0){
+        var diffM=M-Mp;
+        var intro=diffM===0?'El margen se mantuvo igual que en '+MS[mesPrev-1]:diffM>0?'El margen subió '+diffM+'% respecto a '+MS[mesPrev-1]:'El margen bajó '+Math.abs(diffM)+'% respecto a '+MS[mesPrev-1];
+        textoMargen='<div style="border-radius:8px;padding:12px 16px;margin-bottom:1.25rem;border:1px solid '+(diffM>=0?'var(--vm)':'#F09595')+';background:'+(diffM>=0?'var(--vl)':'var(--rl)')+'">'
+          +'<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+(diffM>=0?'var(--vd)':'var(--r)')+';margin-bottom:4px">¿Por qué cambió el margen?</div>'
+          +'<div style="font-size:13px;color:var(--g900);line-height:1.6">'+intro+' — principalmente porque '+causas.join(' y ')+'.</div>'
+          +'</div>';
+      }
+    }
+    h+=textoMargen;
+    // ── B. Punto de equilibrio ──
+    if(GF>0){
+      var diasReg=c.length;
+      var diasMesN=new Date(a,mesSel,0).getDate();
+      var promedioVentaDia=diasReg>0?V/diasReg:0;
+      var diasParaEquilibrio=promedioVentaDia>0?Math.ceil(GF/promedioVentaDia):null;
+      var yaLoCubrio=V>=GF;
+      var colorPE=yaLoCubrio?'var(--vm)':'#FAC775';
+      var bgPE=yaLoCubrio?'var(--vl)':'#FAEEDA';
+      var colorTxtPE=yaLoCubrio?'var(--vd)':'#7c4a00';
+      h+='<div style="border-radius:8px;padding:12px 16px;margin-bottom:1.25rem;border:1px solid '+colorPE+';background:'+bgPE+'">'
+        +'<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+colorTxtPE+';margin-bottom:8px">Punto de equilibrio</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+        +'<div><div style="font-size:12px;color:var(--g500);margin-bottom:2px">Gastos fijos del mes</div><div style="font-size:18px;font-weight:500;color:var(--r)">'+fmt(GF)+'</div></div>'
+        +'<div style="font-size:20px;color:var(--g300)">→</div>'
+        +'<div><div style="font-size:12px;color:var(--g500);margin-bottom:2px">Ya vendiste</div><div style="font-size:18px;font-weight:500;color:var(--vd)">'+fmt(V)+'</div></div>'
+        +'<div style="padding:8px 14px;border-radius:8px;background:'+(yaLoCubrio?'var(--v)':'#e67700')+';color:white;font-size:13px;font-weight:500;text-align:center">'
+        +(yaLoCubrio
+          ?'✓ Ya cubres tus costos<br><span style="font-size:11px;font-weight:400">+'+fmt(V-GF)+' sobre el equilibrio</span>'
+          :diasParaEquilibrio
+            ?'Te faltan ~'+diasParaEquilibrio+' días de ventas<br><span style="font-size:11px;font-weight:400">para cubrir costos</span>'
+            :'Ingresa más cierres para calcular')
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    }
+    // ── C. Mejor y peor día ──
+    if(c.length>=3){
+      var cierresOrdenados=c.slice().sort(function(a,b){return (b.total_z||0)-(a.total_z||0);});
+      var mejorDia=cierresOrdenados[0];
+      var peorDia=cierresOrdenados[cierresOrdenados.length-1];
+      var fmtDia=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'short'});};
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">'
+        +'<div style="border-radius:8px;padding:12px 14px;border:1px solid var(--vm);background:var(--vl)">'
+        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--vd);margin-bottom:6px">🏆 Mejor día del mes</div>'
+        +'<div style="font-size:20px;font-weight:500;color:var(--vd)">'+fmt(mejorDia.total_z||0)+'</div>'
+        +'<div style="font-size:12px;color:var(--g500);margin-top:3px;text-transform:capitalize">'+fmtDia(mejorDia.fecha)+'</div>'
+        +'</div>'
+        +'<div style="border-radius:8px;padding:12px 14px;border:1px solid #F09595;background:var(--rl)">'
+        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--r);margin-bottom:6px">📉 Día más flojo del mes</div>'
+        +'<div style="font-size:20px;font-weight:500;color:var(--r)">'+fmt(peorDia.total_z||0)+'</div>'
+        +'<div style="font-size:12px;color:var(--g500);margin-top:3px;text-transform:capitalize">'+fmtDia(peorDia.fecha)+'</div>'
+        +'</div>'
+        +'</div>';
+    }
     // ── Aviso contraseña temporal ──
     if(cli.password_temporal){
       h+='<div style="border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid #FAC775;background:#FAEEDA;margin-bottom:1.25rem">';
@@ -1349,6 +1413,55 @@ async function loadDashCelResumen(mesParam,anioParam){
       h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:2px">'+MS[mesPrev-1]+'</div><div style="font-size:20px;font-weight:500;color:#adb5bd">'+Mp+'%</div></div>';
       h+='<div style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;color:white;background:'+(subio?'var(--v)':'var(--r)')+'">'+(subio?'↑ +':'↓ ')+diffM+'%</div>';
       h+='</div></div>';
+    }
+    // ── A. Explicación del cambio de margen (celular) ──
+    if(V>0&&Vp>0){
+      var diffVc=V-Vp,diffCc=C-Cp,diffGc=G-(Pp+GFp);
+      var causasc=[];
+      if(Math.abs(diffVc)>1000)causasc.push(diffVc<0?'vendiste menos':'vendiste más');
+      if(Math.abs(diffCc)>1000)causasc.push(diffCc>0?'tus compras subieron':'tus compras bajaron');
+      if(Math.abs(diffGc)>1000)causasc.push(diffGc>0?'tus gastos subieron':'tus gastos bajaron');
+      if(causasc.length>0){
+        var diffMc=M-Mp;
+        var introC=diffMc===0?'Margen igual que '+MS[mesPrev-1]:diffMc>0?'↑ Margen subió '+diffMc+'% vs '+MS[mesPrev-1]:'↓ Margen bajó '+Math.abs(diffMc)+'% vs '+MS[mesPrev-1];
+        h+='<div style="border-radius:8px;padding:9px 11px;margin-bottom:9px;border:1px solid '+(diffMc>=0?'var(--vm)':'#F09595')+';background:'+(diffMc>=0?'var(--vl)':'var(--rl)')+'">'
+          +'<div style="font-size:11px;font-weight:500;color:'+(diffMc>=0?'var(--vd)':'var(--r)')+';margin-bottom:3px">'+introC+'</div>'
+          +'<div style="font-size:12px;color:var(--g700)">Principalmente porque '+causasc.join(' y ')+'.</div>'
+          +'</div>';
+      }
+    }
+    // ── B. Punto de equilibrio (celular) ──
+    if(GF>0){
+      var yaLoCubrioC=V>=GF;
+      var diasRegC=c.length;
+      var promDiaC=diasRegC>0?V/diasRegC:0;
+      var diasFaltanC=promDiaC>0?Math.ceil((GF-V)/promDiaC):null;
+      h+='<div style="border-radius:8px;padding:9px 11px;margin-bottom:9px;border:1px solid '+(yaLoCubrioC?'var(--vm)':'#FAC775')+';background:'+(yaLoCubrioC?'var(--vl)':'#FAEEDA')+'">'
+        +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+(yaLoCubrioC?'var(--vd)':'#7c4a00')+';margin-bottom:5px">Punto de equilibrio</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-size:10px;color:var(--g500)">Gastos fijos</div><div style="font-size:15px;font-weight:500;color:var(--r)">'+fmt(GF)+'</div></div>'
+        +'<div style="font-size:13px;color:var(--g300)">→</div>'
+        +'<div><div style="font-size:10px;color:var(--g500)">Vendiste</div><div style="font-size:15px;font-weight:500;color:var(--vd)">'+fmt(V)+'</div></div>'
+        +'<div style="padding:5px 10px;border-radius:6px;background:'+(yaLoCubrioC?'var(--v)':'#e67700')+';color:white;font-size:11px;font-weight:500;text-align:center">'
+        +(yaLoCubrioC?'✓ Cubres costos':'~'+((diasFaltanC)||'?')+' días más')
+        +'</div></div></div>';
+    }
+    // ── C. Mejor y peor día (celular) ──
+    if(c.length>=3){
+      var cOrd=c.slice().sort(function(a,b){return (b.total_z||0)-(a.total_z||0);});
+      var mD=cOrd[0],pD=cOrd[cOrd.length-1];
+      var fD2=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});};
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">'
+        +'<div style="border-radius:8px;padding:8px 10px;border:1px solid var(--vm);background:var(--vl)">'
+        +'<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--vd);margin-bottom:3px">🏆 Mejor día</div>'
+        +'<div style="font-size:14px;font-weight:500;color:var(--vd)">'+fmt(mD.total_z||0)+'</div>'
+        +'<div style="font-size:10px;color:var(--g500);text-transform:capitalize">'+fD2(mD.fecha)+'</div>'
+        +'</div>'
+        +'<div style="border-radius:8px;padding:8px 10px;border:1px solid #F09595;background:var(--rl)">'
+        +'<div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--r);margin-bottom:3px">📉 Día más flojo</div>'
+        +'<div style="font-size:14px;font-weight:500;color:var(--r)">'+fmt(pD.total_z||0)+'</div>'
+        +'<div style="font-size:10px;color:var(--g500);text-transform:capitalize">'+fD2(pD.fecha)+'</div>'
+        +'</div></div>';
     }
     // ── 3. KPIs ──
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px">';
