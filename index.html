@@ -2397,7 +2397,7 @@ async function loadFactVentasDash(){
     }
 
     if(!d||!d.length){
-      h+='<div class="empty">Sin facturas de venta registradas</div>';
+      h+='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">📤</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay facturas de venta</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra tus facturas y la app te avisa cuando alguna esté por vencer.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Registrar primera factura</div></div>';
       el.innerHTML=h;return;
     }
 
@@ -2606,7 +2606,7 @@ async function loadHistFactVentas(){
   try{
     var r=await fetch(SU+'/rest/v1/facturas_venta?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=100',{headers:H()});
     var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin facturas de venta registradas</div>';return;}
+    if(!d||!d.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">📤</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay facturas de venta</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra tus facturas de venta y la app te avisa cuando alguna está por vencer para que no pierdas ningún cobro.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Registrar primera factura</div></div>';return;}
     var hoy2=new Date();hoy2.setHours(0,0,0,0);
     var meses={};
     d.forEach(function(f){
@@ -3696,7 +3696,7 @@ async function loadGastosFijosDash(){
   try{
     var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.asc,mes.asc&limit=200',{headers:H()});
     var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin gastos registrados.</div>';return;}
+    if(!d||!d.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">📋</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Registra los gastos fijos de este mes</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Arriendo, luz, internet, sueldos — todo lo que pagas fijo cada mes. Así sabes cuánto necesitas vender para cubrir costos.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Ingresar gastos del mes</div></div>';return;}
 
     var cats=[
       {key:'previred',label:'Previred',color:'#1971c2'},
@@ -3860,7 +3860,7 @@ async function loadCierresDash(){
   try{
     var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=500',{headers:H()});
     var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin cierres registrados.</div>';return;}
+    if(!d||!d.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">🗂️</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay cierres registrados</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra el cierre de caja de hoy y desde mañana podrás ver cómo van tus ventas día a día.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Ir a ingresar cierre</div></div>';return;}
     var meses={};
     d.forEach(function(r){var key=r.fecha?r.fecha.substring(0,7):'';if(!meses[key])meses[key]=[];meses[key].push(r);});
     var keys=Object.keys(meses).sort().reverse();
@@ -4070,7 +4070,7 @@ async function loadCreditosDash(){
 
     var h='<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button onclick="abrirNuevoCreditoPC()" style="padding:8px 18px;background:var(--v);color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Nuevo crédito</button></div>';
 
-    if(!d||!d.length){h+='<div class="empty">Sin créditos registrados. Crea el primero con el botón de arriba.</div>';el.innerHTML=h;return;}
+    if(!d||!d.length){h+='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">💳</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">¿Tienes créditos o cuotas del negocio?</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Agrega tus créditos bancarios, leasing o deudas y ve exactamente cuánto pagas cada mes en cuotas.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Agregar primer crédito</div></div>';el.innerHTML=h;return;}
 
     // KPIs
     var totalCuotasMes=d.reduce(function(s,c){return s+c.cuota_mensual;},0);
@@ -4265,7 +4265,7 @@ async function loadFacturasDash(){
   try{
     var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=500',{headers:H()});
     var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin facturas registradas.</div>';return;}
+    if(!d||!d.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">🧾</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay facturas de compra</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra las facturas de tus proveedores y lleva el control exacto de lo que gastas en mercadería cada mes.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Ingresar primera factura</div></div>';return;}
     var meses={};
     d.forEach(function(r){var key=r.fecha?r.fecha.substring(0,7):'';if(!meses[key])meses[key]=[];meses[key].push(r);});
     var keys=Object.keys(meses).sort().reverse();
@@ -4375,7 +4375,7 @@ async function loadEmpleados(){
     h+='<div><span style="font-size:15px;font-weight:500;color:var(--g900)">Empleados</span> <span style="font-size:13px;color:var(--g500)">'+activos.length+' activos</span></div>';
     h+='<button onclick="nuevoEmp()" style="padding:8px 16px;background:var(--v);color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Agregar empleado</button></div>';
     if(!d.length){
-      h+='<div class="empty">Sin empleados registrados. Agrega el primero.</div>';
+      h+='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Agrega a tu equipo</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra tus empleados y lleva el control de sueldos, quincenas y adelantos todo en un solo lugar.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Agregar primer empleado</div></div>';
       document.getElementById('dem').innerHTML=h;return;
     }
     h+='<div class="tc"><div class="tc-h"><span class="tc-t">Empleados activos</span><span class="tc-c">'+activos.length+'</span></div>';
