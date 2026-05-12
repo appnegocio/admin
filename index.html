@@ -513,6 +513,11 @@ tr:hover td{background:var(--g50)}
         <button type="button" onclick="agregarGastoCel()" style="width:100%;height:38px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar gasto</button>
         <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:4px"><span style="color:#212529">Total gastos</span><span id="cj-ga-total" style="color:#e03131">$0</span></div>
         <input type="hidden" id="cj-ga" value="0">
+        <div class="fdiv">Otros ingresos</div>
+        <div id="cj-ingresos-lista"></div>
+        <button type="button" onclick="agregarIngresoCel()" style="width:100%;height:38px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar ingreso</button>
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:4px"><span style="color:#212529">Total otros ingresos</span><span id="cj-in-total" style="color:#087a55">$0</span></div>
+        <input type="hidden" id="cj-in" value="0">
         <div class="fres neu" id="cj-res"><div class="fres-l">Diferencia de caja</div><div class="fres-v" id="cj-rv">—</div><div class="fres-h" id="cj-rh">Ingresa los datos para calcular</div></div>
         <div class="fmsg ok" id="cj-ok">✓ Cierre guardado correctamente</div>
         <div class="fmsg err" id="cj-err">Error al guardar</div>
@@ -862,6 +867,11 @@ tr:hover td{background:var(--g50)}
     <button type="button" onclick="agregarGastoModal()" style="width:100%;height:34px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar gasto</button>
     <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd"><span style="color:#212529">Total gastos</span><span id="mcj-ga-total" style="color:#e03131">$0</span></div>
     <input type="hidden" id="mcj-ga" value="0">
+    <div class="modal-div">Otros ingresos</div>
+    <div id="mcj-ingresos-lista"></div>
+    <button type="button" onclick="agregarIngresoModal()" style="width:100%;height:34px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar ingreso</button>
+    <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd"><span style="color:#212529">Total otros ingresos</span><span id="mcj-in-total" style="color:#087a55">$0</span></div>
+    <input type="hidden" id="mcj-in" value="0">
     <div style="margin-top:.75rem;padding:.75rem 1rem;border-radius:8px;border:1px solid #c1c7cd;background:var(--g50)">
       <span style="font-size:12px;color:var(--g500);font-weight:500">DIFERENCIA: </span>
       <span style="font-size:15px;font-weight:500" id="mcj-dif">—</span>
@@ -1846,6 +1856,8 @@ function agregarGastoFila(listaId,totalId,hiddenId,desc,monto){
 }
 function agregarGastoCel(){agregarGastoFila('cj-gastos-lista','cj-ga-total','cj-ga','',0);}
 function agregarGastoModal(){agregarGastoFila('mcj-gastos-lista','mcj-ga-total','mcj-ga','',0);}
+function agregarIngresoCel(){agregarGastoFila('cj-ingresos-lista','cj-in-total','cj-in','',0);}
+function agregarIngresoModal(){agregarGastoFila('mcj-ingresos-lista','mcj-in-total','mcj-in','',0);}
 function cargarGastosEnLista(listaId,totalId,hiddenId,gastos_detalle){
   document.getElementById(listaId).innerHTML='';
   if(gastos_detalle&&gastos_detalle.length){
@@ -3581,10 +3593,11 @@ async function reporteDashboard(){
 function calcCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),z=v('cj-z'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var delEf=v('cj-del-ef'),delTj=v('cj-del-tj');
+  var inOtros=v('cj-in');
   var delTotal=delEf+delTj;
   var delEl=document.getElementById('cj-del-total');
   if(delEl)delEl.textContent=fmt(delTotal);
-  var totalVentas=z+delTotal;
+  var totalVentas=z+delTotal+inOtros;
   var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
   var box=document.getElementById('cj-res'),val=document.getElementById('cj-rv'),hint=document.getElementById('cj-rh');
   if(!z&&!delTotal){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';return;}
@@ -3604,9 +3617,11 @@ async function guardarCaja(){
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var ingresosDetalle=obtenerGastosLista('cj-ingresos-lista');
+    var inOtros=v('cj-in');
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
-      setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
+      setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';document.getElementById('cj-ingresos-lista').innerHTML='';document.getElementById('cj-in-total').textContent='$0';document.getElementById('cj-in').value='0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
   }catch(ex){document.getElementById('cj-err').style.display='block';document.getElementById('cj-err').textContent=mensajeError(ex);btn.disabled=false;btn.textContent='Guardar cierre del día';}
 }
@@ -5154,14 +5169,18 @@ function editCaja(r){
   if((!r.gastos_detalle||!r.gastos_detalle.length)&&r.gastos){document.getElementById('mcj-ga').value=r.gastos||0;}
   document.getElementById('mcj-del-ef').value=r.delivery_efectivo||0;
   document.getElementById('mcj-del-tj').value=r.delivery_tarjeta||0;
+  document.getElementById('mcj-ingresos-lista').innerHTML='';
+  cargarGastosEnLista('mcj-ingresos-lista','mcj-in-total','mcj-in',r.otros_ingresos_detalle||[]);
+  if((!r.otros_ingresos_detalle||!r.otros_ingresos_detalle.length)&&r.otros_ingresos){document.getElementById('mcj-in').value=r.otros_ingresos||0;}
   calcModalCaja();abrirModal('caja');
 }
 function calcModalCaja(){
   var ci=mv('mcj-ci'),cf=mv('mcj-cf'),z=mv('mcj-z'),rc=mv('mcj-rc'),cr=mv('mcj-cr'),ot=mv('mcj-ot'),tr=mv('mcj-tr'),nu=mv('mcj-nu'),re=mv('mcj-re'),ga=mv('mcj-ga');
   var delEf=mv('mcj-del-ef'),delTj=mv('mcj-del-tj');
+  var inOtrosM=mv('mcj-in');
   var delTotal=delEf+delTj;
   var dtEl=document.getElementById('mcj-del-total');if(dtEl)dtEl.textContent=fmt(delTotal);
-  var totalVentas=z+delTotal;
+  var totalVentas=z+delTotal+inOtrosM;
   var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
   var el=document.getElementById('mcj-dif');
   el.textContent=fmt(dif);
@@ -5176,7 +5195,9 @@ async function guardarEditCaja(){
   var btn=document.getElementById('mcj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('mcj-gastos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:z,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,diferencia:dif})});
+    var ingresosDetalleM=obtenerGastosLista('mcj-ingresos-lista');
+    var inOtrosM2=mv('mcj-in');
+    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:z,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtrosM2,otros_ingresos_detalle:ingresosDetalleM,diferencia:dif})});
     if(r.ok){cerrarModal('caja');dpage('cierres',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
