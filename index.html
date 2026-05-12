@@ -560,6 +560,8 @@ tr:hover td{background:var(--g50)}
           <button class="tbtn" id="fvc-pag" onclick="setEstadoFVC('pagado')">✓ Pagado</button>
         </div>
         <input type="hidden" id="fvc-estado" value="pendiente">
+        <label class="fl">Notas</label>
+        <textarea class="fi" id="fvc-notas" placeholder="Comentarios o notas sobre esta factura..." style="height:60px;resize:vertical;margin-bottom:8px"></textarea>
         <div class="fmsg err" id="fvc-err" style="display:none">Error al guardar</div>
         <div class="fmsg ok" id="fvc-ok" style="display:none">✓ Guardado</div>
         <button class="fbtn" id="fvc-btn" onclick="guardarFactVentaCel()">Guardar factura</button>
@@ -3149,6 +3151,7 @@ function inicFactVCel(){
   document.getElementById('fvc-iva').value='';
   document.getElementById('fvc-total').value='';
   document.getElementById('fvc-venc').value='';
+  var notasEl=document.getElementById('fvc-notas');if(notasEl)notasEl.value='';
   setEstadoFVC('pendiente');
 }
 
@@ -3168,7 +3171,8 @@ async function guardarFactVentaCel(){
   var btn=document.getElementById('fvc-btn');btn.disabled=true;btn.textContent='Guardando...';
   err.style.display='none';
   try{
-    var payload={numero_factura:num,fecha,cliente_nombre:cliente,rut_cliente:rut,monto_neto:neto,iva,total,fecha_vencimiento:venc||null,estado,cliente_id:cli.id};
+    var notas=document.getElementById('fvc-notas').value.trim()||null;
+    var payload={numero_factura:num,fecha,cliente_nombre:cliente,rut_cliente:rut,monto_neto:neto,iva,total,fecha_vencimiento:venc||null,estado,notas,cliente_id:cli.id};
     var r=await fetch(SU+'/rest/v1/facturas_venta',{method:'POST',headers:HJ(),body:JSON.stringify(payload)});
     if(r.ok){
       ok.style.display='block';btn.textContent='✓ Guardado';
