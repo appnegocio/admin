@@ -4857,12 +4857,7 @@ async function loadFacturasDash(){
     var proveedores=[...new Set(d.map(function(r){return r.proveedor;}))].sort();
     // Filtro proveedor + KPIs
     var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<label style="font-size:12px;color:var(--g500)">Proveedor:</label>'
-      +'<select id="fact-prov-filter" onchange="filtrarFactProv()" style="height:34px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;color:var(--g900);background:white">'
-      +'<option value="">Todos</option>';
-    proveedores.forEach(function(p){h+='<option value="'+p+'">'+p+'</option>';});
-    h+='</select></div>'
+      +'<input id="fact-prov-filter" type="text" placeholder="Buscar proveedor..." oninput="filtrarFactProv()" style="height:34px;border:1px solid #c1c7cd;border-radius:8px;padding:0 12px;font-size:13px;width:220px;font-family:inherit">'
       +'<span style="font-size:12px;color:var(--g500)">'+d.length+' factura'+(d.length>1?'s':'')+'</span>'
       +'</div>';
     h+='<div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.25rem">';
@@ -4939,12 +4934,12 @@ async function loadFacturasDash(){
 }
 function filtrarFactProv(){
   var sel=document.getElementById('fact-prov-filter');
-  var prov=sel?sel.value:'';
+  var prov=sel?sel.value.trim().toLowerCase():'';
   var meses=document.getElementById('df-meses');
   if(!meses)return;
   // Filtrar filas por proveedor
   meses.querySelectorAll('tr[data-prov]').forEach(function(row){
-    row.style.display=(!prov||row.dataset.prov===prov)?'':'none';
+    row.style.display=(!prov||row.dataset.prov.toLowerCase().includes(prov))?'':'none';
   });
   // Si hay filtro activo: expandir todos los meses con resultados y ocultar los vacíos
   // Si no hay filtro: colapsar todos excepto el mes actual
