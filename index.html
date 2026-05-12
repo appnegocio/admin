@@ -4853,8 +4853,19 @@ async function loadFacturasDash(){
     var mesActual=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
     var tT=d.reduce(function(s,r){return s+(r.total||0);},0);
     var tI=d.reduce(function(s,r){return s+(r.iva||0);},0);
-    // KPIs
-    var h='<div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.25rem">';
+    // Proveedores únicos para filtro
+    var proveedores=[...new Set(d.map(function(r){return r.proveedor;}))].sort();
+    // Filtro proveedor + KPIs
+    var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<label style="font-size:12px;color:var(--g500)">Proveedor:</label>'
+      +'<select id="fact-prov-filter" onchange="filtrarFactProv()" style="height:34px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;color:var(--g900);background:white">'
+      +'<option value="">Todos</option>';
+    proveedores.forEach(function(p){h+='<option value="'+p+'">'+p+'</option>';});
+    h+='</select></div>'
+      +'<span style="font-size:12px;color:var(--g500)">'+d.length+' factura'+(d.length>1?'s':'')+'</span>'
+      +'</div>';
+    h+='<div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.25rem">';
     h+='<div class="kpi c"><div class="kl">Total compras</div><div class="kv">'+fmt(tT)+'</div><div class="ks">acumulado histórico</div></div>';
     h+='<div class="kpi g"><div class="kl">IVA total</div><div class="kv">'+fmt(tI)+'</div><div class="ks">acumulado histórico</div></div>';
     h+='<div class="kpi u"><div class="kl">Facturas</div><div class="kv">'+d.length+'</div><div class="ks">registradas</div></div>';
@@ -4910,6 +4921,7 @@ async function loadFacturasDash(){
         var tdB=last?'':'border-bottom:1px solid #c1c7cd;';
         h+='<tr style="'+(r.pagado?'':'background:#fffbf0;')+'">';
         var fd=r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—';
+        h+='<tr style="'+(r.pagado?'':'background:#fffbf0;')+'" data-prov="'+r.proveedor+'">';
         h+='<td style="padding:9px 1.25rem;font-size:12px;color:var(--g500);'+tdB+'">'+fd+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;color:var(--g500);'+tdB+'">'+(r.numero_factura||'—')+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;font-weight:500;'+tdB+'">'+r.proveedor+'</td>';
@@ -4925,6 +4937,25 @@ async function loadFacturasDash(){
     setTimeout(function(){mostrarFactMes(mesActual);},100);
   }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
+function filtrarFactProv(){
+  var sel=document.getElementById('fact-prov-filter');
+  var prov=sel?sel.value:'';
+  var meses=document.getElementById('df-meses');
+  if(!meses)return;
+  // Mostrar/ocultar filas por proveedor
+  meses.querySelectorAll('tr[data-prov]').forEach(function(row){
+    if(!prov||row.dataset.prov===prov){row.style.display='';}
+    else{row.style.display='none';}
+  });
+  // Mostrar/ocultar secciones de mes vacías
+  meses.querySelectorAll('[id^="dfm-"]').forEach(function(sec){
+    var rows=sec.querySelectorAll('tr[data-prov]');
+    var visible=Array.from(rows).some(function(r){return r.style.display!=='none';});
+    var parent=sec.closest('[style*="border-radius:8px"]');
+    if(parent)parent.style.display=visible?'':'none';
+  });
+}
+
 function toggleMesFact(mid,header){
   var div=document.getElementById(mid);
   var arr=document.getElementById('arr-'+mid);
