@@ -4895,15 +4895,18 @@ async function loadFacturasDash(){
       h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' factura'+(meses[k].length>1?'s':'')+'</span><span style="font-size:13px;font-weight:500;color:var(--r)">'+fmt(totalMes)+'</span><span id="arr-'+mid+'" style="color:var(--g500)">'+(isActual?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
       h+='<table style="width:100%;border-collapse:collapse"><tr style="background:var(--g50)">';
-      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">N°</th>';
-      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Proveedor</th>';
-      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;text-align:right">Total</th>';
-      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Estado</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Emisión</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">N°</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Proveedor</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd;text-align:right">Total</th>';
+      h+='<th style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:8px 1.25rem;border-bottom:1px solid #c1c7cd">Estado</th>';
       h+='<th style="border-bottom:1px solid #c1c7cd;padding:8px 1.25rem"></th></tr>';
       meses[k].forEach(function(r,i){
         var last=i===meses[k].length-1;
         var tdB=last?'':'border-bottom:1px solid #c1c7cd;';
         h+='<tr style="'+(r.pagado?'':'background:#fffbf0;')+'">';
+        var fd=r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—';
+        h+='<td style="padding:9px 1.25rem;font-size:12px;color:var(--g500);'+tdB+'">'+fd+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;color:var(--g500);'+tdB+'">'+(r.numero_factura||'—')+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;font-weight:500;'+tdB+'">'+r.proveedor+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;font-weight:500;text-align:right;color:var(--r);'+tdB+'">'+fmt(r.total)+'</td>';
