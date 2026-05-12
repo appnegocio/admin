@@ -4942,17 +4942,29 @@ function filtrarFactProv(){
   var prov=sel?sel.value:'';
   var meses=document.getElementById('df-meses');
   if(!meses)return;
-  // Mostrar/ocultar filas por proveedor
+  // Filtrar filas por proveedor
   meses.querySelectorAll('tr[data-prov]').forEach(function(row){
-    if(!prov||row.dataset.prov===prov){row.style.display='';}
-    else{row.style.display='none';}
+    row.style.display=(!prov||row.dataset.prov===prov)?'':'none';
   });
-  // Mostrar/ocultar secciones de mes vacías
+  // Si hay filtro activo: expandir todos los meses con resultados y ocultar los vacíos
+  // Si no hay filtro: colapsar todos excepto el mes actual
   meses.querySelectorAll('[id^="dfm-"]').forEach(function(sec){
-    var rows=sec.querySelectorAll('tr[data-prov]');
-    var visible=Array.from(rows).some(function(r){return r.style.display!=='none';});
-    var parent=sec.closest('[style*="border-radius:8px"]');
-    if(parent)parent.style.display=visible?'':'none';
+    var rows=Array.from(sec.querySelectorAll('tr[data-prov]'));
+    var visible=rows.some(function(r){return r.style.display!=='none';});
+    var parent=sec.closest('div[style*="border-radius:8px"]')||sec.parentElement;
+    var arr=document.getElementById('arr-'+sec.id);
+    if(prov){
+      // Con filtro: mostrar/ocultar sección y expandir si tiene resultados
+      if(parent)parent.style.display=visible?'':'none';
+      if(visible){sec.style.display='block';if(arr)arr.textContent='▲';}
+    } else {
+      // Sin filtro: mostrar todas las secciones, colapsar las que no son el mes actual
+      if(parent)parent.style.display='';
+      var mesActual=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
+      var esMesActual=sec.id==='dfm-'+mesActual.replace('-','');
+      sec.style.display=esMesActual?'block':'none';
+      if(arr)arr.textContent=esMesActual?'▲':'▼';
+    }
   });
 }
 
