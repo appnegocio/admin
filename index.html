@@ -597,6 +597,8 @@ tr:hover td{background:var(--g50)}
           <button type="button" id="ft-pg-si" onclick="selPago(true)" style="flex:1;height:48px;border:2px solid #c1c7cd;border-radius:10px;background:white;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">✅ Pagado</button>
         </div>
         <input type="hidden" id="ft-pagado" value="false">
+        <label class="fl">Notas</label>
+        <textarea class="fi" id="ft-notas" placeholder="Comentarios o notas sobre esta factura..." style="height:60px;resize:vertical;margin-bottom:8px"></textarea>
         <div class="fdiv">Productos de la factura</div>
         <div id="ft-aviso-ia" style="display:none;border-radius:8px;padding:9px 11px;margin-bottom:10px;border:1px solid #FAC775;background:#FAEEDA;display:none;align-items:center;gap:8px">
           <div style="width:28px;height:28px;border-radius:6px;background:#e67700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:white;font-size:13px;font-weight:500">⚠</div>
@@ -881,6 +883,8 @@ tr:hover td{background:var(--g50)}
       <option value="false">❌ No pagado</option>
       <option value="true">✅ Pagado</option>
     </select>
+    <label class="modal-label">Notas</label>
+    <textarea class="modal-input" id="mft-notas" placeholder="Comentarios o notas sobre esta factura..." style="height:70px;resize:vertical"></textarea>
     <div class="modal-btns"><button class="modal-cancel" onclick="cerrarModal('fact')">Cancelar</button><button class="modal-save" id="mft-btn" onclick="guardarEditFact()">Guardar cambios</button></div>
   </div>
 </div>
@@ -1062,6 +1066,8 @@ tr:hover td{background:var(--g50)}
         </select>
       </div>
     </div>
+    <label class="modal-label" style="margin-top:8px">Notas</label>
+    <textarea class="modal-input" id="mfv-notas" placeholder="Comentarios o notas sobre esta factura..." style="height:70px;resize:vertical"></textarea>
     <div class="modal-btns">
       <button class="modal-cancel" onclick="cerrarModal('factv')">Cancelar</button>
       <button class="modal-save" id="mfv-btn" onclick="guardarFactVenta()">Guardar factura</button>
@@ -3050,6 +3056,7 @@ function toggleMesFV(id){
 function abrirNuevaFactVenta(){
   document.getElementById('mfv-titulo').textContent='Nueva factura de venta';
   document.getElementById('mfv-id').value='';
+  document.getElementById('mfv-notas').value='';
   document.getElementById('mfv-num').value='';
   document.getElementById('mfv-fecha').value=hoy.toISOString().substring(0,10);
   document.getElementById('mfv-cliente').value='';
@@ -3075,6 +3082,7 @@ function editFactVenta(f){
   document.getElementById('mfv-total').value=f.total||'';
   document.getElementById('mfv-venc').value=f.fecha_vencimiento||'';
   document.getElementById('mfv-estado').value=f.estado||'pendiente';
+  document.getElementById('mfv-notas').value=f.notas||'';
   document.getElementById('mfv-btn').textContent='Guardar cambios';
   abrirModal('factv');
 }
@@ -3093,7 +3101,8 @@ async function guardarFactVenta(){
   if(!fecha||!cliente||!total){alert('Completa cliente, fecha y total');return;}
   var btn=document.getElementById('mfv-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var payload={numero_factura:num,fecha,cliente_nombre:cliente,rut_cliente:rut,monto_neto:neto,iva,total,fecha_vencimiento:venc||null,estado,cliente_id:cli.id};
+    var notas=document.getElementById('mfv-notas').value.trim()||null;
+    var payload={numero_factura:num,fecha,cliente_nombre:cliente,rut_cliente:rut,monto_neto:neto,iva,total,fecha_vencimiento:venc||null,estado,notas,cliente_id:cli.id};
     var r;
     if(id){r=await fetch(SU+'/rest/v1/facturas_venta?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify(payload)});}
     else{r=await fetch(SU+'/rest/v1/facturas_venta',{method:'POST',headers:HJ(),body:JSON.stringify(payload)});}
@@ -3646,7 +3655,7 @@ async function guardarFact(){
   btn.textContent='Guardando...';
   try{
     var hj2=HJ();hj2['Prefer']='return=representation';
-  var r=await fetch(SU+'/rest/v1/facturas',{method:'POST',headers:hj2,body:JSON.stringify({fecha,proveedor:pv,numero_factura:nm,monto_neto:v('ft-ne'),iva:v('ft-iv'),impuesto:v('ft-im'),total:to,pagado:document.getElementById('ft-pagado').value==='true',cliente_id:cli.id})});
+  var r=await fetch(SU+'/rest/v1/facturas',{method:'POST',headers:hj2,body:JSON.stringify({fecha,proveedor:pv,numero_factura:nm,monto_neto:v('ft-ne'),iva:v('ft-iv'),impuesto:v('ft-im'),total:to,pagado:document.getElementById('ft-pagado').value==='true',notas:document.getElementById('ft-notas').value.trim()||null,cliente_id:cli.id})});
     if(r.ok){
       var factData=await r.json();
       var factId=factData&&factData[0]?factData[0].id:null;
@@ -3662,7 +3671,7 @@ async function guardarFact(){
       document.getElementById('ft-ok').style.display='block';btn.textContent='✓ Guardada';
       setTimeout(function(){
         ['ft-pv','ft-nm','ft-ne','ft-iv','ft-im','ft-to'].forEach(function(id){document.getElementById(id).value='';});
-        document.getElementById('ft-pagado').value='false';selPago(false);
+        document.getElementById('ft-pagado').value='false';selPago(false);document.getElementById('ft-notas').value='';
         document.getElementById('ft-productos-lista').innerHTML='';
         document.getElementById('ft-aviso-ia').style.display='none';
         limpiarMarcasCampos();
@@ -5147,6 +5156,7 @@ function editFact(r){
   document.getElementById('mft-im').value=r.impuesto||0;
   document.getElementById('mft-to').value=r.total||0;
   document.getElementById('mft-pagado').value=r.pagado?'true':'false';
+  document.getElementById('mft-notas').value=r.notas||'';
   abrirModal('fact');
 }
 function calcModalFact(){
@@ -5158,7 +5168,7 @@ async function guardarEditFact(){
   var id=document.getElementById('mft-id').value;
   var btn=document.getElementById('mft-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({proveedor:document.getElementById('mft-pv').value,numero_factura:document.getElementById('mft-nm').value,monto_neto:mv('mft-ne'),iva:mv('mft-iv'),impuesto:mv('mft-im'),total:mv('mft-to'),pagado:document.getElementById('mft-pagado').value==='true'})});
+    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({proveedor:document.getElementById('mft-pv').value,numero_factura:document.getElementById('mft-nm').value,monto_neto:mv('mft-ne'),iva:mv('mft-iv'),impuesto:mv('mft-im'),total:mv('mft-to'),pagado:document.getElementById('mft-pagado').value==='true',notas:document.getElementById('mft-notas').value.trim()||null})});
     if(r.ok){cerrarModal('fact');dpage('facturas',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
