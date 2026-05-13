@@ -1480,6 +1480,14 @@ async function loadR(){
       h+='<div style="font-size:11px;color:#b45309;margin-top:2px">Ve a ⚙️ Configuración para cambiarla</div></div>';
       h+='</div>';
     }
+    // ── Aviso completar perfil ──
+    if(!cli.rut){
+      h+='<div style="border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid #9FE1CB;background:#E1F5EE;margin-bottom:1.25rem">';
+      h+='<div style="width:32px;height:32px;border-radius:6px;background:#0d9e6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:white;font-size:16px">📝</div>';
+      h+='<div><div style="font-size:13px;font-weight:500;color:#085041">Personaliza tu negocio en EZadmin</div>';
+      h+='<div style="font-size:11px;color:#087a55;margin-top:2px">Ve a ⚙️ Configuración para editar el nombre, rubro y agregar tu RUT</div></div>';
+      h+='</div>';
+    }
     // ── 2. KPIs ──
     h+='<div class="kgrid" style="margin-bottom:1.25rem"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Personal + fijos</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
     // ── 3. Alertas ──
@@ -1721,6 +1729,23 @@ async function loadDashCelResumen(mesParam,anioParam){
     h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
     h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div><div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div></div>';
     h+='</div>';
+    // ── Avisos perfil celular ──
+    var avisos='';
+    if(cli.password_temporal){
+      avisos+='<div style="border-radius:8px;padding:9px 11px;display:flex;align-items:center;gap:9px;border:1px solid #FAC775;background:#FAEEDA;margin-bottom:9px">'
+        +'<span style="font-size:16px">🔑</span>'
+        +'<div><div style="font-size:12px;font-weight:500;color:#7c4a00">Contraseña temporal</div>'
+        +'<div style="font-size:11px;color:#b45309">Ve a ⚙️ Configuración para cambiarla</div></div>'
+        +'</div>';
+    }
+    if(!cli.rut){
+      avisos+='<div style="border-radius:8px;padding:9px 11px;display:flex;align-items:center;gap:9px;border:1px solid #9FE1CB;background:#E1F5EE;margin-bottom:9px">'
+        +'<span style="font-size:16px">📝</span>'
+        +'<div><div style="font-size:12px;font-weight:500;color:#085041">Personaliza tu negocio en EZadmin</div>'
+        +'<div style="font-size:11px;color:#087a55">Ve a ⚙️ Configuración para editar el nombre, rubro y RUT</div></div>'
+        +'</div>';
+    }
+    h+=avisos;
     // ── 2. Banner utilidad + margen + explicación integrada (celular) ──
     var diffMc=V>0&&Vp>0?M-Mp:null;
     var textoExplC='';
