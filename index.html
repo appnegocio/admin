@@ -782,9 +782,62 @@ tr:hover td{background:var(--g50)}
           <div id="bc"><div class="ld">Cargando...</div></div>
         </div>
         <div class="dp" id="dp-cierres">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
-            <select id="rep-mes-cierres" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
-            <button onclick="reporteCierres()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;margin-left:8px">📊 Reporte mensual</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <button onclick="toggleFormCierrePC()" id="btn-nuevo-cierre-pc" style="height:32px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">+ Nuevo cierre</button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="rep-mes-cierres" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+              <button onclick="reporteCierres()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte mensual</button>
+            </div>
+          </div>
+          <!-- Formulario nuevo cierre PC -->
+          <div id="form-cierre-pc" style="display:none;background:var(--g50);border:1px solid #c1c7cd;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem">
+            <div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:1rem">Registrar cierre del día</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="modal-label">Fecha</label><input class="modal-input" type="date" id="pcc-f"></div>
+              <div><label class="modal-label">Caja inicial</label><input class="modal-input" type="number" id="pcc-ci" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Caja final</label><input class="modal-input" type="number" id="pcc-cf" placeholder="0" oninput="calcCajaPC()"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="modal-label">Ventas local</label><input class="modal-input" type="number" id="pcc-z" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Delivery efectivo</label><input class="modal-input" type="number" id="pcc-del-ef" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Delivery tarjeta</label><input class="modal-input" type="number" id="pcc-del-tj" placeholder="0" oninput="calcCajaPC()"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="modal-label">Redcompra</label><input class="modal-input" type="number" id="pcc-rc" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Créditos Redbanc</label><input class="modal-input" type="number" id="pcc-cr" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Otro Redbanc</label><input class="modal-input" type="number" id="pcc-ot" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Transferencias</label><input class="modal-input" type="number" id="pcc-tr" placeholder="0" oninput="calcCajaPC()"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="modal-label">Nulos</label><input class="modal-input" type="number" id="pcc-nu" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Retiros</label><input class="modal-input" type="number" id="pcc-re" placeholder="0" oninput="calcCajaPC()"></div>
+              <div>
+                <label class="modal-label">Diferencia</label>
+                <div id="pcc-dif" style="height:34px;border:1px solid #c1c7cd;border-radius:6px;padding:0 10px;font-size:14px;font-weight:500;display:flex;align-items:center;color:var(--vd);background:white">$0</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+              <div>
+                <label class="modal-label">Gastos del día</label>
+                <div id="pcc-gastos-lista"></div>
+                <button type="button" onclick="agregarGastoFila('pcc-gastos-lista','pcc-ga-total','pcc-ga','',0)" style="width:100%;height:32px;border:1px dashed #9FE1CB;border-radius:6px;background:white;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:4px">+ Agregar gasto</button>
+                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd"><span>Total gastos</span><span id="pcc-ga-total" style="color:#e03131">$0</span></div>
+                <input type="hidden" id="pcc-ga" value="0">
+              </div>
+              <div>
+                <label class="modal-label">Otros ingresos</label>
+                <div id="pcc-ingresos-lista"></div>
+                <button type="button" onclick="agregarGastoFila('pcc-ingresos-lista','pcc-in-total','pcc-in','',0)" style="width:100%;height:32px;border:1px dashed #9FE1CB;border-radius:6px;background:white;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:4px">+ Agregar ingreso</button>
+                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd"><span>Total otros ingresos</span><span id="pcc-in-total" style="color:#0d9e6e">$0</span></div>
+                <input type="hidden" id="pcc-in" value="0">
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px">
+              <button onclick="toggleFormCierrePC()" style="height:36px;padding:0 18px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:13px;cursor:pointer;font-family:inherit">Cancelar</button>
+              <button onclick="guardarCajaPC()" id="pcc-btn" style="height:36px;padding:0 20px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Guardar cierre</button>
+            </div>
+            <div id="pcc-ok" style="display:none;color:var(--vd);font-size:13px;font-weight:500;text-align:center;margin-top:8px">✓ Cierre guardado correctamente</div>
+            <div id="pcc-err" style="display:none;color:var(--r);font-size:12px;margin-top:6px"></div>
           </div>
           <div id="dc"><div class="ld">Cargando...</div></div>
         </div>
@@ -3291,6 +3344,75 @@ function pdfBase(titulo, contenido){
 }
 
 function f2(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
+
+// ── Cierre de caja PC ──
+function toggleFormCierrePC(){
+  var f=document.getElementById('form-cierre-pc');
+  var btn=document.getElementById('btn-nuevo-cierre-pc');
+  if(f.style.display==='none'){
+    f.style.display='block';
+    btn.textContent='✕ Cancelar';
+    btn.style.background='var(--r)';
+    // Poner fecha de hoy por defecto
+    document.getElementById('pcc-f').value=new Date().toISOString().substring(0,10);
+  } else {
+    f.style.display='none';
+    btn.textContent='+ Nuevo cierre';
+    btn.style.background='var(--v)';
+    resetFormCierrePC();
+  }
+}
+function resetFormCierrePC(){
+  ['pcc-ci','pcc-cf','pcc-z','pcc-del-ef','pcc-del-tj','pcc-rc','pcc-cr','pcc-ot','pcc-tr','pcc-nu','pcc-re'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pcc-gastos-lista').innerHTML='';
+  document.getElementById('pcc-ga-total').textContent='$0';
+  document.getElementById('pcc-ga').value='0';
+  document.getElementById('pcc-ingresos-lista').innerHTML='';
+  document.getElementById('pcc-in-total').textContent='$0';
+  document.getElementById('pcc-in').value='0';
+  document.getElementById('pcc-dif').textContent='$0';
+  document.getElementById('pcc-dif').style.color='var(--vd)';
+  document.getElementById('pcc-ok').style.display='none';
+  document.getElementById('pcc-err').style.display='none';
+}
+function pv(id){return parseFloat(document.getElementById(id).value)||0;}
+function calcCajaPC(){
+  var ci=pv('pcc-ci'),cf=pv('pcc-cf'),z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
+  var rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re');
+  var ga=pv('pcc-ga'),inOtros=pv('pcc-in');
+  var totalVentas=z+delEf+delTj+inOtros;
+  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  var difEl=document.getElementById('pcc-dif');
+  difEl.textContent=fmt(dif);
+  difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
+}
+async function guardarCajaPC(){
+  var fecha=document.getElementById('pcc-f').value;
+  if(!fecha){alert('Selecciona la fecha');return;}
+  var z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
+  if(!z&&!delEf&&!delTj){alert('Ingresa al menos las ventas del local o delivery');return;}
+  var ci=pv('pcc-ci'),cf=pv('pcc-cf'),rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re'),ga=pv('pcc-ga'),inOtros=pv('pcc-in');
+  var totalVentas=z+delEf+delTj+inOtros;
+  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  var btn=document.getElementById('pcc-btn');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    var gastosDetalle=obtenerGastosLista('pcc-gastos-lista');
+    var ingresosDetalle=obtenerGastosLista('pcc-ingresos-lista');
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
+    if(r.ok){
+      document.getElementById('pcc-ok').style.display='block';
+      btn.textContent='✓ Guardado';
+      setTimeout(function(){
+        toggleFormCierrePC();
+        loadCierresDash();
+      },1500);
+    } else throw new Error(await r.text());
+  }catch(ex){
+    document.getElementById('pcc-err').style.display='block';
+    document.getElementById('pcc-err').textContent=mensajeError(ex);
+    btn.disabled=false;btn.textContent='Guardar cierre';
+  }
+}
 
 // ── Helpers reportes mensuales ──
 function fmtR(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
