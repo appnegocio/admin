@@ -2895,6 +2895,8 @@ function loadConfigInfo(){
     +'<input id="cfg-neg-nombre" type="text" value="'+cli.nombre_negocio+'" style="width:100%;height:36px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:13px;margin-bottom:8px">'
     +'<label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#495057;display:block;margin-bottom:4px">Rubro</label>'
     +'<input id="cfg-neg-rubro" type="text" value="'+(cli.rubro||'')+'" placeholder="Ej: Minimarket, Peluquería, Cafetería..." style="width:100%;height:36px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:13px;margin-bottom:8px">'
+    +'<label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#495057;display:block;margin-bottom:4px">RUT del negocio</label>'
+    +'<input id="cfg-neg-rut" type="text" value="'+(cli.rut||'')+'" placeholder="Ej: 76.123.456-7" style="width:100%;height:36px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:13px;margin-bottom:8px">'
     +'<label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#495057;display:block;margin-bottom:4px">Email</label>'
     +'<input type="text" value="'+cli.email+'" disabled style="width:100%;height:36px;border:1px solid #e9ecef;border-radius:8px;padding:0 10px;font-size:13px;background:#f8f9fa;color:#adb5bd;margin-bottom:10px">'
     +'<div id="cfg-neg-msg" style="display:none;font-size:12px;margin-bottom:6px"></div>'
@@ -2908,10 +2910,12 @@ async function guardarInfoNegocio(){
   var msg=document.getElementById('cfg-neg-msg');
   if(!nombre){msg.style.display='block';msg.style.color='#c0392b';msg.textContent='El nombre del negocio no puede estar vacío.';return;}
   try{
-    var r=await fetch(SU+'/rest/v1/clientes?id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({nombre_negocio:nombre,rubro:rubro||null})});
+    var rut=document.getElementById('cfg-neg-rut').value.trim();
+    var r=await fetch(SU+'/rest/v1/clientes?id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({nombre_negocio:nombre,rubro:rubro||null,rut:rut||null})});
     if(r.ok){
       cli.nombre_negocio=nombre;
       cli.rubro=rubro;
+      cli.rut=rut;
       msg.style.display='block';
       msg.style.color='#0d9e6e';
       msg.textContent='✓ Guardado correctamente';
@@ -3913,7 +3917,21 @@ async function procesarFoto(input){
       return parseFloat(s)||null;
     };
     var camposFaltantes=0;
-    if(data.proveedor){document.getElementById('ft-pv').value=data.proveedor;marcarCampo('ft-pv',true);}
+    if(data.proveedor){
+      // Verificar que el proveedor detectado no sea el RUT del propio negocio
+      var provDetectado=String(data.proveedor).replace(/[^0-9kK]/g,'').toLowerCase();
+      var rutPropio=cli.rut?String(cli.rut).replace(/[^0-9kK]/g,'').toLowerCase():'';
+      var esRutPropio=rutPropio&&provDetectado&&provDetectado===rutPropio;
+      if(esRutPropio){
+        document.getElementById('ft-pv').value='';
+        marcarCampo('ft-pv',false);
+        camposFaltantes++;
+        status.textContent='⚠️ Se detectó el RUT de tu negocio como proveedor — ingresa el proveedor manualmente.';
+      } else {
+        document.getElementById('ft-pv').value=data.proveedor;
+        marcarCampo('ft-pv',true);
+      }
+    }
     else{marcarCampo('ft-pv',false);camposFaltantes++;}
     if(data.numero_factura){document.getElementById('ft-nm').value=data.numero_factura;marcarCampo('ft-nm',true);}
     else{marcarCampo('ft-nm',false);camposFaltantes++;}
