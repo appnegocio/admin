@@ -3440,8 +3440,9 @@ function calcCajaPC(){
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
   var rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re');
   var ga=pv('pcc-ga'),inOtros=pv('pcc-in');
-  var totalVentas=z+delEf+delTj+inOtros;
-  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  // Cuadratura = solo efectivo que pasa por caja física
+  var efectivoCaja=z+tr+delEf+inOtros;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var difEl=document.getElementById('pcc-dif');
   difEl.textContent=fmt(dif);
   difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
@@ -3452,13 +3453,14 @@ async function guardarCajaPC(){
   var z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
   if(!z&&!delEf&&!delTj){alert('Ingresa al menos las ventas del local o delivery');return;}
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re'),ga=pv('pcc-ga'),inOtros=pv('pcc-in');
-  var totalVentas=z+delEf+delTj+inOtros;
-  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
+  var efectivoCaja=z+tr+delEf+inOtros;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var btn=document.getElementById('pcc-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('pcc-gastos-lista');
     var ingresosDetalle=obtenerGastosLista('pcc-ingresos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){
       document.getElementById('pcc-ok').style.display='block';
       btn.textContent='✓ Guardado';
@@ -3779,8 +3781,11 @@ function calcCaja(){
   var delTotal=delEf+delTj;
   var delEl=document.getElementById('cj-del-total');
   if(delEl)delEl.textContent=fmt(delTotal);
-  var totalVentas=z+delTotal+inOtros;
-  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  // Total ventas del día = todos los medios de pago
+  var totalVentas=z+rc+cr+ot+tr+delTotal+inOtros;
+  // Cuadratura = solo efectivo que pasa por caja física (sin tarjetas rc/cr/ot)
+  var efectivoCaja=z+tr+delEf+inOtros;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var box=document.getElementById('cj-res'),val=document.getElementById('cj-rv'),hint=document.getElementById('cj-rh');
   if(!z&&!delTotal){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';return;}
   val.textContent=fmt(dif);
@@ -3794,13 +3799,14 @@ async function guardarCaja(){
   if(!z&&!delEf&&!delTj){alert('Ingresa al menos las ventas del local o delivery');return;}
   var fecha=document.getElementById('cj-f').value;if(!fecha){alert('Selecciona la fecha');return;}
   var ci=v('cj-ci'),cf=v('cj-cf'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
-  var totalVentas=z+(delEf+delTj);
-  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  var inOtros=v('cj-in');
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
+  var efectivoCaja=z+tr+delEf+inOtros;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
     var ingresosDetalle=obtenerGastosLista('cj-ingresos-lista');
-    var inOtros=v('cj-in');
     var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
       setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';document.getElementById('cj-ingresos-lista').innerHTML='';document.getElementById('cj-in-total').textContent='$0';document.getElementById('cj-in').value='0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
@@ -5376,8 +5382,11 @@ function calcModalCaja(){
   var inOtrosM=mv('mcj-in');
   var delTotal=delEf+delTj;
   var dtEl=document.getElementById('mcj-del-total');if(dtEl)dtEl.textContent=fmt(delTotal);
-  var totalVentas=z+delTotal+inOtrosM;
-  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  // Total ventas del día = todos los medios de pago
+  var totalVentas=z+rc+cr+ot+tr+delTotal+inOtrosM;
+  // Cuadratura = solo efectivo que pasa por caja física
+  var efectivoCaja=z+tr+delEf+inOtrosM;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var el=document.getElementById('mcj-dif');
   el.textContent=fmt(dif);
   el.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
