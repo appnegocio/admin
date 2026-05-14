@@ -3448,6 +3448,8 @@ function calcCajaPC(){
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
   var rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re');
   var ga=pv('pcc-ga'),inOtros=pv('pcc-in');
+  // Total ventas = todos los medios de pago
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
   // Cuadratura = solo efectivo que pasa por caja física
   var efectivoCaja=z+tr+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
