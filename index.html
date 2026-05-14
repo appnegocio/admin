@@ -809,19 +809,19 @@ tr:hover td{background:var(--g50)}
               <div><label class="modal-label">Otro Redbanc</label><input class="modal-input" type="number" id="pcc-ot" placeholder="0" oninput="calcCajaPC()"></div>
               <div><label class="modal-label">Transferencias</label><input class="modal-input" type="number" id="pcc-tr" placeholder="0" oninput="calcCajaPC()"></div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
-              <div><label class="modal-label">Nulos</label><input class="modal-input" type="number" id="pcc-nu" placeholder="0" oninput="calcCajaPC()"></div>
-              <div><label class="modal-label">Retiros</label><input class="modal-input" type="number" id="pcc-re" placeholder="0" oninput="calcCajaPC()"></div>
-              <div>
-                <label class="modal-label">Diferencia de caja</label>
-                <div id="pcc-dif" style="height:34px;border:1px solid #c1c7cd;border-radius:6px;padding:0 10px;font-size:14px;font-weight:500;display:flex;align-items:center;color:var(--vd);background:white">$0</div>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
               <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
-                <div><div style="font-size:11px;font-weight:500;color:#085041">Total ventas del día</div><div style="font-size:11px;color:#087a55">Efectivo + Tarjetas + Transferencias + Delivery</div></div>
+                <div><div style="font-size:11px;font-weight:500;color:#085041">Total ventas del día</div><div style="font-size:11px;color:#087a55">Todos los medios de pago</div></div>
                 <div id="pcc-tv" style="font-size:18px;font-weight:500;color:#085041">$0</div>
               </div>
+              <div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:11px;font-weight:500;color:#495057">Diferencia de caja</div><div style="font-size:11px;color:#adb5bd">Efectivo en caja</div></div>
+                <div id="pcc-dif" style="font-size:18px;font-weight:500;color:var(--vd)">$0</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="modal-label">Nulos</label><input class="modal-input" type="number" id="pcc-nu" placeholder="0" oninput="calcCajaPC()"></div>
+              <div><label class="modal-label">Retiros</label><input class="modal-input" type="number" id="pcc-re" placeholder="0" oninput="calcCajaPC()"></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
               <div>
@@ -3439,6 +3439,7 @@ function resetFormCierrePC(){
   document.getElementById('pcc-in').value='0';
   document.getElementById('pcc-dif').textContent='$0';
   document.getElementById('pcc-dif').style.color='var(--vd)';
+  var tvReset=document.getElementById('pcc-tv');if(tvReset)tvReset.textContent='$0';
   document.getElementById('pcc-ok').style.display='none';
   document.getElementById('pcc-err').style.display='none';
 }
@@ -3451,10 +3452,9 @@ function calcCajaPC(){
   var efectivoCaja=z+tr+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var difEl=document.getElementById('pcc-dif');
-  difEl.textContent=fmt(dif);
-  difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
+  if(difEl){difEl.textContent=fmt(dif);difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';}
   var tvPcEl=document.getElementById('pcc-tv');
-  if(tvPcEl)tvPcEl.textContent=fmt(totalVentas);
+  if(tvPcEl){tvPcEl.textContent=fmt(totalVentas);tvPcEl.style.color=totalVentas>0?'#085041':'#adb5bd';}
 }
 async function guardarCajaPC(){
   var fecha=document.getElementById('pcc-f').value;
@@ -3819,7 +3819,7 @@ async function guardarCaja(){
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
     var ingresosDetalle=obtenerGastosLista('cj-ingresos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,ventas_local:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
       setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';document.getElementById('cj-ingresos-lista').innerHTML='';document.getElementById('cj-in-total').textContent='$0';document.getElementById('cj-in').value='0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
