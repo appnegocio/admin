@@ -809,16 +809,6 @@ tr:hover td{background:var(--g50)}
               <div><label class="modal-label">Otro Redbanc</label><input class="modal-input" type="number" id="pcc-ot" placeholder="0" oninput="calcCajaPC()"></div>
               <div><label class="modal-label">Transferencias</label><input class="modal-input" type="number" id="pcc-tr" placeholder="0" oninput="calcCajaPC()"></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-              <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
-                <div><div style="font-size:11px;font-weight:500;color:#085041">Total ventas del día</div><div style="font-size:11px;color:#087a55">Todos los medios de pago</div></div>
-                <div id="pcc-tv" style="font-size:18px;font-weight:500;color:#085041">$0</div>
-              </div>
-              <div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
-                <div><div style="font-size:11px;font-weight:500;color:#495057">Diferencia de caja</div><div style="font-size:11px;color:#adb5bd">Efectivo en caja</div></div>
-                <div id="pcc-dif" style="font-size:18px;font-weight:500;color:var(--vd)">$0</div>
-              </div>
-            </div>
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px">
               <div><label class="modal-label">Nulos</label><input class="modal-input" type="number" id="pcc-nu" placeholder="0" oninput="calcCajaPC()"></div>
               <div><label class="modal-label">Retiros</label><input class="modal-input" type="number" id="pcc-re" placeholder="0" oninput="calcCajaPC()"></div>
@@ -837,6 +827,16 @@ tr:hover td{background:var(--g50)}
                 <button type="button" onclick="agregarGastoFila('pcc-ingresos-lista','pcc-in-total','pcc-in','',0)" style="width:100%;height:32px;border:1px dashed #9FE1CB;border-radius:6px;background:white;color:#087a55;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:4px">+ Agregar ingreso</button>
                 <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd"><span>Total otros ingresos</span><span id="pcc-in-total" style="color:#0d9e6e">$0</span></div>
                 <input type="hidden" id="pcc-in" value="0">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:11px;font-weight:500;color:#085041">Total ventas del día</div><div style="font-size:11px;color:#087a55">Todos los medios de pago</div></div>
+                <div id="pcc-tv" style="font-size:18px;font-weight:500;color:#085041">$0</div>
+              </div>
+              <div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:11px;font-weight:500;color:#495057">Diferencia de caja</div><div style="font-size:11px;color:#adb5bd">Efectivo en caja</div></div>
+                <div id="pcc-dif" style="font-size:18px;font-weight:500;color:var(--vd)">$0</div>
               </div>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px">
