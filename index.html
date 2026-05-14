@@ -518,6 +518,7 @@ tr:hover td{background:var(--g50)}
         <button type="button" onclick="agregarIngresoCel()" style="width:100%;height:38px;border:1px dashed #9FE1CB;border-radius:8px;background:white;color:#087a55;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:6px">+ Agregar ingreso</button>
         <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:4px"><span style="color:#212529">Total otros ingresos</span><span id="cj-in-total" style="color:#087a55">$0</span></div>
         <input type="hidden" id="cj-in" value="0">
+        <div class="fres ok" id="cj-tv-box" style="display:none"><div class="fres-l">Total ventas del día</div><div class="fres-v" id="cj-tv">—</div><div class="fres-h">Efectivo + Tarjetas + Transferencias + Delivery</div></div>
         <div class="fres neu" id="cj-res"><div class="fres-l">Diferencia de caja</div><div class="fres-v" id="cj-rv">—</div><div class="fres-h" id="cj-rh">Ingresa los datos para calcular</div></div>
         <div class="fmsg ok" id="cj-ok">✓ Cierre guardado correctamente</div>
         <div class="fmsg err" id="cj-err">Error al guardar</div>
@@ -812,8 +813,14 @@ tr:hover td{background:var(--g50)}
               <div><label class="modal-label">Nulos</label><input class="modal-input" type="number" id="pcc-nu" placeholder="0" oninput="calcCajaPC()"></div>
               <div><label class="modal-label">Retiros</label><input class="modal-input" type="number" id="pcc-re" placeholder="0" oninput="calcCajaPC()"></div>
               <div>
-                <label class="modal-label">Diferencia</label>
+                <label class="modal-label">Diferencia de caja</label>
                 <div id="pcc-dif" style="height:34px;border:1px solid #c1c7cd;border-radius:6px;padding:0 10px;font-size:14px;font-weight:500;display:flex;align-items:center;color:var(--vd);background:white">$0</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px">
+              <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:11px;font-weight:500;color:#085041">Total ventas del día</div><div style="font-size:11px;color:#087a55">Efectivo + Tarjetas + Transferencias + Delivery</div></div>
+                <div id="pcc-tv" style="font-size:18px;font-weight:500;color:#085041">$0</div>
               </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
@@ -3446,6 +3453,8 @@ function calcCajaPC(){
   var difEl=document.getElementById('pcc-dif');
   difEl.textContent=fmt(dif);
   difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
+  var tvPcEl=document.getElementById('pcc-tv');
+  if(tvPcEl)tvPcEl.textContent=fmt(totalVentas);
 }
 async function guardarCajaPC(){
   var fecha=document.getElementById('pcc-f').value;
@@ -3787,7 +3796,10 @@ function calcCaja(){
   var efectivoCaja=z+tr+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var box=document.getElementById('cj-res'),val=document.getElementById('cj-rv'),hint=document.getElementById('cj-rh');
-  if(!z&&!delTotal){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';return;}
+  var tvBox=document.getElementById('cj-tv-box'),tvEl=document.getElementById('cj-tv');
+  if(!z&&!delTotal){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';if(tvBox)tvBox.style.display='none';return;}
+  if(tvBox)tvBox.style.display='block';
+  if(tvEl)tvEl.textContent=fmt(totalVentas);
   val.textContent=fmt(dif);
   if(dif===0){box.className='fres ok';hint.textContent='✓ Caja cuadra perfectamente';}
   else if(dif<0){box.className='fres bad';hint.textContent='Falta dinero — revisar caja';}
