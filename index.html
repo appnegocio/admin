@@ -1539,7 +1539,7 @@ async function loadR(){
         +'</div></div>'
         +'<div id="rdb-semanas" style="display:none;padding:8px 1.25rem 0"><div style="font-size:11px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Selecciona una semana</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+semPills+'</div></div>'
         +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Ventas local</th><th>Delivery</th><th>Total</th><th>Retiros</th><th>Diferencia</th></tr>';
-      c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;var del=(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);var tot=(r.total_z||0)+del;h+='<tr data-fecha="'+r.fecha+'" style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td>'+fmt(r.total_z)+'</td><td>'+(del>0?'<span style="color:#087a55;font-weight:500">'+fmt(del)+'</span>':'<span style="color:#aaa">—</span>')+'</td><td style="font-weight:500">'+fmt(tot)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:500">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
+      c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;var del=(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);h+='<tr data-fecha="'+r.fecha+'" style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td style="font-weight:500">'+fmt(r.total_z)+'</td><td>'+(del>0?'<span style="color:#087a55;font-weight:500">'+fmt(del)+'</span>':'<span style="color:#aaa">—</span>')+'</td><td style="font-weight:500">'+fmt(r.total_z)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:500">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
       var tDel=c.reduce(function(s,r){return s+(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);},0);
       h+='<tr id="rdb-total" style="background:var(--g50);font-weight:500;border-top:1px solid #c1c7cd"><td>Total mes</td><td>'+fmt(tZ)+'</td><td style="color:#087a55">'+fmt(tDel)+'</td><td>'+fmt(tZ+tDel)+'</td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr>'
         +'</table></div>'
@@ -1973,9 +1973,9 @@ function generarPDFCierre(r){
     +'<div class="hdr"><h1>Cierre de caja &mdash; '+fecha+'</h1><p>'+cli.nombre_negocio+' &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
     +'<div class="body">'
     +'<div class="sec">Resumen del dia</div>'
-    +'<div class="row"><span>Ventas local</span><span class="pos">'+f2(r.total_z)+'</span></div>'
+    +'<div class="row"><span>Ventas local</span><span class="pos">'+f2(r.ventas_local||r.total_z)+'</span></div>'
     +((r.delivery_efectivo||r.delivery_tarjeta)?'<div class="sec">Delivery</div><div class="row"><span>Efectivo</span><span class="pos">'+f2(r.delivery_efectivo)+'</span></div><div class="row"><span>Tarjeta</span><span class="pos">'+f2(r.delivery_tarjeta)+'</span></div><div class="row tot"><span>Total delivery</span><span class="pos">'+f2((r.delivery_efectivo||0)+(r.delivery_tarjeta||0))+'</span></div>':'')
-    +'<div class="row tot"><span>Total ventas</span><span class="pos">'+f2((r.total_z||0)+(r.delivery_efectivo||0)+(r.delivery_tarjeta||0))+'</span></div>'
+    +'<div class="row tot"><span>Total ventas del día</span><span class="pos">'+f2(r.total_z||0)+'</span></div>'
     +'<div class="row"><span>Retiros</span><span>'+f2(r.retiros)+'</span></div>'
     +'<div class="row"><span>Diferencia de caja</span><span class="'+(dif===0?'pos':'neg')+'">'+f2(dif)+(dif===0?' ok':' !')+'</span></div>'
     +'<div class="sec">Detalle de caja</div>'
@@ -3819,7 +3819,7 @@ async function guardarCaja(){
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
     var ingresosDetalle=obtenerGastosLista('cj-ingresos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,ventas_local:z,local_efectivo:ci,local_tarjeta:rc+cr+ot,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,creditos_redbanc:cr,otro_redbanc:ot,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
       setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-cr','cj-ot','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';document.getElementById('cj-ingresos-lista').innerHTML='';document.getElementById('cj-in-total').textContent='$0';document.getElementById('cj-in').value='0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
