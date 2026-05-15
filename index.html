@@ -651,7 +651,7 @@ tr:hover td{background:var(--g50)}
         </div>
 
         <label class="fl">N° Factura</label><input class="fi" type="text" id="ft-nm" placeholder="Ej: 000123">
-        <label class="fl">Proveedor</label><div class="prov-wrap"><input class="fi" type="text" id="ft-pv" placeholder="Nombre del proveedor" autocomplete="off" oninput="buscarProveedor(this,'ft-pv-drop','ft-rut')" onfocus="buscarProveedor(this,'ft-pv-drop','ft-rut')" onblur="setTimeout(function(){ocultarProvDrop('ft-pv-drop')},200)"><div class="prov-dropdown" id="ft-pv-drop"></div></div>
+        <label class="fl">Proveedor</label><div class="prov-wrap"><input class="fi" type="text" id="ft-pv" placeholder="Nombre del proveedor" autocomplete="off" oninput="buscarProveedor(this,'ft-pv-drop','ft-rut')" onfocus="buscarProveedor(this,'ft-pv-drop','ft-rut')" onblur="setTimeout(function(){ocultarProvDrop('ft-pv-drop')},300)"><div class="prov-dropdown" id="ft-pv-drop"></div></div>
         <label class="fl">RUT proveedor</label><input class="fi" type="text" id="ft-rut" placeholder="Ej: 76.123.456-7" style="margin-bottom:6px">
         <div class="fdiv">Montos</div>
         <label class="fl">Monto neto</label><input class="fi" type="number" id="ft-ne" placeholder="0" oninput="calcFact()">
@@ -1004,7 +1004,7 @@ tr:hover td{background:var(--g50)}
   <div class="modal">
     <div class="modal-t">Editar factura <button class="modal-x" onclick="cerrarModal('fact')">×</button></div>
     <input type="hidden" id="mft-id">
-    <div class="modal-grid2"><div><label class="modal-label">N° Factura</label><input class="modal-input" type="text" id="mft-nm"></div><div><label class="modal-label">Proveedor</label><div class="prov-wrap"><input class="modal-input" type="text" id="mft-pv" autocomplete="off" oninput="buscarProveedor(this,'mft-pv-drop','mft-rut')" onfocus="buscarProveedor(this,'mft-pv-drop','mft-rut')" onblur="setTimeout(function(){ocultarProvDrop('mft-pv-drop')},200)"><div class="prov-dropdown" id="mft-pv-drop"></div></div></div>
+    <div class="modal-grid2"><div><label class="modal-label">N° Factura</label><input class="modal-input" type="text" id="mft-nm"></div><div><label class="modal-label">Proveedor</label><div class="prov-wrap"><input class="modal-input" type="text" id="mft-pv" autocomplete="off" oninput="buscarProveedor(this,'mft-pv-drop','mft-rut')" onfocus="buscarProveedor(this,'mft-pv-drop','mft-rut')" onblur="setTimeout(function(){ocultarProvDrop('mft-pv-drop')},300)"><div class="prov-dropdown" id="mft-pv-drop"></div></div></div>
     <div><label class="modal-label">RUT proveedor</label><input class="modal-input" type="text" id="mft-rut" placeholder="Ej: 76.123.456-7"></div></div>
     <div class="modal-div">Montos</div>
     <label class="modal-label">Monto neto</label><input class="modal-input" type="number" id="mft-ne" oninput="calcModalFact()">
@@ -5639,7 +5639,7 @@ var _provCache=null;
 async function cargarProveedores(){
   if(_provCache)return _provCache;
   try{
-    var r=await fetch(SU+'/rest/v1/facturas?select=proveedor,rut_proveedor&cliente_id=eq.'+cli.id+'&order=proveedor.asc',{headers:H()});
+    var r=await fetch(SU+'/rest/v1/facturas?select=proveedor,rut_proveedor&cliente_id=eq.'+cli.id+'&proveedor=not.is.null&order=proveedor.asc',{headers:H()});
     var data=await r.json()||[];
     var mapa={};
     data.forEach(function(f){
