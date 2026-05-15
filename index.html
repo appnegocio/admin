@@ -536,7 +536,7 @@ tr:hover td{background:var(--g50)}
 
   <!-- CIERRE CAJA -->
   <div class="cscreen" id="sc-caja">
-    <div class="csh"><button class="csh-back" onclick="cerrarScreen()"><svg fill="none" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span class="csh-t">Cierre de caja</span><button onclick="document.getElementById('caja-ayuda-panel').style.display='flex'" style="width:20px;height:20px;border-radius:50%;background:#0d9e6e;color:white;border:none;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-right:12px;font-family:inherit">?</button></div>
+    <div class="csh"><button class="csh-back" onclick="cerrarScreen()"><svg fill="none" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span class="csh-t">Cierre de caja</span></div><div style="background:#E1F5EE;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid #9FE1CB" onclick="document.getElementById('caja-ayuda-panel').style.display='flex'"><span style="font-size:12px;color:#085041;font-weight:500">📖 ¿Cómo ingresar el cierre de caja?</span><span style="font-size:12px;color:#0d9e6e;font-weight:600">Ver guía →</span></div>
     <div class="tabbar"><button class="tabbtn active" onclick="swTab('caja','form',this)">Ingresar</button><button class="tabbtn" onclick="if(cli.rol_usuario==='jefe_local'){alert('El historial solo está disponible para administradores');return;}swTab('caja','hist',this);loadHist('cierres_caja','cj-hc',renderCajaHist)">Historial</button></div>
     <div class="csb">
       <div id="caja-form">
@@ -832,12 +832,13 @@ tr:hover td{background:var(--g50)}
         </div>
         <div class="dp" id="dp-cierres">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-            <div style="display:flex;align-items:center;gap:8px"><button onclick="toggleFormCierrePC()" id="btn-nuevo-cierre-pc" style="height:32px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">+ Nuevo cierre</button><button onclick="document.getElementById('caja-ayuda-panel').style.display='flex'" style="width:28px;height:28px;border-radius:50%;background:#0d9e6e;color:white;border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit">?</button></div>
+            <div style="display:flex;align-items:center;gap:8px"><button onclick="toggleFormCierrePC()" id="btn-nuevo-cierre-pc" style="height:32px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">+ Nuevo cierre</button></div>
             <div style="display:flex;gap:8px;align-items:center">
               <select id="rep-mes-cierres" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
               <button onclick="reporteCierres()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte mensual</button>
             </div>
           </div>
+          <div style="background:#E1F5EE;border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid #9FE1CB;margin-bottom:1rem" onclick="document.getElementById('caja-ayuda-panel').style.display='flex'"><span style="font-size:13px;color:#085041;font-weight:500">📖 ¿Cómo ingresar el cierre de caja?</span><span style="font-size:13px;color:#0d9e6e;font-weight:600">Ver guía →</span></div>
           <!-- Formulario nuevo cierre PC -->
           <div id="form-cierre-pc" style="display:none;background:var(--g50);border:1px solid #c1c7cd;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem">
             <div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:1rem">Registrar cierre del día</div>
