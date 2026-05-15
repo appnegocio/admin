@@ -1927,7 +1927,10 @@ function calcTotalGastos(listaId,totalId,hiddenId){
   var total=items.reduce(function(s,i){return s+i.monto;},0);
   document.getElementById(totalId).textContent='$'+Math.round(total).toLocaleString('es-CL');
   document.getElementById(hiddenId).value=total;
-  calcCaja();
+  // Llamar al recalculador correcto según el formulario activo
+  if(listaId.indexOf('pcc-')===0){calcCajaPC();}
+  else if(listaId.indexOf('mcj-')===0){calcModalCaja();}
+  else{calcCaja();}
 }
 function agregarGastoFila(listaId,totalId,hiddenId,desc,monto){
   var lista=document.getElementById(listaId);
@@ -3451,7 +3454,7 @@ function calcCajaPC(){
   // Total ventas = todos los medios de pago
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
   // Cuadratura = solo efectivo que pasa por caja física
-  var efectivoCaja=z+tr+delEf+inOtros;
+  var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var difEl=document.getElementById('pcc-dif');
   if(difEl){difEl.textContent=fmt(dif);difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';}
@@ -3465,7 +3468,7 @@ async function guardarCajaPC(){
   if(!z&&!delEf&&!delTj){alert('Ingresa al menos las ventas del local o delivery');return;}
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re'),ga=pv('pcc-ga'),inOtros=pv('pcc-in');
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
-  var efectivoCaja=z+tr+delEf+inOtros;
+  var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var btn=document.getElementById('pcc-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
@@ -3795,7 +3798,7 @@ function calcCaja(){
   // Total ventas del día = todos los medios de pago
   var totalVentas=z+rc+cr+ot+tr+delTotal+inOtros;
   // Cuadratura = solo efectivo que pasa por caja física (sin tarjetas rc/cr/ot)
-  var efectivoCaja=z+tr+delEf+inOtros;
+  var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var box=document.getElementById('cj-res'),val=document.getElementById('cj-rv'),hint=document.getElementById('cj-rh');
   var tvBox=document.getElementById('cj-tv-box'),tvEl=document.getElementById('cj-tv');
@@ -3815,7 +3818,7 @@ async function guardarCaja(){
   var ci=v('cj-ci'),cf=v('cj-cf'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var inOtros=v('cj-in');
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
-  var efectivoCaja=z+tr+delEf+inOtros;
+  var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
