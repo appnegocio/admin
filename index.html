@@ -504,7 +504,7 @@ tr:hover td{background:var(--g50)}
         <div class="fdiv">Caja física</div>
         <div class="fg2"><div><label class="fl">Caja inicial</label><input class="fi" type="text" inputmode="numeric" id="cj-ci" placeholder="0" oninput="fmtInput(this);calcCaja()"></div><div><label class="fl">Caja final</label><input class="fi" type="text" inputmode="numeric" id="cj-cf" placeholder="0" oninput="fmtInput(this);calcCaja()"></div></div>
         <div class="fdiv">Registradora — Local</div>
-        <label class="fl">Ventas local</label><input class="fi" type="text" inputmode="numeric" id="cj-z" placeholder="0" oninput="fmtInput(this);calcCaja()">
+        <label class="fl">Ventas efectivo</label><input class="fi" type="text" inputmode="numeric" id="cj-z" placeholder="0" oninput="fmtInput(this);calcCaja()">
         <div class="fdiv">Delivery</div>
         <div class="fg2"><div><label class="fl">Delivery efectivo</label><input class="fi" type="text" inputmode="numeric" id="cj-del-ef" placeholder="0" oninput="fmtInput(this);calcCaja()"></div><div><label class="fl">Delivery tarjeta</label><input class="fi" type="text" inputmode="numeric" id="cj-del-tj" placeholder="0" oninput="fmtInput(this);calcCaja()"></div></div>
         <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:2px;margin-bottom:8px"><span style="color:#212529">Total delivery</span><span id="cj-del-total" style="color:#087a55">$0</span></div>
@@ -807,7 +807,7 @@ tr:hover td{background:var(--g50)}
               <div><label class="modal-label">Caja final</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-cf" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
-              <div><label class="modal-label">Ventas local</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-z" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
+              <div><label class="modal-label">Ventas efectivo</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-z" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
               <div><label class="modal-label">Delivery efectivo</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-del-ef" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
               <div><label class="modal-label">Delivery tarjeta</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-del-tj" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
             </div>
@@ -920,7 +920,7 @@ tr:hover td{background:var(--g50)}
     <div class="modal-div">Caja física</div>
     <div class="modal-grid2"><div><label class="modal-label">Caja inicial</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-ci" oninput="fmtInput(this);calcModalCaja()"></div><div><label class="modal-label">Caja final</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-cf" oninput="fmtInput(this);calcModalCaja()"></div></div>
     <div class="modal-div">Registradora — Local</div>
-    <label class="modal-label">Ventas local</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-z" oninput="fmtInput(this);calcModalCaja()">
+    <label class="modal-label">Ventas efectivo</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-z" oninput="fmtInput(this);calcModalCaja()">
     <div class="modal-div">Delivery</div>
     <div class="modal-grid2"><div><label class="modal-label">Delivery efectivo</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-del-ef" oninput="fmtInput(this);calcModalCaja()"></div><div><label class="modal-label">Delivery tarjeta</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-del-tj" oninput="fmtInput(this);calcModalCaja()"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-bottom:6px"><span>Total delivery</span><span id="mcj-del-total" style="color:#087a55">$0</span></div>
@@ -1556,7 +1556,7 @@ async function loadR(){
         +'<input type="date" id="rdb-fecha" value="'+primerDiaMes+'" min="'+primerDiaMes+'" max="'+ultimoDiaMes+'" onchange="aplicarRdbFiltroDia()" style="display:none;height:30px;padding:0 8px;border:1px solid #c1c7cd;border-radius:8px;font-size:12px;font-family:inherit;color:var(--g900)">'
         +'</div></div>'
         +'<div id="rdb-semanas" style="display:none;padding:8px 1.25rem 0"><div style="font-size:11px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Selecciona una semana</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+semPills+'</div></div>'
-        +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Ventas local</th><th>Delivery</th><th>Total</th><th>Retiros</th><th>Diferencia</th></tr>';
+        +'<div id="rdb-body"><table><tr><th>Fecha</th><th>Ventas efectivo</th><th>Delivery</th><th>Total</th><th>Retiros</th><th>Diferencia</th></tr>';
       c.forEach(function(r){var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});var dif=r.diferencia||0;var del=(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);h+='<tr data-fecha="'+r.fecha+'" style="'+(dif!==0?'background:#fff8f8;':'')+'"><td>'+fd+'</td><td style="font-weight:500">'+fmt(r.total_z)+'</td><td>'+(del>0?'<span style="color:#087a55;font-weight:500">'+fmt(del)+'</span>':'<span style="color:#aaa">—</span>')+'</td><td style="font-weight:500">'+fmt(r.total_z)+'</td><td>'+fmt(r.retiros)+'</td><td class="'+(dif<0?'tneg':dif>0?'tpos':'')+'" style="font-weight:500">'+fmt(dif)+(dif!==0?' ⚠':'')+'</td></tr>';});
       var tDel=c.reduce(function(s,r){return s+(r.delivery_efectivo||0)+(r.delivery_tarjeta||0);},0);
       h+='<tr id="rdb-total" style="background:var(--g50);font-weight:500;border-top:1px solid #c1c7cd"><td>Total mes</td><td>'+fmt(tZ)+'</td><td style="color:#087a55">'+fmt(tDel)+'</td><td>'+fmt(tZ+tDel)+'</td><td></td><td class="'+(tDif<0?'tneg':tDif>0?'tpos':'')+'">'+fmt(tDif)+'</td></tr>'
@@ -1994,7 +1994,7 @@ function generarPDFCierre(r){
     +'<div class="hdr"><h1>Cierre de caja &mdash; '+fecha+'</h1><p>'+cli.nombre_negocio+' &middot; Generado el '+new Date().toLocaleDateString('es-CL')+'</p></div>'
     +'<div class="body">'
     +'<div class="sec">Resumen del dia</div>'
-    +'<div class="row"><span>Ventas local</span><span class="pos">'+f2(r.ventas_local||r.total_z)+'</span></div>'
+    +'<div class="row"><span>Ventas efectivo</span><span class="pos">'+f2(r.ventas_local||r.total_z)+'</span></div>'
     +((r.delivery_efectivo||r.delivery_tarjeta)?'<div class="sec">Delivery</div><div class="row"><span>Efectivo</span><span class="pos">'+f2(r.delivery_efectivo)+'</span></div><div class="row"><span>Tarjeta</span><span class="pos">'+f2(r.delivery_tarjeta)+'</span></div><div class="row tot"><span>Total delivery</span><span class="pos">'+f2((r.delivery_efectivo||0)+(r.delivery_tarjeta||0))+'</span></div>':'')
     +'<div class="row tot"><span>Total ventas del día</span><span class="pos">'+f2(r.total_z||0)+'</span></div>'
     +'<div class="row"><span>Retiros</span><span>'+f2(r.retiros)+'</span></div>'
@@ -4714,7 +4714,7 @@ async function loadCierresDash(){
       h+='</div>';
       h+='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--g500)">'+meses[k].length+' días</span><span style="font-size:13px;font-weight:500;color:var(--vd)">'+fmt(totalZ)+'</span><span id="arr-'+mid+'">'+(isActual?'▲':'▼')+'</span></div></div>';
       h+='<div id="'+mid+'" style="display:'+(isActual?'block':'none')+'">';
-      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Ventas local</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Delivery</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
+      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)">Fecha</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Ventas efectivo</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Delivery</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Total</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Retiros</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50);text-align:right">Diferencia</th><th style="font-size:11px;font-weight:500;text-transform:uppercase;color:var(--g500);padding:8px 1.25rem;background:var(--g50)"></th></tr>';
       meses[k].forEach(function(r){
         var fd=new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
         var dif=r.diferencia||0;
