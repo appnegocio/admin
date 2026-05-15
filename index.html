@@ -317,6 +317,15 @@ tr:hover td{background:var(--g50)}
   .ld-cta-title{font-size:30px}
   .ld-cta-sub{font-size:16px}
 }
+<style>
+.prov-wrap{position:relative}
+.prov-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #c1c7cd;border-radius:0 0 8px 8px;border-top:none;z-index:1000;max-height:180px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.prov-dropdown.visible{display:block}
+.prov-item{padding:8px 12px;cursor:pointer;font-size:13px;color:#212529;border-bottom:.5px solid #f1f3f5}
+.prov-item:last-child{border-bottom:none}
+.prov-item:hover{background:#f8f9fa}
+.prov-item-name{font-weight:500}
+.prov-item-rut{font-size:11px;color:#adb5bd;margin-top:1px}
 </style>
 <div id="p-landing">
 
@@ -642,7 +651,8 @@ tr:hover td{background:var(--g50)}
         </div>
 
         <label class="fl">N° Factura</label><input class="fi" type="text" id="ft-nm" placeholder="Ej: 000123">
-        <label class="fl">Proveedor</label><input class="fi" type="text" id="ft-pv" placeholder="Nombre del proveedor">
+        <label class="fl">Proveedor</label><div class="prov-wrap"><input class="fi" type="text" id="ft-pv" placeholder="Nombre del proveedor" autocomplete="off" oninput="buscarProveedor(this,'ft-pv-drop','ft-rut')" onfocus="buscarProveedor(this,'ft-pv-drop','ft-rut')" onblur="setTimeout(function(){ocultarProvDrop('ft-pv-drop')},200)"><div class="prov-dropdown" id="ft-pv-drop"></div></div>
+        <label class="fl">RUT proveedor</label><input class="fi" type="text" id="ft-rut" placeholder="Ej: 76.123.456-7" style="margin-bottom:6px">
         <div class="fdiv">Montos</div>
         <label class="fl">Monto neto</label><input class="fi" type="number" id="ft-ne" placeholder="0" oninput="calcFact()">
         <div class="fg2"><div><label class="fl">IVA</label><input class="fi" type="number" id="ft-iv" placeholder="0" oninput="calcFact()"></div><div><label class="fl">Impuesto</label><input class="fi" type="number" id="ft-im" placeholder="0" oninput="calcFact()"></div></div>
@@ -994,7 +1004,8 @@ tr:hover td{background:var(--g50)}
   <div class="modal">
     <div class="modal-t">Editar factura <button class="modal-x" onclick="cerrarModal('fact')">×</button></div>
     <input type="hidden" id="mft-id">
-    <div class="modal-grid2"><div><label class="modal-label">N° Factura</label><input class="modal-input" type="text" id="mft-nm"></div><div><label class="modal-label">Proveedor</label><input class="modal-input" type="text" id="mft-pv"></div></div>
+    <div class="modal-grid2"><div><label class="modal-label">N° Factura</label><input class="modal-input" type="text" id="mft-nm"></div><div><label class="modal-label">Proveedor</label><div class="prov-wrap"><input class="modal-input" type="text" id="mft-pv" autocomplete="off" oninput="buscarProveedor(this,'mft-pv-drop','mft-rut')" onfocus="buscarProveedor(this,'mft-pv-drop','mft-rut')" onblur="setTimeout(function(){ocultarProvDrop('mft-pv-drop')},200)"><div class="prov-dropdown" id="mft-pv-drop"></div></div></div>
+    <div><label class="modal-label">RUT proveedor</label><input class="modal-input" type="text" id="mft-rut" placeholder="Ej: 76.123.456-7"></div></div>
     <div class="modal-div">Montos</div>
     <label class="modal-label">Monto neto</label><input class="modal-input" type="number" id="mft-ne" oninput="calcModalFact()">
     <div class="modal-grid2"><div><label class="modal-label">IVA</label><input class="modal-input" type="number" id="mft-iv" oninput="calcModalFact()"></div><div><label class="modal-label">Impuesto</label><input class="modal-input" type="number" id="mft-im" oninput="calcModalFact()"></div></div>
@@ -3947,7 +3958,7 @@ async function guardarFact(){
   btn.textContent='Guardando...';
   try{
     var hj2=HJ();hj2['Prefer']='return=representation';
-  var r=await fetch(SU+'/rest/v1/facturas',{method:'POST',headers:hj2,body:JSON.stringify({fecha,proveedor:pv,numero_factura:nm,monto_neto:v('ft-ne'),iva:v('ft-iv'),impuesto:v('ft-im'),total:to,pagado:document.getElementById('ft-pagado').value==='true',notas:document.getElementById('ft-notas').value.trim()||null,cliente_id:cli.id})});
+  var r=await fetch(SU+'/rest/v1/facturas',{method:'POST',headers:hj2,body:JSON.stringify({fecha,proveedor:pv,rut_proveedor:document.getElementById('ft-rut').value.trim()||null,numero_factura:nm,monto_neto:v('ft-ne'),iva:v('ft-iv'),impuesto:v('ft-im'),total:to,pagado:document.getElementById('ft-pagado').value==='true',notas:document.getElementById('ft-notas').value.trim()||null,cliente_id:cli.id})});
     if(r.ok){
       var factData=await r.json();
       var factId=factData&&factData[0]?factData[0].id:null;
@@ -3963,7 +3974,7 @@ async function guardarFact(){
       document.getElementById('ft-ok').style.display='block';btn.textContent='✓ Guardada';
       setTimeout(function(){
         ['ft-pv','ft-nm','ft-ne','ft-iv','ft-im','ft-to'].forEach(function(id){document.getElementById(id).value='';});
-        document.getElementById('ft-pagado').value='false';selPago(false);document.getElementById('ft-notas').value='';
+        document.getElementById('ft-pagado').value='false';selPago(false);document.getElementById('ft-notas').value='';document.getElementById('ft-rut').value='';
         document.getElementById('ft-productos-lista').innerHTML='';
         document.getElementById('ft-aviso-ia').style.display='none';
         limpiarMarcasCampos();
@@ -5517,7 +5528,9 @@ function editFact(r){
   document.getElementById('mft-im').value=r.impuesto||0;
   document.getElementById('mft-to').value=r.total||0;
   document.getElementById('mft-pagado').value=r.pagado?'true':'false';
+  document.getElementById('mft-rut').value=r.rut_proveedor||'';
   document.getElementById('mft-notas').value=r.notas||'';
+  _provCache=null;
   abrirModal('fact');
 }
 function calcModalFact(){
@@ -5529,7 +5542,7 @@ async function guardarEditFact(){
   var id=document.getElementById('mft-id').value;
   var btn=document.getElementById('mft-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({proveedor:document.getElementById('mft-pv').value,numero_factura:document.getElementById('mft-nm').value,monto_neto:mv('mft-ne'),iva:mv('mft-iv'),impuesto:mv('mft-im'),total:mv('mft-to'),pagado:document.getElementById('mft-pagado').value==='true',notas:document.getElementById('mft-notas').value.trim()||null})});
+    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({proveedor:document.getElementById('mft-pv').value,rut_proveedor:document.getElementById('mft-rut').value.trim()||null,numero_factura:document.getElementById('mft-nm').value,monto_neto:mv('mft-ne'),iva:mv('mft-iv'),impuesto:mv('mft-im'),total:mv('mft-to'),pagado:document.getElementById('mft-pagado').value==='true',notas:document.getElementById('mft-notas').value.trim()||null})});
     if(r.ok){cerrarModal('fact');dpage('facturas',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
@@ -5620,6 +5633,50 @@ async function eliminarGF(id){
   }catch(ex){alert(mensajeError(ex));}
 }
 
+
+// ── Autocompletado proveedores ──
+var _provCache=null;
+async function cargarProveedores(){
+  if(_provCache)return _provCache;
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?select=proveedor,rut_proveedor&cliente_id=eq.'+cli.id+'&order=proveedor.asc',{headers:H()});
+    var data=await r.json()||[];
+    var mapa={};
+    data.forEach(function(f){
+      if(!f.proveedor)return;
+      var key=f.proveedor.toLowerCase().trim();
+      if(!mapa[key])mapa[key]={nombre:f.proveedor,rut:f.rut_proveedor||''};
+    });
+    _provCache=Object.values(mapa).sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+  }catch(e){_provCache=[];}
+  return _provCache;
+}
+async function buscarProveedor(input,dropId,rutId){
+  var q=input.value.trim().toLowerCase();
+  var drop=document.getElementById(dropId);
+  if(!drop)return;
+  var provs=await cargarProveedores();
+  var filtrados=q?provs.filter(function(p){return p.nombre.toLowerCase().includes(q);}):provs.slice(0,8);
+  if(!filtrados.length){drop.classList.remove('visible');return;}
+  drop.innerHTML=filtrados.map(function(p){
+    var dn=p.nombre.replace(/"/g,'&quot;'),dr=(p.rut||'').replace(/"/g,'&quot;');
+    return '<div class="prov-item" data-nombre="'+dn+'" data-rut="'+dr+'" data-drop="'+dropId+'" data-inp="'+input.id+'" data-rid="'+rutId+'" onmousedown="seleccionarProveedor(this.dataset.drop,this.dataset.inp,this.dataset.rid,this.dataset.nombre,this.dataset.rut)"><div class="prov-item-name">'+p.nombre+'</div>'+(p.rut?'<div class="prov-item-rut">'+p.rut+'</div>':'')+'</div>';
+  }).join('');
+  drop.classList.add('visible');
+}
+function seleccionarProveedor(dropId,inputId,rutId,nombre,rut){
+  var inp=document.getElementById(inputId);
+  var rutEl=document.getElementById(rutId);
+  if(inp)inp.value=nombre;
+  if(rutEl&&rut)rutEl.value=rut;
+  ocultarProvDrop(dropId);
+  // Invalidar caché para refrescar con nuevos datos
+  _provCache=null;
+}
+function ocultarProvDrop(dropId){
+  var drop=document.getElementById(dropId);
+  if(drop)drop.classList.remove('visible');
+}
 
 // ── Guía PDF cierre de caja ──
 function descargarGuiaCaja(){
