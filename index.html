@@ -3469,8 +3469,8 @@ function calcCajaPC(){
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
   var rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re');
   var ga=pv('pcc-ga'),inOtros=pv('pcc-in');
-  // Total ventas = todos los medios de pago
-  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
+  // Total ventas = todos los medios de pago - nulos
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros-nu;
   // Cuadratura = solo efectivo que pasa por caja física
   var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
@@ -3485,7 +3485,7 @@ async function guardarCajaPC(){
   var z=pv('pcc-z'),delEf=pv('pcc-del-ef'),delTj=pv('pcc-del-tj');
   if(!z&&!delEf&&!delTj){alert('Ingresa al menos las ventas del local o delivery');return;}
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re'),ga=pv('pcc-ga'),inOtros=pv('pcc-in');
-  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros-nu;
   var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var btn=document.getElementById('pcc-btn');btn.disabled=true;btn.textContent='Guardando...';
@@ -3814,7 +3814,7 @@ function calcCaja(){
   var delEl=document.getElementById('cj-del-total');
   if(delEl)delEl.textContent=fmt(delTotal);
   // Total ventas del día = todos los medios de pago
-  var totalVentas=z+rc+cr+ot+tr+delTotal+inOtros;
+  var totalVentas=z+rc+cr+ot+tr+delTotal+inOtros-nu;
   // Cuadratura = solo efectivo que pasa por caja física (sin tarjetas rc/cr/ot)
   var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
@@ -3835,7 +3835,7 @@ async function guardarCaja(){
   var fecha=document.getElementById('cj-f').value;if(!fecha){alert('Selecciona la fecha');return;}
   var ci=v('cj-ci'),cf=v('cj-cf'),rc=v('cj-rc'),cr=v('cj-cr'),ot=v('cj-ot'),tr=v('cj-tr'),nu=v('cj-nu'),re=v('cj-re'),ga=v('cj-ga');
   var inOtros=v('cj-in');
-  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros;
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros-nu;
   var efectivoCaja=z+delEf+inOtros;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
@@ -5417,10 +5417,10 @@ function calcModalCaja(){
   var inOtrosM=mv('mcj-in');
   var delTotal=delEf+delTj;
   var dtEl=document.getElementById('mcj-del-total');if(dtEl)dtEl.textContent=fmt(delTotal);
-  // Total ventas del día = todos los medios de pago
-  var totalVentas=z+rc+cr+ot+tr+delTotal+inOtrosM;
+  // Total ventas del día = todos los medios de pago - nulos
+  var totalVentas=z+rc+cr+ot+tr+delTotal+inOtrosM-nu;
   // Cuadratura = solo efectivo que pasa por caja física
-  var efectivoCaja=z+tr+delEf+inOtrosM;
+  var efectivoCaja=z+delEf+inOtrosM;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var el=document.getElementById('mcj-dif');
   el.textContent=fmt(dif);
@@ -5431,7 +5431,7 @@ async function guardarEditCaja(){
   var ci=mv('mcj-ci'),cf=mv('mcj-cf'),z=mv('mcj-z'),rc=mv('mcj-rc'),cr=mv('mcj-cr'),ot=mv('mcj-ot'),tr=mv('mcj-tr'),nu=mv('mcj-nu'),re=mv('mcj-re'),ga=mv('mcj-ga');
   var delEf=mv('mcj-del-ef'),delTj=mv('mcj-del-tj');
   var inOtrosM2=mv('mcj-in');
-  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtrosM2;
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtrosM2-nu;
   var efectivoCaja=z+delEf+inOtrosM2;
   var dif=ci+efectivoCaja-nu-re-ga-cf;
   var btn=document.getElementById('mcj-btn');btn.disabled=true;btn.textContent='Guardando...';
