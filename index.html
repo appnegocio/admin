@@ -5430,8 +5430,10 @@ async function guardarEditCaja(){
   var id=document.getElementById('mcj-id').value;
   var ci=mv('mcj-ci'),cf=mv('mcj-cf'),z=mv('mcj-z'),rc=mv('mcj-rc'),cr=mv('mcj-cr'),ot=mv('mcj-ot'),tr=mv('mcj-tr'),nu=mv('mcj-nu'),re=mv('mcj-re'),ga=mv('mcj-ga');
   var delEf=mv('mcj-del-ef'),delTj=mv('mcj-del-tj');
-  var totalVentas=z+(delEf+delTj);
-  var dif=-(ci+totalVentas-rc-cr-ot-tr-nu-re-cf-ga);
+  var inOtrosM2=mv('mcj-in');
+  var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtrosM2;
+  var efectivoCaja=z+delEf+inOtrosM2;
+  var dif=ci+efectivoCaja-nu-re-ga-cf;
   var btn=document.getElementById('mcj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('mcj-gastos-lista');
