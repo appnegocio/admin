@@ -318,14 +318,14 @@ tr:hover td{background:var(--g50)}
   .ld-cta-sub{font-size:16px}
 }
 <style>
-.prov-wrap{position:relative}
-.prov-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #c1c7cd;border-radius:0 0 8px 8px;border-top:none;z-index:1000;max-height:180px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,.1)}
-.prov-dropdown.visible{display:block}
-.prov-item{padding:8px 12px;cursor:pointer;font-size:13px;color:#212529;border-bottom:.5px solid #f1f3f5}
+.prov-wrap{position:relative;z-index:100}
+.prov-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #0d9e6e;border-radius:0 0 8px 8px;border-top:none;z-index:9999;max-height:200px;overflow-y:auto;display:none;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+.prov-dropdown.visible{display:block!important}
+.prov-item{padding:10px 12px;cursor:pointer;font-size:13px;color:#212529;border-bottom:.5px solid #f1f3f5;-webkit-tap-highlight-color:rgba(0,0,0,.05)}
 .prov-item:last-child{border-bottom:none}
-.prov-item:hover{background:#f8f9fa}
+.prov-item:active{background:#E1F5EE}
 .prov-item-name{font-weight:500}
-.prov-item-rut{font-size:11px;color:#adb5bd;margin-top:1px}
+.prov-item-rut{font-size:11px;color:#adb5bd;margin-top:2px}
 </style>
 <div id="p-landing">
 
@@ -5656,6 +5656,7 @@ async function buscarProveedor(input,dropId,rutId){
   var q=input.value.trim().toLowerCase();
   var drop=document.getElementById(dropId);
   if(!drop)return;
+  if(!q)_provCache=null; // refrescar al abrir
   var provs=await cargarProveedores();
   var filtrados=q?provs.filter(function(p){return p.nombre.toLowerCase().includes(q);}):provs.slice(0,8);
   if(!filtrados.length){drop.classList.remove('visible');return;}
