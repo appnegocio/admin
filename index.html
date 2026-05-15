@@ -3537,15 +3537,24 @@ async function guardarCajaPC(){
     if(r.ok){
       document.getElementById('pcc-ok').style.display='block';
       btn.textContent='✓ Guardado';
+      btn.disabled=false;
       setTimeout(function(){
         toggleFormCierrePC();
         loadCierresDash();
       },1500);
-    } else throw new Error(await r.text());
+    } else {
+      var errText=await r.text();
+      throw new Error(errText);
+    }
   }catch(ex){
     document.getElementById('pcc-err').style.display='block';
     document.getElementById('pcc-err').textContent=mensajeError(ex);
     btn.disabled=false;btn.textContent='Guardar cierre';
+  } finally {
+    // Siempre rehabilitar el botón por si algo falla silenciosamente
+    if(btn.disabled&&btn.textContent==='Guardando...'){
+      btn.disabled=false;btn.textContent='Guardar cierre';
+    }
   }
 }
 
