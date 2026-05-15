@@ -4034,17 +4034,20 @@ async function procesarFoto(input){
     };
     var camposFaltantes=0;
     if(data.proveedor){
-      // Verificar que el proveedor detectado no sea el RUT del propio negocio
-      var provDetectado=String(data.proveedor).replace(/[^0-9kK]/g,'').toLowerCase();
+      var provStr=String(data.proveedor).trim();
+      // Verificar si es el RUT del propio negocio
+      var provRutLimpio=provStr.replace(/[^0-9kK]/g,'').toLowerCase();
       var rutPropio=cli.rut?String(cli.rut).replace(/[^0-9kK]/g,'').toLowerCase():'';
-      var esRutPropio=rutPropio&&provDetectado&&provDetectado===rutPropio;
-      if(esRutPropio){
+      var esRutPropio=rutPropio&&provRutLimpio&&provRutLimpio===rutPropio;
+      // Verificar si es el nombre del propio negocio
+      var nombrePropio=(cli.nombre_negocio||'').toLowerCase().trim();
+      var esNombrePropio=nombrePropio&&provStr.toLowerCase().includes(nombrePropio);
+      if(esRutPropio||esNombrePropio){
         document.getElementById('ft-pv').value='';
         marcarCampo('ft-pv',false);
         camposFaltantes++;
-        status.textContent='⚠️ Se detectó el RUT de tu negocio como proveedor — ingresa el proveedor manualmente.';
       } else {
-        document.getElementById('ft-pv').value=data.proveedor;
+        document.getElementById('ft-pv').value=provStr;
         marcarCampo('ft-pv',true);
       }
     }
