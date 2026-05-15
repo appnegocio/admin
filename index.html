@@ -5639,16 +5639,17 @@ var _provCache=null;
 async function cargarProveedores(){
   if(_provCache)return _provCache;
   try{
-    var r=await fetch(SU+'/rest/v1/facturas?select=proveedor,rut_proveedor&cliente_id=eq.'+cli.id+'&proveedor=not.is.null&order=proveedor.asc',{headers:H()});
+    var r=await fetch(SU+'/rest/v1/facturas?select=proveedor&cliente_id=eq.'+cli.id+'&proveedor=not.is.null&order=proveedor.asc',{headers:H()});
+    if(!r.ok){_provCache=[];return _provCache;}
     var data=await r.json()||[];
     var mapa={};
     data.forEach(function(f){
       if(!f.proveedor)return;
       var key=f.proveedor.toLowerCase().trim();
-      if(!mapa[key])mapa[key]={nombre:f.proveedor,rut:f.rut_proveedor||''};
+      if(!mapa[key])mapa[key]={nombre:f.proveedor,rut:''};
     });
     _provCache=Object.values(mapa).sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
-  }catch(e){_provCache=[];}
+  }catch(e){console.log('Error proveedores:',e);_provCache=[];}
   return _provCache;
 }
 async function buscarProveedor(input,dropId,rutId){
