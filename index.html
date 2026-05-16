@@ -5655,10 +5655,12 @@ async function cargarProveedores(){
 async function buscarProveedor(input,dropId,rutId){
   var q=input.value.trim().toLowerCase();
   var drop=document.getElementById(dropId);
-  if(!drop)return;
-  if(!q)_provCache=null; // refrescar al abrir
+  if(!drop){console.log('DROP NO ENCONTRADO:',dropId);return;}
+  if(!q)_provCache=null;
   var provs=await cargarProveedores();
+  console.log('Proveedores cargados:',provs.length,'query:',q);
   var filtrados=q?provs.filter(function(p){return p.nombre.toLowerCase().includes(q);}):provs.slice(0,8);
+  console.log('Filtrados:',filtrados.length);
   if(!filtrados.length){drop.classList.remove('visible');return;}
   drop.innerHTML=filtrados.map(function(p){
     var dn=p.nombre.replace(/"/g,'&quot;'),dr=(p.rut||'').replace(/"/g,'&quot;');
