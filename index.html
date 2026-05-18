@@ -479,8 +479,14 @@ tr:hover td{background:var(--g50)}
       Ventas efectivo + Redcompra + Créditos Redbanc + Otro Redbanc + Transferencias + Delivery efectivo + Delivery tarjeta + Otros ingresos − Nulos
     </div>
     <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;font-size:11px;color:#212529;line-height:1.8;margin-bottom:10px">
-      <div style="font-weight:600;margin-bottom:4px">Cuadratura de caja:</div>
-      Caja inicial + Ventas efectivo + Delivery efectivo + Otros ingresos − Nulos − Retiros − Gastos − Caja final
+      <div style="font-weight:600;margin-bottom:4px">Cuadratura de caja (diferencia):</div>
+      −(Caja inicial + Ventas efectivo + Delivery efectivo + Otros ingresos − Nulos − Retiros − Gastos − Caja final)
+    </div>
+    <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;font-size:11px;color:#212529;line-height:1.8;margin-bottom:10px">
+      <div style="font-weight:600;margin-bottom:4px">Resultado:</div>
+      <span style="color:#0d9e6e;font-weight:500">$0 = cuadra perfectamente ✓</span><br>
+      <span style="color:#e67700;font-weight:500">Positivo = sobra dinero en caja ⚠</span><br>
+      <span style="color:#c0392b;font-weight:500">Negativo = falta dinero en caja ✗</span>
     </div>
     <div style="background:#E1F5EE;border-radius:8px;padding:8px 12px;font-size:12px;color:#085041;margin-bottom:4px">✓ Diferencia $0 — tu caja cuadra perfectamente</div>
     <div style="background:#FCEBEB;border-radius:8px;padding:8px 12px;font-size:12px;color:#c0392b;margin-bottom:4px">✗ Diferencia negativa — falta dinero, revisar caja</div>
@@ -5728,7 +5734,8 @@ function descargarGuiaCaja(){
   w.document.write('<div class="campo"><span class="campo-name">Otros ingresos</span><span class="campo-desc">Dinero que entró a la caja por razones distintas a ventas (abonos de clientes, etc).</span></div>');
   w.document.write('<div class="sec">Fórmulas</div>');
   w.document.write('<div class="formula"><div class="formula-title">Total ventas del día:</div>Ventas efectivo + Redcompra + Créditos Redbanc + Otro Redbanc + Transferencias + Delivery efectivo + Delivery tarjeta + Otros ingresos − Nulos</div>');
-  w.document.write('<div class="formula"><div class="formula-title">Cuadratura de caja (diferencia):</div>Caja inicial + Ventas efectivo + Delivery efectivo + Otros ingresos − Nulos − Retiros − Gastos − Caja final</div>');
+  w.document.write('<div class="formula"><div class="formula-title">Cuadratura de caja (diferencia):</div>−(Caja inicial + Ventas efectivo + Delivery efectivo + Otros ingresos − Nulos − Retiros − Gastos − Caja final)</div>');
+  w.document.write('<div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;margin:8px 0;font-size:11px;line-height:1.9"><b>Resultado:</b><br><span style="color:#0d9e6e">$0 = cuadra perfectamente ✓</span><br><span style="color:#e67700">Positivo (+) = sobra dinero en caja ⚠</span><br><span style="color:#c0392b">Negativo (−) = falta dinero en caja ✗</span></div>');
   w.document.write('<div class="sec">Resultado</div>');
   w.document.write('<div class="res res-v">✓ Diferencia $0 — tu caja cuadra perfectamente</div>');
   w.document.write('<div class="res res-n">✗ Diferencia negativa — falta dinero en caja, revisar</div>');
