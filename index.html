@@ -721,7 +721,6 @@ tr:hover td{background:var(--g50)}
       <label class="fl">Mes</label><select class="fsel" id="gf-mes"></select>
       <div style="height:.75rem"></div>
       <div class="grow"><span class="gnom">Previred</span><input class="ginp" type="number" id="gf-pr" placeholder="0" oninput="calcGF()"></div>
-      <div class="grow"><span class="gnom">Sueldos</span><input class="ginp" type="number" id="gf-su" placeholder="0" oninput="calcGF()"></div>
       <div class="grow"><span class="gnom">Arriendo</span><input class="ginp" type="number" id="gf-ar" placeholder="0" oninput="calcGF()"></div>
       <div class="grow"><span class="gnom">Luz</span><input class="ginp" type="number" id="gf-lu" placeholder="0" oninput="calcGF()"></div>
       <div class="grow"><span class="gnom">Crédito</span><input class="ginp" type="number" id="gf-cr" placeholder="0" oninput="calcGF()"></div>
@@ -1050,7 +1049,6 @@ tr:hover td{background:var(--g50)}
     <div style="height:.5rem"></div>
     <div class="modal-grid2">
       <div><label class="modal-label">Previred</label><input class="modal-input" type="number" id="mgf-pr" oninput="calcModalGF()"></div>
-      <div><label class="modal-label">Sueldos</label><input class="modal-input" type="number" id="mgf-su" oninput="calcModalGF()"></div>
       <div><label class="modal-label">Arriendo</label><input class="modal-input" type="number" id="mgf-ar" oninput="calcModalGF()"></div>
       <div><label class="modal-label">Luz</label><input class="modal-input" type="number" id="mgf-lu" oninput="calcModalGF()"></div>
       <div><label class="modal-label">Crédito</label><input class="modal-input" type="number" id="mgf-cr" oninput="calcModalGF()"></div>
@@ -1320,8 +1318,8 @@ var MS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septi
 var MC=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 var hoy=new Date(),cli=null,mesSel=hoy.getMonth()+1,isMob=window.innerWidth<768;
 var empSel=null,tipoSel=null,anioSel=hoy.getFullYear();
-var GFC=['pr','su','ar','lu','cr','co','ot'];
-var GFKEYS=['previred','sueldos','arriendo','luz','credito','contabilidad','otros'];
+var GFC=['pr','ar','lu','cr','co','ot'];
+var GFKEYS=['previred','arriendo','luz','credito','contabilidad','otros'];
 
 function fmt(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
 function fmtDeuda(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
@@ -1464,15 +1462,17 @@ async function loadR(){
       fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
+      fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
     ]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
     var cp=await rCp.json(),fp=await rFp.json(),pp=await rPp.json(),gp=await rGp.json();
-    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0),GF=g.length>0?(g[0].total||0):0;
-    var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0); // gastos del día de cierres
+    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0);
+    var GF=g.length>0?((g[0].total||0)-(g[0].sueldos||0)):0; // restamos sueldos de GF para evitar doble conteo con P
+    var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0);
     var G=P+GF+GD,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
     // Mes anterior
-    var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0),GFp=gp.length>0?(gp[0].total||0):0;
+    var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0);
+    var GFp=gp.length>0?((gp[0].total||0)-(gp[0].sueldos||0)):0;
     var GDp=cp.reduce(function(s,r){return s+(r.gastos||0);},0);
     var Gp=Pp+GFp+GDp,Up=Vp-Cp-Gp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
     var diasMes=new Date(a,mesSel,0).getDate(),sinReg=diasMes-c.length;
@@ -1789,18 +1789,18 @@ async function loadDashCelResumen(mesParam,anioParam){
       fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()}),
+      fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()}),
       fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
+      fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
     ]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
     var cp=await rCp.json(),fp=await rFp.json(),pp=await rPp.json(),gp=await rGp.json();
     var V=c.reduce(function(s,r){return s+(r.total_z||0);},0);
     var C=f.reduce(function(s,r){return s+(r.total||0);},0);
     var P=p.reduce(function(s,r){return s+(r.monto||0);},0);
-    var GF=g.length>0?(g[0].total||0):0;
+    var GF=g.length>0?((g[0].total||0)-(g[0].sueldos||0)):0; // sin sueldos para evitar doble conteo
     var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0);
     var G=P+GF+GD,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
     var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0),GFp=gp.length>0?(gp[0].total||0):0,Up=Vp-Cp-Pp-GFp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
@@ -3848,7 +3848,7 @@ async function reporteDashboard(){
     var ventas=(c||[]).reduce(function(s,r){return s+(r.total_z||0);},0);
     var compras=(f||[]).reduce(function(s,r){return s+(r.total||0);},0);
     var personal=(p||[]).reduce(function(s,r){return s+(r.monto||0);},0);
-    var gastos=(g&&g.length?g[0].total:0)||0;
+    var gastos=(g&&g.length?(g[0].total||0)-(g[0].sueldos||0):0)||0; // sin sueldos para evitar doble conteo
     var utilidad=ventas-compras-personal-gastos;
     var margen=ventas>0?Math.round((utilidad/ventas)*100):0;
     var cuerpo='<div class="sec">Resumen ejecutivo — '+MS[m-1]+' '+a+'</div>'
@@ -4376,9 +4376,9 @@ async function loadReporte(){
   var el=document.getElementById('rp-ct');el.innerHTML='<div class="ld">Calculando...</div>';
   var d=a+'-'+String(mes).padStart(2,'0')+'-01',mf=mes===12?1:mes+1,af=mes===12?a+1:a,h2=af+'-'+String(mf).padStart(2,'0')+'-01';
   try{
-    var [rC,rF,rP,rG]=await Promise.all([fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()})]);
+    var [rC,rF,rP,rG]=await Promise.all([fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()})]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
-    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0),GF=g.length>0?(g[0].total||0):0;
+    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0),GF=g.length>0?((g[0].total||0)-(g[0].sueldos||0)):0;
     var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0);
     var G=P+GF+GD,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
     el.innerHTML='<div class="fres '+(U>=0?'ok':'bad')+'" style="margin:0 0 1rem"><div class="fres-l">Utilidad neta — '+MS[mes-1]+'</div><div class="fres-v">'+fmt(U)+'</div><div class="fres-h">Margen '+M+'%</div></div><div class="hitem"><div class="hrow"><span>Ventas ('+c.length+' días)</span><span style="color:var(--vd);font-weight:500">'+fmt(V)+'</span></div><div class="hrow"><span>Compras</span><span style="color:var(--r)">'+fmt(C)+'</span></div><div class="hrow"><span>Personal</span><span style="color:var(--r)">'+fmt(P)+'</span></div><div class="hrow"><span>Gastos fijos</span><span style="color:var(--r)">'+fmt(GF)+'</span></div></div>';
@@ -5614,14 +5614,14 @@ function editGF(r){
   calcModalGF();abrirModal('gf');
 }
 function calcModalGF(){
-  var ids=['pr','su','ar','lu','cr','co','ot'];
+  var ids=['pr','ar','lu','cr','co','ot'];
   var t=ids.reduce(function(s,c){return s+mv('mgf-'+c);},0);
   document.getElementById('mgf-total').textContent=fmt(t);
 }
 async function guardarEditGF(){
   var id=document.getElementById('mgf-id').value;
-  var ids=['pr','su','ar','lu','cr','co','ot'];
-  var keys=['previred','sueldos','arriendo','luz','credito','contabilidad','otros'];
+  var ids=['pr','ar','lu','cr','co','ot'];
+  var keys=['previred','arriendo','luz','credito','contabilidad','otros'];
   var total=ids.reduce(function(s,c){return s+mv('mgf-'+c);},0);
   var otrosDetalleModal=obtenerOtrosGFLista('mgf-otros-lista');
   var payload={total,mes:parseInt(document.getElementById('mgf-mes').value),otros_detalle:otrosDetalleModal};
