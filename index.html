@@ -2244,6 +2244,7 @@ function verHistorialPrecio(nombre,proveedor,btn){
 function inicSelectMesPersonal(){
   var sel=document.getElementById('pers-rep-mes');
   if(!sel)return;
+  sel.onchange=function(){loadPersonalMes();};
   sel.innerHTML='';
   var a=hoy.getFullYear();
   for(var y=a;y>=a-1;y--){
@@ -4577,7 +4578,7 @@ function dpage(n,el){
   var t={resumen:'Dashboard',balance:'Balance anual',cierres:'Cierres de caja',facturas:'Facturas de compra',factventas:'Facturas de venta',personal:'Personal',gastosfijos:'Gastos fijos',creditos:'Créditos',precios:'Precios de compra',admin:'Admin clientes',usuarios:'Usuarios'};
   document.getElementById('tbt').textContent=t[n]||n;
   if(n==='balance')loadB();
-  if(n==='personal'){loadTD('pagos_personal','dpe',renderPersonalTabla);inicSelectMesPersonal();}
+  if(n==='personal'){inicSelectMesPersonal();loadPersonalMes();}
 
   if(n==='cierres'){
     if(cli.rol_usuario==='jefe_local'){
@@ -4728,6 +4729,23 @@ function swPersonalTab(tab){
   tEmps.style.borderBottomColor=isPagos?'transparent':'var(--v)';
   tEmps.style.fontWeight=isPagos?'500':'600';
   if(!isPagos)loadEmpleados();
+}
+
+async function loadPersonalMes(){
+  var el=document.getElementById('dpe');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  var sel=document.getElementById('pers-rep-mes');
+  var parts=sel?sel.value.split('-'):[hoy.getFullYear().toString(),(hoy.getMonth()+1).toString().padStart(2,'0')];
+  var mes=parseInt(parts[1]),a=parseInt(parts[0]);
+  var d=a+'-'+String(mes).padStart(2,'0')+'-01';
+  var mf=mes===12?1:mes+1,af=mes===12?a+1:a;
+  var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
+  try{
+    var r=await fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=empleado.asc,fecha.asc',{headers:H()});
+    var data=await r.json();
+    if(!data||!data.length){el.innerHTML='<div class="empty">Sin pagos en '+MS[mes-1]+' '+a+'</div>';return;}
+    el.innerHTML=renderPersonalTabla(data);
+  }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
 
 function renderPersonalTabla(d){
