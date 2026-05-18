@@ -3530,9 +3530,9 @@ function calcCajaPC(){
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros-nu;
   // Cuadratura = solo efectivo que pasa por caja física
   var efectivoCaja=z+delEf+inOtros;
-  var dif=ci+efectivoCaja-nu-re-ga-cf;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var difEl=document.getElementById('pcc-dif');
-  if(difEl){difEl.textContent=fmt(dif);difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';}
+  if(difEl){difEl.textContent=(dif>0?'+':'')+fmt(dif);difEl.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';}
   var tvPcEl=document.getElementById('pcc-tv');
   if(tvPcEl){tvPcEl.textContent=fmt(totalVentas);tvPcEl.style.color=totalVentas>0?'#085041':'#adb5bd';}
 }
@@ -3544,7 +3544,7 @@ async function guardarCajaPC(){
   var ci=pv('pcc-ci'),cf=pv('pcc-cf'),rc=pv('pcc-rc'),cr=pv('pcc-cr'),ot=pv('pcc-ot'),tr=pv('pcc-tr'),nu=pv('pcc-nu'),re=pv('pcc-re'),ga=pv('pcc-ga'),inOtros=pv('pcc-in');
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros-nu;
   var efectivoCaja=z+delEf+inOtros;
-  var dif=ci+efectivoCaja-nu-re-ga-cf;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var btn=document.getElementById('pcc-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('pcc-gastos-lista');
@@ -3883,7 +3883,7 @@ function calcCaja(){
   var totalVentas=z+rc+cr+ot+tr+delTotal+inOtros-nu;
   // Cuadratura = solo efectivo que pasa por caja física (sin tarjetas rc/cr/ot)
   var efectivoCaja=z+delEf+inOtros;
-  var dif=ci+efectivoCaja-nu-re-ga-cf;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var box=document.getElementById('cj-res'),val=document.getElementById('cj-rv'),hint=document.getElementById('cj-rh');
   var tvBox=document.getElementById('cj-tv-box'),tvEl=document.getElementById('cj-tv');
   if(!z&&!delTotal){val.textContent='—';hint.textContent='Ingresa los datos para calcular';box.className='fres neu';if(tvBox)tvBox.style.display='none';return;}
@@ -3903,7 +3903,7 @@ async function guardarCaja(){
   var inOtros=v('cj-in');
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtros-nu;
   var efectivoCaja=z+delEf+inOtros;
-  var dif=ci+efectivoCaja-nu-re-ga-cf;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var btn=document.getElementById('cj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
@@ -5492,9 +5492,9 @@ function calcModalCaja(){
   var totalVentas=z+rc+cr+ot+tr+delTotal+inOtrosM-nu;
   // Cuadratura = solo efectivo que pasa por caja física
   var efectivoCaja=z+delEf+inOtrosM;
-  var dif=ci+efectivoCaja-nu-re-ga-cf;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var el=document.getElementById('mcj-dif');
-  el.textContent=fmt(dif);
+  el.textContent=(dif>0?'+':'')+fmt(dif);
   el.style.color=dif===0?'var(--vd)':dif<0?'var(--r)':'var(--a)';
 }
 async function guardarEditCaja(){
@@ -5504,7 +5504,7 @@ async function guardarEditCaja(){
   var inOtrosM2=mv('mcj-in');
   var totalVentas=z+rc+cr+ot+tr+delEf+delTj+inOtrosM2-nu;
   var efectivoCaja=z+delEf+inOtrosM2;
-  var dif=ci+efectivoCaja-nu-re-ga-cf;
+  var dif=-(ci+efectivoCaja-nu-re-ga-cf);
   var btn=document.getElementById('mcj-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     var gastosDetalle=obtenerGastosLista('mcj-gastos-lista');
