@@ -725,7 +725,6 @@ tr:hover td{background:var(--g50)}
       <div class="grow"><span class="gnom">Arriendo</span><input class="ginp" type="number" id="gf-ar" placeholder="0" oninput="calcGF()"></div>
       <div class="grow"><span class="gnom">Luz</span><input class="ginp" type="number" id="gf-lu" placeholder="0" oninput="calcGF()"></div>
       <div class="grow"><span class="gnom">Crédito</span><input class="ginp" type="number" id="gf-cr" placeholder="0" oninput="calcGF()"></div>
-      <div class="grow"><span class="gnom">IVA</span><input class="ginp" type="number" id="gf-iv" placeholder="0" oninput="calcGF()"></div>
       <div class="grow"><span class="gnom">Contabilidad</span><input class="ginp" type="number" id="gf-co" placeholder="0" oninput="calcGF()"></div>
       <div class="grow" style="flex-direction:column;align-items:stretch">
         <span class="gnom" style="margin-bottom:6px">Otros</span>
@@ -1055,7 +1054,6 @@ tr:hover td{background:var(--g50)}
       <div><label class="modal-label">Arriendo</label><input class="modal-input" type="number" id="mgf-ar" oninput="calcModalGF()"></div>
       <div><label class="modal-label">Luz</label><input class="modal-input" type="number" id="mgf-lu" oninput="calcModalGF()"></div>
       <div><label class="modal-label">Crédito</label><input class="modal-input" type="number" id="mgf-cr" oninput="calcModalGF()"></div>
-      <div><label class="modal-label">IVA</label><input class="modal-input" type="number" id="mgf-iv" oninput="calcModalGF()"></div>
       <div><label class="modal-label">Contabilidad</label><input class="modal-input" type="number" id="mgf-co" oninput="calcModalGF()"></div>
       <div style="grid-column:span 2">
       <label class="modal-label">Otros</label>
@@ -1322,8 +1320,8 @@ var MS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septi
 var MC=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 var hoy=new Date(),cli=null,mesSel=hoy.getMonth()+1,isMob=window.innerWidth<768;
 var empSel=null,tipoSel=null,anioSel=hoy.getFullYear();
-var GFC=['pr','su','ar','lu','cr','iv','co','ot'];
-var GFKEYS=['previred','sueldos','arriendo','luz','credito','iva','contabilidad','otros'];
+var GFC=['pr','su','ar','lu','cr','co','ot'];
+var GFKEYS=['previred','sueldos','arriendo','luz','credito','contabilidad','otros'];
 
 function fmt(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
 function fmtDeuda(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
@@ -5607,7 +5605,6 @@ function editGF(r){
   document.getElementById('mgf-ar').value=r.arriendo||0;
   document.getElementById('mgf-lu').value=r.luz||0;
   document.getElementById('mgf-cr').value=r.credito||0;
-  document.getElementById('mgf-iv').value=r.iva||0;
   document.getElementById('mgf-co').value=r.contabilidad||0;
   cargarOtrosGFEnLista('mgf-otros-lista','mgf-ot-total','mgf-ot',r.otros_detalle||[]);
   if((!r.otros_detalle||!r.otros_detalle.length)&&r.otros){document.getElementById('mgf-ot').value=r.otros||0;}
@@ -5617,14 +5614,14 @@ function editGF(r){
   calcModalGF();abrirModal('gf');
 }
 function calcModalGF(){
-  var ids=['pr','su','ar','lu','cr','iv','co','ot'];
+  var ids=['pr','su','ar','lu','cr','co','ot'];
   var t=ids.reduce(function(s,c){return s+mv('mgf-'+c);},0);
   document.getElementById('mgf-total').textContent=fmt(t);
 }
 async function guardarEditGF(){
   var id=document.getElementById('mgf-id').value;
-  var ids=['pr','su','ar','lu','cr','iv','co','ot'];
-  var keys=['previred','sueldos','arriendo','luz','credito','iva','contabilidad','otros'];
+  var ids=['pr','su','ar','lu','cr','co','ot'];
+  var keys=['previred','sueldos','arriendo','luz','credito','contabilidad','otros'];
   var total=ids.reduce(function(s,c){return s+mv('mgf-'+c);},0);
   var otrosDetalleModal=obtenerOtrosGFLista('mgf-otros-lista');
   var payload={total,mes:parseInt(document.getElementById('mgf-mes').value),otros_detalle:otrosDetalleModal};
