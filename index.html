@@ -971,7 +971,9 @@ tr:hover td{background:var(--g50)}
               <button onclick="mostrarResumenPersonal()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
                 📊 Resumen del mes
               </button>
-
+              <button onclick="abrirModalNuevoPagoPC()" style="height:32px;padding:0 14px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">
+                Registrar pago
+              </button>
             </div>
           </div>
           <div id="dp-personal-pagos"><div id="dpe"><div class="ld">Cargando...</div></div><div id="dp-personal-resumen" style="display:none;margin-top:1.25rem"></div></div>
@@ -5369,6 +5371,67 @@ async function loadPropinasDash(){
   }catch(ex){el.innerHTML='<div class="ld">Error al cargar</div>';}
 }
 
+// ── Nuevo pago personal desde PC ──
+var empSelPC=null,tipoSelPC=null;
+
+async function abrirModalNuevoPagoPC(){
+  empSelPC=null;tipoSelPC=null;
+  // fecha hoy
+  document.getElementById('mnp-fecha').value=hoy.toISOString().split('T')[0];
+  document.getElementById('mnp-monto').value='';
+  document.getElementById('mnp-obs').value='';
+  // reset botones
+  document.querySelectorAll('#mnp-emps .ebtn').forEach(function(b){b.classList.remove('sel');});
+  document.querySelectorAll('#modal-nuevopago .ebtn').forEach(function(b){b.classList.remove('sel');});
+  // cargar empleados
+  var g=document.getElementById('mnp-emps');
+  g.innerHTML='<span style="font-size:12px;color:#adb5bd">Cargando...</span>';
+  try{
+    var r=await fetch(SU+'/rest/v1/empleados?select=*&activo=eq.true&cliente_id=eq.'+cli.id+'&order=nombre.asc',{headers:H()});
+    var d=await r.json();
+    g.innerHTML='';
+    if(!d||!d.length){g.innerHTML='<span style="font-size:12px;color:#adb5bd">Sin empleados registrados</span>';return;}
+    d.forEach(function(e){
+      var b=document.createElement('button');
+      b.className='ebtn';b.textContent=e.nombre;
+      b.onclick=function(){
+        empSelPC=e.nombre;
+        document.querySelectorAll('#mnp-emps .ebtn').forEach(function(x){x.classList.remove('sel');});
+        b.classList.add('sel');
+      };
+      g.appendChild(b);
+    });
+  }catch(ex){g.innerHTML='<span style="font-size:12px;color:#e03131">Error al cargar empleados</span>';}
+  abrirModal('nuevopago');
+}
+
+function selTipoPC(t,el){
+  tipoSelPC=t;
+  document.querySelectorAll('#modal-nuevopago .ebtn[onclick^="selTipoPC"]').forEach(function(b){b.classList.remove('sel');});
+  el.classList.add('sel');
+}
+
+async function guardarNuevoPagoPC(){
+  if(!empSelPC){alert('Selecciona un empleado');return;}
+  if(!tipoSelPC){alert('Selecciona el tipo de pago');return;}
+  var mo=parseFloat(document.getElementById('mnp-monto').value)||0;
+  if(!mo&&tipoSelPC!=='Otro'){alert('Ingresa el monto');return;}
+  var fecha=document.getElementById('mnp-fecha').value;
+  if(!fecha){alert('Ingresa la fecha');return;}
+  var btn=document.getElementById('mnp-btn');
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    var r=await fetch(SU+'/rest/v1/pagos_personal',{method:'POST',headers:HJ(),body:JSON.stringify({
+      fecha:fecha,empleado:empSelPC,tipo:tipoSelPC,monto:mo,
+      observacion:document.getElementById('mnp-obs').value,cliente_id:cli.id
+    })});
+    if(!r.ok)throw new Error(await r.text());
+    cerrarModal('nuevopago');
+    loadPersonalMes();
+  }catch(ex){alert('Error al guardar: '+ex.message);}
+  btn.disabled=false;btn.textContent='Guardar pago';
+}
+
 function toggleMesCaja(mid,header){
   var div=document.getElementById(mid);
   var arr=document.getElementById('arr-'+mid);
@@ -6015,6 +6078,32 @@ setInterval(function(){
     <div class="modal-btns">
       <button class="modal-cancel" onclick="cerrarModal('pagocred')">Cancelar</button>
       <button class="modal-save" id="mpagocred-btn" onclick="guardarPagoCreditoPC()">Confirmar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO PAGO PERSONAL PC -->
+<div class="modal-bg" id="modal-nuevopago">
+  <div class="modal">
+    <div class="modal-t">Registrar pago de personal <button class="modal-x" onclick="cerrarModal('nuevopago')">×</button></div>
+    <label class="modal-label">Fecha</label>
+    <input class="modal-input" type="date" id="mnp-fecha">
+    <label class="modal-label">Empleado</label>
+    <div id="mnp-emps" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px"></div>
+    <label class="modal-label">Tipo de pago</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">
+      <button class="ebtn" onclick="selTipoPC('Quincena',this)">💰 Quincena</button>
+      <button class="ebtn" onclick="selTipoPC('Adelanto',this)">⏩ Adelanto</button>
+      <button class="ebtn" onclick="selTipoPC('Sueldo',this)">📅 Sueldo</button>
+      <button class="ebtn" onclick="selTipoPC('Otro',this)">📝 Otro</button>
+    </div>
+    <label class="modal-label">Monto</label>
+    <input class="modal-input" type="number" id="mnp-monto" placeholder="0">
+    <label class="modal-label">Observación (opcional)</label>
+    <input class="modal-input" type="text" id="mnp-obs" placeholder="Ej: anticipo semana 2">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="cerrarModal('nuevopago')">Cancelar</button>
+      <button class="modal-save" id="mnp-btn" onclick="guardarNuevoPagoPC()">Guardar pago</button>
     </div>
   </div>
 </div>
