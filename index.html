@@ -459,8 +459,8 @@ tr:hover td{background:var(--g50)}
     <div style="font-size:12px;color:#6c757d;line-height:1.6;margin-bottom:10px">Al final del día ingresas los datos de tu caja. La app calcula tu <strong>venta total del día</strong> y verifica si tu <strong>caja cuadra</strong>.</div>
     <div style="font-size:10px;font-weight:600;color:#adb5bd;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Ventas del día</div>
     <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Ventas efectivo</span><span style="color:#6c757d">Total que marcó tu registradora o totalizador Z. Solo efectivo.</span></div>
-    <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Tarjeta registrada</span><span style="color:#6c757d">Total con tarjeta según tu sistema de ventas (caja, software o cuaderno).</span></div>
-    <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Tarjeta informada</span><span style="color:#6c757d">Total que cerró la máquina Transbank/Redbanc al final del día. Este valor se suma a las ventas.</span></div>
+    <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Tarjeta caja</span><span style="color:#6c757d">Total con tarjeta según tu sistema de ventas (caja, software o cuaderno).</span></div>
+    <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Tarjeta Transbank</span><span style="color:#6c757d">Total que cerró la máquina Transbank/Redbanc al final del día. Este valor se suma a las ventas.</span></div>
     <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Transferencias</span><span style="color:#6c757d">Ventas cobradas por transferencia bancaria.</span></div>
     <div style="font-size:12px;padding:5px 0;border-bottom:.5px solid #f1f3f5;display:flex;gap:8px"><span style="font-weight:500;color:#212529;min-width:130px;flex-shrink:0">Nulos</span><span style="color:#6c757d">Ventas anuladas o canceladas después de ser registradas. Se restan del total.</span></div>
     <div style="font-size:10px;font-weight:600;color:#adb5bd;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Delivery</div>
@@ -475,7 +475,7 @@ tr:hover td{background:var(--g50)}
     <div style="font-size:10px;font-weight:600;color:#adb5bd;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Fórmulas</div>
     <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;font-size:11px;color:#212529;line-height:1.8;margin-bottom:6px">
       <div style="font-weight:600;margin-bottom:4px">Total ventas del día:</div>
-      Ventas efectivo + Tarjeta informada + Transferencias + Delivery efectivo + Delivery tarjeta + Otros ingresos − Nulos
+      Ventas efectivo + Tarjeta Transbank + Transferencias + Delivery efectivo + Delivery tarjeta + Otros ingresos − Nulos
     </div>
     <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;font-size:11px;color:#212529;line-height:1.8;margin-bottom:10px">
       <div style="font-weight:600;margin-bottom:4px">Cuadratura de caja (diferencia):</div>
@@ -564,8 +564,8 @@ tr:hover td{background:var(--g50)}
         <div class="fg2"><div><label class="fl">Delivery efectivo</label><input class="fi" type="text" inputmode="numeric" id="cj-del-ef" placeholder="0" oninput="fmtInput(this);calcCaja()"></div><div><label class="fl">Delivery tarjeta</label><input class="fi" type="text" inputmode="numeric" id="cj-del-tj" placeholder="0" oninput="fmtInput(this);calcCaja()"></div></div>
         <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-top:2px;margin-bottom:8px"><span style="color:#212529">Total delivery</span><span id="cj-del-total" style="color:#087a55">$0</span></div>
         <div class="fdiv">Medios de pago Redbanc</div>
-        <label class="fl">Tarjeta registrada</label><input class="fi" type="text" inputmode="numeric" id="cj-rc" placeholder="0" oninput="fmtInput(this);calcCaja()">
-        <label class="fl">Tarjeta informada (voucher)</label><input class="fi" type="text" inputmode="numeric" id="cj-ti" placeholder="0" oninput="fmtInput(this);calcCaja()">
+        <label class="fl">Tarjeta caja</label><input class="fi" type="text" inputmode="numeric" id="cj-rc" placeholder="0" oninput="fmtInput(this);calcCaja()">
+        <label class="fl">Tarjeta Transbank</label><input class="fi" type="text" inputmode="numeric" id="cj-ti" placeholder="0" oninput="fmtInput(this);calcCaja()">
         <div id="cj-dif-tarjeta" style="display:none;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;font-weight:500"></div>
         <input type="hidden" id="cj-cr" value="0"><input type="hidden" id="cj-ot" value="0">
         <div class="fdiv">Otros</div>
@@ -895,8 +895,8 @@ tr:hover td{background:var(--g50)}
               <div><label class="modal-label">Delivery tarjeta</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-del-tj" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
-              <div><label class="modal-label">Tarjeta registrada</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-rc" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
-              <div><label class="modal-label">Tarjeta informada (voucher)</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-ti" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
+              <div><label class="modal-label">Tarjeta caja</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-rc" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
+              <div><label class="modal-label">Tarjeta Transbank</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-ti" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
               <input type="hidden" id="pcc-cr" value="0"><input type="hidden" id="pcc-ot" value="0">
               <div><label class="modal-label">Transferencias</label><input class="modal-input" type="text" inputmode="numeric" id="pcc-tr" placeholder="0" oninput="fmtInput(this);calcCajaPC()"></div>
             </div>
@@ -1029,7 +1029,7 @@ tr:hover td{background:var(--g50)}
     <div class="modal-grid2"><div><label class="modal-label">Delivery efectivo</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-del-ef" oninput="fmtInput(this);calcModalCaja()"></div><div><label class="modal-label">Delivery tarjeta</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-del-tj" oninput="fmtInput(this);calcModalCaja()"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding:4px 0;border-top:1px solid #c1c7cd;margin-bottom:6px"><span>Total delivery</span><span id="mcj-del-total" style="color:#087a55">$0</span></div>
     <div class="modal-div">Redbanc</div>
-    <div class="modal-grid2"><div><label class="modal-label">Tarjeta registrada</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-rc" oninput="fmtInput(this);calcModalCaja()"></div><div><label class="modal-label">Tarjeta informada (voucher)</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-ti" placeholder="0" oninput="fmtInput(this);calcModalCaja()"></div></div>
+    <div class="modal-grid2"><div><label class="modal-label">Tarjeta caja</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-rc" oninput="fmtInput(this);calcModalCaja()"></div><div><label class="modal-label">Tarjeta Transbank</label><input class="modal-input" type="text" inputmode="numeric" id="mcj-ti" placeholder="0" oninput="fmtInput(this);calcModalCaja()"></div></div>
     <div id="mcj-dif-tarjeta" style="display:none;border-radius:6px;padding:6px 10px;margin-bottom:8px;font-size:12px;font-weight:500"></div>
     <input type="hidden" id="mcj-cr" value="0"><input type="hidden" id="mcj-ot" value="0">
     <div class="modal-div">Otros</div>
@@ -5997,8 +5997,8 @@ function descargarGuiaCaja(){
   w.document.write('<p style="font-size:13px;color:#6c757d;line-height:1.7;margin-bottom:16px">Al final del día ingresas los datos de tu caja. La app calcula tu <strong>venta total del día</strong> y verifica si tu <strong>caja cuadra</strong>.</p>');
   w.document.write('<div class="sec">Ventas del día</div>');
   w.document.write('<div class="campo"><span class="campo-name">Ventas efectivo</span><span class="campo-desc">Total que marcó tu sistema de ventas al cierre del día. Solo efectivo.</span></div>');
-  w.document.write('<div class="campo"><span class="campo-name">Tarjeta registrada</span><span class="campo-desc">Total con tarjeta según tu sistema de ventas (caja, software o cuaderno).</span></div>');
-  w.document.write('<div class="campo"><span class="campo-name">Tarjeta informada</span><span class="campo-desc">Total que cerró la máquina Transbank/Redbanc al final del día. Este valor se suma a las ventas.</span></div>');
+  w.document.write('<div class="campo"><span class="campo-name">Tarjeta caja</span><span class="campo-desc">Total con tarjeta según tu sistema de ventas (caja, software o cuaderno).</span></div>');
+  w.document.write('<div class="campo"><span class="campo-name">Tarjeta Transbank</span><span class="campo-desc">Total que cerró la máquina Transbank/Redbanc al final del día. Este valor se suma a las ventas.</span></div>');
   w.document.write('<div class="campo"><span class="campo-name">Transferencias</span><span class="campo-desc">Ventas cobradas por transferencia bancaria.</span></div>');
   w.document.write('<div class="campo"><span class="campo-name">Nulos</span><span class="campo-desc">Ventas anuladas o canceladas después de ser registradas. Se restan del total.</span></div>');
   w.document.write('<div class="sec">Delivery</div>');
@@ -6011,7 +6011,7 @@ function descargarGuiaCaja(){
   w.document.write('<div class="campo"><span class="campo-name">Gastos del día</span><span class="campo-desc">Pagos menores que hiciste con dinero de la caja (bolsas, insumos, limpieza, etc). No incluye retiros.</span></div>');
   w.document.write('<div class="campo"><span class="campo-name">Otros ingresos</span><span class="campo-desc">Dinero que entró a la caja por razones distintas a ventas (abonos de clientes, devoluciones, etc).</span></div>');
   w.document.write('<div class="sec">Fórmulas</div>');
-  w.document.write('<div class="formula"><div class="formula-title">Total ventas del día:</div>Ventas efectivo + Tarjeta informada + Transferencias + Delivery efectivo + Delivery tarjeta + Otros ingresos − Nulos</div>');
+  w.document.write('<div class="formula"><div class="formula-title">Total ventas del día:</div>Ventas efectivo + Tarjeta Transbank + Transferencias + Delivery efectivo + Delivery tarjeta + Otros ingresos − Nulos</div>');
   w.document.write('<div class="formula"><div class="formula-title">Cuadratura de caja (diferencia):</div>−(Caja inicial + Ventas efectivo + Delivery efectivo + Otros ingresos − Nulos − Retiros − Gastos − Caja final)</div>');
   w.document.write('<div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;margin:8px 0;font-size:11px;line-height:1.9"><b>Resultado:</b><br><span style="color:#0d9e6e">$0 = cuadra perfectamente ✓</span><br><span style="color:#e67700">Positivo (+) = sobra dinero en caja ⚠</span><br><span style="color:#c0392b">Negativo (−) = falta dinero en caja ✗</span></div>');
   w.document.write('<div class="sec">Resultado</div>');
