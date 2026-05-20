@@ -4590,7 +4590,7 @@ function dpage(n,el){
   }
   if(n==='facturas')loadFacturasDash();
   if(n==='factventas')loadFactVentasDash();
-  if(n==='cierres')inicSelectMes('rep-mes-cierres');
+  if(n==='cierres'){inicSelectMes('rep-mes-cierres');var sc=document.getElementById('rep-mes-cierres');if(sc)sc.onchange=function(){loadCierresDash();};}
   if(n==='gastosfijos')inicSelectMes('rep-mes-gf');
   if(n==='creditos')inicSelectMes('rep-mes-cred');
   if(n==='balance')inicSelectMes('rep-mes-bal');
@@ -4784,7 +4784,11 @@ function renderPersonalTabla(d){
 async function loadCierresDash(){
   var el=document.getElementById('dc');el.innerHTML='<div class="ld">Cargando...</div>';
   try{
-    var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&order=fecha.desc&limit=500',{headers:H()});
+    var sel=document.getElementById('rep-mes-cierres');
+    var mesVal=sel?sel.value:'';
+    var mesFilter='';
+    if(mesVal){var mp=mesVal.split('-');var mf2=parseInt(mp[1])===12?1:parseInt(mp[1])+1;var af2=parseInt(mp[1])===12?parseInt(mp[0])+1:parseInt(mp[0]);mesFilter='&fecha=gte.'+mesVal+'-01&fecha=lt.'+af2+'-'+String(mf2).padStart(2,'0')+'-01';}
+    var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+mesFilter+'&order=fecha.desc&limit=500',{headers:H()});
     var d=await r.json();
     if(!d||!d.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">🗂️</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay cierres registrados</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra el cierre de caja de hoy y desde mañana podrás ver cómo van tus ventas día a día.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Ir a ingresar cierre</div></div>';return;}
     var meses={};
