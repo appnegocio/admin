@@ -529,6 +529,7 @@ tr:hover td{background:var(--g50)}
       <div class="cmod" onclick="abrirScreen('rep')"><div class="cmod-icon" style="background:#f3f0ff"><svg fill="none" stroke="#7048e8" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="cmod-name">Reporte mensual</div></div>
       <div class="cmod" onclick="abrirScreen('bal')"><div class="cmod-icon" style="background:#e8f7f2"><svg fill="none" stroke="#0d9e6e" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><div class="cmod-name">Balance anual</div></div>
       <div class="cmod" onclick="abrirScreen('cred')"><div class="cmod-icon" style="background:#fff0f0"><svg fill="none" stroke="#e03131" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="cmod-name">Créditos</div></div>
+      <div class="cmod" onclick="abrirScreen('prop')"><div class="cmod-icon" style="background:#f3f0ff"><svg fill="none" stroke="#7048e8" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="cmod-name">Propinas</div></div>
     </div>
     
     <button onclick="actualizarCel()" id="btn-sync">🔄 Sincronizar</button>
@@ -775,9 +776,35 @@ tr:hover td{background:var(--g50)}
       </div>
     </div>
   </div>
+<!-- SCREEN PROPINAS CEL -->
+  <div class="cscreen" id="sc-prop">
+    <div class="csh"><button class="csh-back" onclick="cerrarScreen()"><svg fill="none" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span class="csh-t">Propinas</span></div>
+    <div class="tabbar"><button class="tabbtn active" onclick="swTab('prop','form',this)">Registrar</button><button class="tabbtn" onclick="swTab('prop','hist',this);loadPropinasHist()">Historial</button></div>
+    <div class="csb">
+      <div id="prop-form">
+        <label class="fl">Fecha</label>
+        <input class="fi" type="date" id="prop-fecha">
+        <div class="fdiv">Propinas del día</div>
+        <label class="fl">Efectivo</label>
+        <input class="fi" type="text" inputmode="numeric" id="prop-ef" placeholder="$0" oninput="fmtInput(this);calcPropinas()">
+        <label class="fl">Tarjeta</label>
+        <input class="fi" type="text" inputmode="numeric" id="prop-tj" placeholder="$0" oninput="fmtInput(this);calcPropinas()">
+        <div class="fres neu" id="prop-res" style="display:block;margin-top:.85rem">
+          <div class="fres-l">Total propinas del día</div>
+          <div class="fres-v" id="prop-total">$0</div>
+        </div>
+        <div class="fmsg ok" id="prop-ok">✓ Propina guardada</div>
+        <div class="fmsg err" id="prop-err">Error al guardar</div>
+        <button class="fbtn" onclick="guardarPropina()">Guardar propina</button>
+        <div style="height:1rem"></div>
+      </div>
+      <div id="prop-hist" style="display:none">
+        <div id="prop-hc"><div class="ld">Cargando...</div></div>
+      </div>
+    </div>
+  </div>
 
 </div>
-<!-- DASHBOARD -->
 <div id="p-dash">
   <div class="dw">
     <div class="sb">
@@ -793,6 +820,7 @@ tr:hover td{background:var(--g50)}
         <div class="sb-item" onclick="dpage('personal',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Personal</div>
         <div class="sb-item" onclick="dpage('gastosfijos',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Gastos fijos</div>
         <div class="sb-item" onclick="dpage('creditos',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Créditos</div>
+        <div class="sb-item" onclick="dpage('propinas',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Propinas</div>
       </div>
       <div class="sb-foot"><button class="sb-out" onclick="logout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión</button></div>
     </div>
@@ -961,6 +989,28 @@ tr:hover td{background:var(--g50)}
             <button onclick="reporteCreditos()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte créditos</button>
           </div>
           <div id="dcred"><div class="ld">Cargando...</div></div>
+        </div>
+        <div class="dp" id="dp-propinas">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div>
+              <select id="prop-mes-dash" onchange="loadPropinasDash()" style="height:32px;padding:0 10px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit"></select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem">
+            <div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:4px">Efectivo</div>
+              <div style="font-size:20px;font-weight:500;color:#7048e8" id="prop-dash-ef">$0</div>
+            </div>
+            <div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:4px">Tarjeta</div>
+              <div style="font-size:20px;font-weight:500;color:#7048e8" id="prop-dash-tj">$0</div>
+            </div>
+            <div style="background:#f3f0ff;border:1px solid #d0c8ff;border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#7048e8;margin-bottom:4px">Total mes</div>
+              <div style="font-size:20px;font-weight:500;color:#5f3dc4" id="prop-dash-total">$0</div>
+            </div>
+          </div>
+          <div id="dprop"><div class="ld">Cargando...</div></div>
         </div>
       </div>
     </div>
@@ -1733,6 +1783,10 @@ function abrirScreen(n){
   if(n==='rep')loadReporte();
   if(n==='bal')loadBalCel();
   if(n==='cred')loadCreditosCel();
+  if(n==='prop'){
+    var pf=document.getElementById('prop-fecha');
+    if(!pf.value)pf.value=hoy.toISOString().split('T')[0];
+  }
 }
 function cerrarScreen(){
   document.querySelectorAll('.cscreen').forEach(function(s){s.classList.remove('vis');});
@@ -4588,10 +4642,11 @@ function dpage(n,el){
   document.querySelectorAll('.dp').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.sb-item').forEach(function(s){s.classList.remove('active');});
   document.getElementById('dp-'+n).classList.add('active');el.classList.add('active');
-  var t={resumen:'Dashboard',balance:'Balance anual',cierres:'Cierres de caja',facturas:'Facturas de compra',factventas:'Facturas de venta',personal:'Personal',gastosfijos:'Gastos fijos',creditos:'Créditos',precios:'Precios de compra',admin:'Admin clientes',usuarios:'Usuarios'};
+  var t={resumen:'Dashboard',balance:'Balance anual',cierres:'Cierres de caja',facturas:'Facturas de compra',factventas:'Facturas de venta',personal:'Personal',gastosfijos:'Gastos fijos',creditos:'Créditos',precios:'Precios de compra',admin:'Admin clientes',usuarios:'Usuarios',propinas:'Propinas'};
   document.getElementById('tbt').textContent=t[n]||n;
   if(n==='balance')loadB();
   if(n==='personal'){inicSelectMesPersonal();loadPersonalMes();}
+  if(n==='propinas'){inicSelectMes('prop-mes-dash');loadPropinasDash();}
 
   if(n==='cierres'){
     if(cli.rol_usuario==='jefe_local'){
@@ -5194,6 +5249,124 @@ async function loadCreditosDashBloque(mesS,anioS){
     h+='</div>';
     return h;
   }catch(ex){return '';}
+}
+
+// ════════════════════════════════════════
+// MÓDULO PROPINAS
+// ════════════════════════════════════════
+function calcPropinas(){
+  var ef=parseCLP(document.getElementById('prop-ef').value)||0;
+  var tj=parseCLP(document.getElementById('prop-tj').value)||0;
+  document.getElementById('prop-total').textContent=fmt(ef+tj);
+  var res=document.getElementById('prop-res');
+  res.className='fres '+(ef+tj>0?'neu':'neu');
+}
+
+async function guardarPropina(){
+  var btn=document.querySelector('#prop-form .fbtn');
+  var fecha=document.getElementById('prop-fecha').value;
+  var ef=parseCLP(document.getElementById('prop-ef').value)||0;
+  var tj=parseCLP(document.getElementById('prop-tj').value)||0;
+  var ok=document.getElementById('prop-ok');
+  var err=document.getElementById('prop-err');
+  ok.style.display='none';err.style.display='none';
+  if(!fecha){alert('Ingresa la fecha');return;}
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    var body={cliente_id:cli.id,fecha:fecha,propina_efectivo:ef,propina_tarjeta:tj,total:ef+tj};
+    var r=await fetch(SU+'/rest/v1/propinas',{method:'POST',headers:HJ(),body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(await r.text());
+    ok.style.display='block';
+    document.getElementById('prop-ef').value='';
+    document.getElementById('prop-tj').value='';
+    document.getElementById('prop-total').textContent='$0';
+    // reset fecha a hoy
+    document.getElementById('prop-fecha').value=hoy.toISOString().split('T')[0];
+  }catch(ex){err.textContent='Error al guardar: '+ex.message;err.style.display='block';}
+  btn.disabled=false;btn.textContent='Guardar propina';
+}
+
+async function loadPropinasHist(){
+  var el=document.getElementById('prop-hc');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var hoy2=new Date();
+    var d=hoy2.getFullYear()+'-'+(String(hoy2.getMonth()+1).padStart(2,'0'))+'-01';
+    var nm=new Date(hoy2.getFullYear(),hoy2.getMonth()+1,1);
+    var h2=nm.getFullYear()+'-'+(String(nm.getMonth()+1).padStart(2,'0'))+'-01';
+    var r=await fetch(SU+'/rest/v1/propinas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()});
+    var data=await r.json();
+    if(!data||!data.length){el.innerHTML='<div class="ld">Sin propinas este mes</div>';return;}
+    var totalEf=0,totalTj=0,totalMes=0;
+    var h='';
+    data.forEach(function(p){
+      totalEf+=p.propina_efectivo||0;
+      totalTj+=p.propina_tarjeta||0;
+      totalMes+=p.total||0;
+      var fd=new Date(p.fecha+'T12:00:00');
+      var ds=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+      h+='<div class="hitem">';
+      h+='<div class="htop"><span class="hfecha">'+ds[fd.getDay()]+' '+fd.getDate()+' '+MS[fd.getMonth()]+'</span>';
+      h+='<span class="hval pos">'+fmt(p.total||0)+'</span></div>';
+      h+='<div class="hrow"><span>Efectivo</span><span>'+fmt(p.propina_efectivo||0)+'</span></div>';
+      h+='<div class="hrow"><span>Tarjeta</span><span>'+fmt(p.propina_tarjeta||0)+'</span></div>';
+      h+='</div>';
+    });
+    // Resumen mes
+    var resumen='<div style="background:#f3f0ff;border:1px solid #d0c8ff;border-radius:8px;padding:10px 12px;margin-bottom:10px">';
+    resumen+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#7048e8;margin-bottom:6px">Total del mes</div>';
+    resumen+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
+    resumen+='<div><div style="font-size:10px;color:#adb5bd">Efectivo</div><div style="font-size:14px;font-weight:500;color:#5f3dc4">'+fmt(totalEf)+'</div></div>';
+    resumen+='<div><div style="font-size:10px;color:#adb5bd">Tarjeta</div><div style="font-size:14px;font-weight:500;color:#5f3dc4">'+fmt(totalTj)+'</div></div>';
+    resumen+='<div><div style="font-size:10px;color:#adb5bd">Total</div><div style="font-size:15px;font-weight:500;color:#5f3dc4">'+fmt(totalMes)+'</div></div>';
+    resumen+='</div></div>';
+    el.innerHTML=resumen+h;
+  }catch(ex){el.innerHTML='<div class="ld">Error al cargar</div>';}
+}
+
+// ── PC Dashboard propinas ──
+async function loadPropinasDash(){
+  var sel=document.getElementById('prop-mes-dash');
+  if(!sel)return;
+  var v=sel.value||(hoy.getFullYear()+'-'+(String(hoy.getMonth()+1).padStart(2,'0')));
+  var parts=v.split('-');var anio=parseInt(parts[0]);var mes=parseInt(parts[1]);
+  var d=anio+'-'+(String(mes).padStart(2,'0'))+'-01';
+  var nm=new Date(anio,mes,1);
+  var h2=nm.getFullYear()+'-'+(String(nm.getMonth()+1).padStart(2,'0'))+'-01';
+  var el=document.getElementById('dprop');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var r=await fetch(SU+'/rest/v1/propinas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()});
+    var data=await r.json();
+    var totalEf=0,totalTj=0,totalMes=0;
+    if(data&&data.length){
+      data.forEach(function(p){totalEf+=p.propina_efectivo||0;totalTj+=p.propina_tarjeta||0;totalMes+=p.total||0;});
+    }
+    document.getElementById('prop-dash-ef').textContent=fmt(totalEf);
+    document.getElementById('prop-dash-tj').textContent=fmt(totalTj);
+    document.getElementById('prop-dash-total').textContent=fmt(totalMes);
+    if(!data||!data.length){el.innerHTML='<div class="ld">Sin propinas registradas este mes</div>';return;}
+    var h='<table style="width:100%;border-collapse:collapse">';
+    h+='<thead><tr style="background:#f8f9fa">';
+    h+='<th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:500;color:#adb5bd;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e9ecef">Fecha</th>';
+    h+='<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:500;color:#adb5bd;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e9ecef">Efectivo</th>';
+    h+='<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:500;color:#adb5bd;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e9ecef">Tarjeta</th>';
+    h+='<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:500;color:#adb5bd;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e9ecef">Total</th>';
+    h+='</tr></thead><tbody>';
+    data.forEach(function(p){
+      var fd=new Date(p.fecha+'T12:00:00');
+      var ds=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+      var label=ds[fd.getDay()]+' '+fd.getDate()+' '+MS[fd.getMonth()];
+      h+='<tr style="border-bottom:1px solid #e9ecef">';
+      h+='<td style="padding:10px 12px;font-size:13px;font-weight:500;color:#212529">'+label+'</td>';
+      h+='<td style="padding:10px 12px;text-align:right;font-size:13px;color:#495057">'+fmt(p.propina_efectivo||0)+'</td>';
+      h+='<td style="padding:10px 12px;text-align:right;font-size:13px;color:#495057">'+fmt(p.propina_tarjeta||0)+'</td>';
+      h+='<td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500;color:#5f3dc4">'+fmt(p.total||0)+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    el.innerHTML=h;
+  }catch(ex){el.innerHTML='<div class="ld">Error al cargar</div>';}
 }
 
 function toggleMesCaja(mid,header){
