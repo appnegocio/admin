@@ -4810,7 +4810,7 @@ async function loadPersonalMes(){
   try{
     var r=await fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=empleado.asc,fecha.asc',{headers:H()});
     var data=await r.json();
-    if(!data||!data.length){el.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button onclick="abrirModalNuevoPagoPC()" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago</button></div><div class="empty">Sin pagos en '+MS[mes-1]+' '+a+'</div>';return;}
+    if(!data||!data.length){el.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button onclick="abrirModalNuevoPagoPC()" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button></div><div class="empty">Sin pagos en '+MS[mes-1]+' '+a+'</div>';return;}
     el.innerHTML=renderPersonalTabla(data);
   }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
@@ -4823,7 +4823,7 @@ function renderPersonalTabla(d){
     empleados[r.empleado].push(r);tT+=(r.monto||0);
   });
   var h='<div style="display:flex;justify-content:flex-end;margin-bottom:.75rem">';
-  h+='<button onclick="abrirModalNuevoPagoPC()" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago</button>';
+  h+='<button onclick="abrirModalNuevoPagoPC()" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button>';
   h+='</div>';
   // Solo total general — sin tarjetas por empleado
   h+='<div style="display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid #c1c7cd;border-radius:8px;padding:.75rem 1.25rem;margin-bottom:1.25rem">';
@@ -5101,7 +5101,7 @@ async function loadCreditosDash(){
       h+='<div style="font-size:12px;color:#adb5bd">'+(c.banco||'')+' · '+fmtDeuda(c.cuota_mensual)+'/mes</div></div>';
       h+='<div style="display:flex;align-items:center;gap:8px">';
       h+='<span style="font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;background:'+(pagado?'#e8f7f2':'#FAEEDA')+';color:'+(pagado?'#087a55':'#b45309')+'">'+(pagado?'✓ Pagado '+MS[mesA-1]:'⏳ Pendiente '+MS[mesA-1])+'</span>';
-      if(!pagado)h+='<button onclick="abrirPagoCreditoPC(&quot;'+c.id+'&quot;,&quot;'+c.nombre+'&quot;,'+c.cuota_mensual+')" style="padding:4px 12px;background:#0d9e6e;color:white;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Registrar pago</button>';
+      if(!pagado)h+='<button onclick="abrirPagoCreditoPC(&quot;'+c.id+'&quot;,&quot;'+c.nombre+'&quot;,'+c.cuota_mensual+')" style="padding:4px 12px;background:#0d9e6e;color:white;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button>';
       h+='<button onclick="editCreditoPC('+encodeURIComponent(JSON.stringify(c)).replace(/'/g,"&#39;")+')" style="padding:4px 8px;background:white;border:1px solid #B5D4F4;border-radius:6px;font-size:12px;color:#1971c2;cursor:pointer">✏️</button>';
       h+='</div></div>';
       // Datos del crédito
@@ -6065,7 +6065,7 @@ setInterval(function(){
 <!-- MODAL PAGO CREDITO PC -->
 <div class="modal-bg" id="modal-pagocred">
   <div class="modal">
-    <div class="modal-t"><span id="mpagocred-titulo">Registrar pago</span><button class="modal-x" onclick="cerrarModal('pagocred')">×</button></div>
+    <div class="modal-t"><span id="mpagocred-titulo">+ Registrar pago</span><button class="modal-x" onclick="cerrarModal('pagocred')">×</button></div>
     <input type="hidden" id="mpagocred-credito-id">
     <input type="hidden" id="mpagocred-pago-id">
     <label class="modal-label">Mes</label>
