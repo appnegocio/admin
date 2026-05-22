@@ -5741,14 +5741,20 @@ function editCaja(r){
   document.getElementById('mcj-f').value=r.fecha;
   document.getElementById('mcj-ci').value=r.caja_inicial||0;
   document.getElementById('mcj-cf').value=r.caja_final||0;
-  // Calcular ventas efectivo real = total_z − tarjeta − transferencias − delivery_tarjeta − delivery_efectivo − otros_ingresos + nulos
-  var _ti=r.tarjeta_informada||(r.redcompra||0)+(r.creditos_redbanc||0)+(r.otro_redbanc||0)||0;
-  var _tr=r.transferencias||0;
-  var _delEf=r.delivery_efectivo||0;
-  var _delTj=r.delivery_tarjeta||0;
-  var _otros=r.otros_ingresos||0;
-  var _nu=r.nulos||0;
-  var _z=( r.total_z||0 ) - _ti - _tr - _delEf - _delTj - _otros + _nu;
+  // Cierres nuevos: total_z incluye tarjeta → calcular efectivo real
+  // Cierres viejos: total_z ya es solo efectivo
+  var _ti=r.tarjeta_informada||0;
+  var _z;
+  if(_ti>0){
+    var _tr=r.transferencias||0;
+    var _delEf=r.delivery_efectivo||0;
+    var _delTj=r.delivery_tarjeta||0;
+    var _otros=r.otros_ingresos||0;
+    var _nu=r.nulos||0;
+    _z=(r.total_z||0)-_ti-_tr-_delEf-_delTj-_otros+_nu;
+  } else {
+    _z=r.total_z||0;
+  }
   document.getElementById('mcj-z').value=Math.max(0,_z);
   document.getElementById('mcj-rc').value=r.tarjeta_registrada||r.redcompra||0;
   var mcjTiEl=document.getElementById('mcj-ti');if(mcjTiEl)mcjTiEl.value=r.tarjeta_informada||(r.redcompra||0)+(r.creditos_redbanc||0)+(r.otro_redbanc||0)||0;
