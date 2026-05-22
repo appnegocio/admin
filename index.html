@@ -5757,7 +5757,8 @@ function editCaja(r){
   }
   document.getElementById('mcj-z').value=Math.max(0,_z);
   document.getElementById('mcj-rc').value=r.tarjeta_registrada||r.redcompra||0;
-  var mcjTiEl=document.getElementById('mcj-ti');if(mcjTiEl)mcjTiEl.value=r.tarjeta_informada||(r.redcompra||0)+(r.creditos_redbanc||0)+(r.otro_redbanc||0)||0;
+  var mcjTiEl=document.getElementById('mcj-ti');
+  if(mcjTiEl)mcjTiEl.value=r.tarjeta_informada||0;
   document.getElementById('mcj-tr').value=r.transferencias||0;
   document.getElementById('mcj-nu').value=r.nulos||0;
   document.getElementById('mcj-re').value=r.retiros||0;
