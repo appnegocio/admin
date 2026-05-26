@@ -5515,9 +5515,8 @@ async function loadFacturasDash(){
       meses[k].forEach(function(r,i){
         var last=i===meses[k].length-1;
         var tdB=last?'':'border-bottom:1px solid #c1c7cd;';
-        h+='<tr style="'+(r.pagado?'':'background:#fffbf0;')+'">';
-        var fd=r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—';
         h+='<tr style="'+(r.pagado?'':'background:#fffbf0;')+'" data-prov="'+r.proveedor+'">';
+        var fd=r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—';
         h+='<td style="padding:9px 1.25rem;font-size:12px;color:var(--g500);'+tdB+'">'+fd+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;color:var(--g500);'+tdB+'">'+(r.numero_factura||'—')+'</td>';
         h+='<td style="padding:9px 1.25rem;font-size:13px;font-weight:500;'+tdB+'">'+r.proveedor+'</td>';
