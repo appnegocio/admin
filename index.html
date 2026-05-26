@@ -3818,8 +3818,7 @@ function renderPorPagar(datos, elId){
     // Botones
     h+='<div style="display:flex;gap:8px;margin-top:8px">';
     if(saldo>0){
-      h+='<button data-id="'+f.id+'" data-saldo="'+saldo+'" data-prov="'+f.proveedor+'" onclick="abrirModalAbono(this.dataset.id,parseFloat(this.dataset.saldo),this.dataset.prov)" style="flex:1;height:32px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar abono</button>';
-      h+='<button data-id="'+f.id+'" onclick="pagarFacturaCompleta(this.dataset.id)" style="height:32px;padding:0 12px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Marcar pagada</button>';
+      h+='<button data-id="'+f.id+'" data-saldo="'+saldo+'" data-prov="'+f.proveedor+'" onclick="abrirModalAbono(this.dataset.id,parseFloat(this.dataset.saldo),this.dataset.prov)" style="flex:1;height:32px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button>';
     }
     h+='</div>';
     h+='</div>';
@@ -6340,7 +6339,7 @@ setInterval(function(){
 <!-- MODAL ABONO FACTURA -->
 <div class="modal-bg" id="modal-abono">
   <div class="modal">
-    <div class="modal-t">Registrar abono <button class="modal-x" onclick="cerrarModal('abono')">×</button></div>
+    <div class="modal-t">Registrar pago <button class="modal-x" onclick="cerrarModal('abono')">×</button></div>
     <div style="font-size:13px;font-weight:500;color:#212529;margin-bottom:4px" id="mab-prov"></div>
     <div style="font-size:12px;color:#6c757d;margin-bottom:14px">Saldo pendiente: <strong id="mab-saldo"></strong></div>
     <label class="modal-label">Fecha del abono</label>
