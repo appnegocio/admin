@@ -955,6 +955,7 @@ tr:hover td{background:var(--g50)}
             <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px">
               <select id="rep-mes-fc" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
               <button onclick="reporteFactCompra()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte mensual</button>
+              <button onclick="reporteDeudaProveedores()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📋 Deuda por proveedor</button>
             </div>
           </div>
           <div id="dp-fact-facturas"><div id="df"><div class="ld">Cargando...</div></div></div>
@@ -3744,7 +3745,45 @@ async function reporteFactCompra(){
   }catch(ex){alert('Error: '+ex.message);}
 }
 
-// ── 3. Reporte Facturas de venta ──
+// ── Reporte deuda por proveedor ──
+async function reporteDeudaProveedores(){
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&pagado=eq.false&order=proveedor.asc',{headers:H()});
+    var datos=await r.json();
+    if(!datos||!datos.length){alert('No hay facturas pendientes de pago');return;}
+    // Agrupar por proveedor
+    var provs={};
+    datos.forEach(function(f){
+      var k=f.proveedor||'Sin nombre';
+      if(!provs[k])provs[k]={rut:f.rut_proveedor||'—',facturas:0,total:0};
+      provs[k].facturas++;
+      provs[k].total+=(f.total||0);
+    });
+    // Ordenar de mayor a menor deuda
+    var lista=Object.keys(provs).map(function(k){return{nombre:k,rut:provs[k].rut,facturas:provs[k].facturas,total:provs[k].total};});
+    lista.sort(function(a,b){return b.total-a.total;});
+    var totalDeuda=lista.reduce(function(s,p){return s+p.total;},0);
+    var totalFact=lista.reduce(function(s,p){return s+p.facturas;},0);
+    // Construir PDF
+    var cuerpo='<div class="sec">Resumen</div>'
+      +'<div class="row"><span>Proveedores con deuda</span><span>'+lista.length+'</span></div>'
+      +'<div class="row"><span>Facturas pendientes</span><span>'+totalFact+'</span></div>'
+      +'<div class="row tot"><span>Total adeudado</span><span>'+fmtR(totalDeuda)+'</span></div>'
+      +'<div class="sec">Detalle por proveedor</div>'
+      +'<table><tr><th>Proveedor</th><th>RUT</th><th style="text-align:right">Facturas</th><th style="text-align:right">Total deuda</th></tr>';
+    lista.forEach(function(p){
+      cuerpo+='<tr>'
+        +'<td>'+p.nombre+'</td>'
+        +'<td style="color:#6c757d;font-size:12px">'+p.rut+'</td>'
+        +'<td style="text-align:right">'+p.facturas+'</td>'
+        +'<td style="text-align:right;font-weight:500;color:#c0392b">'+fmtR(p.total)+'</td>'
+        +'</tr>';
+    });
+    cuerpo+='<tr style="background:#f8f9fa;font-weight:500"><td colspan="2">Total</td><td style="text-align:right">'+totalFact+'</td><td style="text-align:right;color:#c0392b">'+fmtR(totalDeuda)+'</td></tr>';
+    cuerpo+='</table>';
+    pdfBase('Deuda por proveedor',cuerpo);
+  }catch(ex){alert('Error: '+ex.message);}
+}
 async function reporteFactVenta(){
   var v=getSelMesAnio('rep-mes-fv');
   var a=v.a,m=v.m;
