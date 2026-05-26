@@ -3721,20 +3721,23 @@ async function reporteFactCompra(){
     var totNeto=datos.reduce(function(s,r){return s+(r.monto_neto||0);},0);
     var totIva=datos.reduce(function(s,r){return s+(r.iva||0);},0);
     var totTotal=datos.reduce(function(s,r){return s+(r.total||0);},0);
-    var pagadas=datos.filter(function(r){return r.estado==='pagada';}).length;
+    var pagadas=datos.filter(function(r){return r.pagado===true;}).length;
+    var pendientes=datos.length-pagadas;
     var cuerpo='<div class="sec">Resumen del mes</div>'
       +'<div class="row"><span>Facturas registradas</span><span>'+datos.length+'</span></div>'
       +'<div class="row"><span>Pagadas</span><span class="pos">'+pagadas+'</span></div>'
+      +'<div class="row"><span>Pendientes</span><span class="neg">'+pendientes+'</span></div>'
       +'<div class="row"><span>Monto neto</span><span>'+fmtR(totNeto)+'</span></div>'
       +'<div class="row"><span>IVA</span><span>'+fmtR(totIva)+'</span></div>'
       +'<div class="row tot"><span>Total</span><span>'+fmtR(totTotal)+'</span></div>'
       +'<div class="sec">Detalle</div>'
       +'<table><tr><th>Fecha</th><th>Nº</th><th>Proveedor</th><th>Neto</th><th>IVA</th><th>Total</th><th>Estado</th></tr>';
     datos.forEach(function(r){
-      var bdg=r.estado==='pagada'?'badge-v':'badge-a';
+      var bdg=r.pagado===true?'badge-v':'badge-a';
+      var estado=r.pagado===true?'Pagada':'Pendiente';
       cuerpo+='<tr><td>'+fd(r.fecha)+'</td><td>'+r.numero_factura+'</td><td>'+r.proveedor+'</td>'
         +'<td>'+fmtR(r.monto_neto)+'</td><td>'+fmtR(r.iva)+'</td><td>'+fmtR(r.total)+'</td>'
-        +'<td><span class="badge '+bdg+'">'+r.estado+'</span></td></tr>';
+        +'<td><span class="badge '+bdg+'">'+estado+'</span></td></tr>';
     });
     cuerpo+='</table>';
     pdfBase('Facturas de compra — '+MS[m-1]+' '+a,cuerpo);
@@ -5741,24 +5744,26 @@ function editCaja(r){
   document.getElementById('mcj-f').value=r.fecha;
   document.getElementById('mcj-ci').value=r.caja_inicial||0;
   document.getElementById('mcj-cf').value=r.caja_final||0;
-  // Cierres nuevos: total_z incluye tarjeta → calcular efectivo real
-  // Cierres viejos: total_z ya es solo efectivo
-  var _ti=r.tarjeta_informada||0;
+  // Lógica definitiva: usar la mejor tarjeta disponible
+  // tarjeta_informada > tarjeta_registrada > redcompra
+  var _ti=r.tarjeta_informada||r.tarjeta_registrada||(r.redcompra||0)||0;
+  var _tr=r.transferencias||0;
+  var _delEf=r.delivery_efectivo||0;
+  var _delTj=r.delivery_tarjeta||0;
+  var _otros=r.otros_ingresos||0;
+  var _nu=r.nulos||0;
   var _z;
-  if(_ti>0){
-    var _tr=r.transferencias||0;
-    var _delEf=r.delivery_efectivo||0;
-    var _delTj=r.delivery_tarjeta||0;
-    var _otros=r.otros_ingresos||0;
-    var _nu=r.nulos||0;
+  // Si hay tarjeta Y total_z es mayor que solo la tarjeta → total_z incluye todo → calcular efectivo
+  if(_ti>0&&(r.total_z||0)>_ti){
     _z=(r.total_z||0)-_ti-_tr-_delEf-_delTj-_otros+_nu;
   } else {
+    // total_z ya es solo efectivo (cierre viejo puro)
     _z=r.total_z||0;
   }
   document.getElementById('mcj-z').value=Math.max(0,_z);
   document.getElementById('mcj-rc').value=r.tarjeta_registrada||r.redcompra||0;
   var mcjTiEl=document.getElementById('mcj-ti');
-  if(mcjTiEl)mcjTiEl.value=r.tarjeta_informada||0;
+  if(mcjTiEl)mcjTiEl.value=r.tarjeta_informada||r.tarjeta_registrada||r.redcompra||0;
   document.getElementById('mcj-tr').value=r.transferencias||0;
   document.getElementById('mcj-nu').value=r.nulos||0;
   document.getElementById('mcj-re').value=r.retiros||0;
