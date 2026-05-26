@@ -642,7 +642,7 @@ tr:hover td{background:var(--g50)}
 
   <div class="cscreen" id="sc-fact">
     <div class="csh"><button class="csh-back" onclick="cerrarScreen()"><svg fill="none" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span class="csh-t">Registrar factura</span></div>
-    <div class="tabbar"><button class="tabbtn active" onclick="swTab('fact','form',this)">Ingresar</button><button class="tabbtn" onclick="swTab('fact','hist',this);loadHist('facturas','ft-hc',renderFactHist)">Historial</button></div>
+    <div class="tabbar"><button class="tabbtn active" onclick="swTab('fact','form',this)">Ingresar</button><button class="tabbtn" onclick="swTab('fact','hist',this);loadHist('facturas','ft-hc',renderFactHist)">Historial</button><button class="tabbtn" onclick="swTab('fact','pagar',this);loadPorPagarCel()">Por pagar</button></div>
     <div class="csb">
       <div id="fact-form">
         <label class="fl">Fecha</label><input class="fi" type="date" id="ft-f">
@@ -670,6 +670,8 @@ tr:hover td{background:var(--g50)}
           <button type="button" id="ft-pg-si" onclick="selPago(true)" style="flex:1;height:48px;border:2px solid #c1c7cd;border-radius:10px;background:white;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">✅ Pagado</button>
         </div>
         <input type="hidden" id="ft-pagado" value="false">
+        <label class="fl" style="margin-top:.75rem">Fecha de vencimiento <span style="color:#adb5bd;font-weight:400">(opcional)</span></label>
+        <input class="fi" type="date" id="ft-venc" placeholder="">
         <label class="fl">Notas</label>
         <textarea class="fi" id="ft-notas" placeholder="Comentarios o notas sobre esta factura..." style="height:60px;resize:vertical;margin-bottom:8px"></textarea>
         <div class="fdiv">Productos de la factura</div>
@@ -685,6 +687,7 @@ tr:hover td{background:var(--g50)}
         <div style="height:1rem"></div>
       </div>
       <div id="fact-hist" style="display:none"><div id="ft-hc" class="ld">Cargando...</div></div>
+      <div id="fact-pagar" style="display:none"><div id="ft-pp-c" class="ld">Cargando...</div></div>
     </div>
   </div>
 
@@ -951,6 +954,7 @@ tr:hover td{background:var(--g50)}
             <div style="display:flex">
               <button id="ftab-facturas" onclick="swFactTab('facturas')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--vd);border-bottom:2px solid var(--v);margin-bottom:-2px">Facturas</button>
               <button id="ftab-precios" onclick="swFactTab('precios')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Precios de compra</button>
+              <button id="ftab-porpagar" onclick="swFactTab('porpagar');loadPorPagarDash()" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500);border-bottom:2px solid transparent;margin-bottom:-2px">Por pagar</button>
             </div>
             <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px">
               <select id="rep-mes-fc" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
@@ -960,6 +964,7 @@ tr:hover td{background:var(--g50)}
           </div>
           <div id="dp-fact-facturas"><div id="df"><div class="ld">Cargando...</div></div></div>
           <div id="dp-fact-precios" style="display:none"><div id="dprecios"><div class="ld">Cargando...</div></div></div>
+          <div id="dp-fact-porpagar" style="display:none"><div id="df-pp"><div class="ld">Cargando...</div></div></div>
         </div>
         <div class="dp" id="dp-personal">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;border-bottom:2px solid #c1c7cd;padding-bottom:0">
@@ -2518,10 +2523,11 @@ async function generarPDFPersCompleto(empleado, fechaRef){
 function swFactTab(tab){
   document.getElementById('dp-fact-facturas').style.display=tab==='facturas'?'':'none';
   document.getElementById('dp-fact-precios').style.display=tab==='precios'?'':'none';
-  document.getElementById('ftab-facturas').style.color=tab==='facturas'?'var(--vd)':'var(--g500)';
-  document.getElementById('ftab-facturas').style.borderBottom=tab==='facturas'?'2px solid var(--v)':'2px solid transparent';
-  document.getElementById('ftab-precios').style.color=tab==='precios'?'var(--vd)':'var(--g500)';
-  document.getElementById('ftab-precios').style.borderBottom=tab==='precios'?'2px solid var(--v)':'2px solid transparent';
+  document.getElementById('dp-fact-porpagar').style.display=tab==='porpagar'?'':'none';
+  ['facturas','precios','porpagar'].forEach(function(t){
+    var btn=document.getElementById('ftab-'+t);
+    if(btn){btn.style.color=tab===t?'var(--vd)':'var(--g500)';btn.style.borderBottom=tab===t?'2px solid var(--v)':'2px solid transparent';}
+  });
   if(tab==='precios')loadPreciosDash();
 }
 
@@ -3745,6 +3751,155 @@ async function reporteFactCompra(){
   }catch(ex){alert('Error: '+ex.message);}
 }
 
+// ════════════════════════════════════════
+// MÓDULO POR PAGAR — FACTURAS CON VENCIMIENTO Y ABONOS
+// ════════════════════════════════════════
+var _ppFactId=null;
+
+function diasRestantes(fechaVenc){
+  if(!fechaVenc)return null;
+  var hoy2=new Date();hoy2.setHours(0,0,0,0);
+  var v=new Date(fechaVenc+'T12:00:00');
+  return Math.round((v-hoy2)/(1000*60*60*24));
+}
+
+function badgeVenc(dias){
+  if(dias===null)return '';
+  if(dias<0)return '<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#FCEBEB;color:#c0392b">Vencida</span>';
+  if(dias<=7)return '<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#FAEEDA;color:#7c4a00">Vence en '+dias+' día'+(dias===1?'':'s')+'</span>';
+  return '<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#E1F5EE;color:#085041">Al día</span>';
+}
+
+function renderPorPagar(datos, elId){
+  var el=document.getElementById(elId);
+  if(!datos||!datos.length){el.innerHTML='<div class="empty">Sin facturas pendientes de pago</div>';return;}
+  // KPIs
+  var hoy2=new Date();hoy2.setHours(0,0,0,0);
+  var vencidas=datos.filter(function(f){return f.fecha_vencimiento&&new Date(f.fecha_vencimiento+'T12:00:00')<hoy2;}).length;
+  var porVencer=datos.filter(function(f){var d=diasRestantes(f.fecha_vencimiento);return d!==null&&d>=0&&d<=7;}).length;
+  var totalDeuda=datos.reduce(function(s,f){return s+(f.total||0)-(f.monto_pagado||0);},0);
+  var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">'
+    +'<div style="background:#f8f9fa;border-radius:8px;padding:10px 14px"><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:4px">Por vencer (7 días)</div><div style="font-size:20px;font-weight:500;color:#e67700">'+porVencer+'</div></div>'
+    +'<div style="background:#f8f9fa;border-radius:8px;padding:10px 14px"><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:4px">Vencidas</div><div style="font-size:20px;font-weight:500;color:#c0392b">'+vencidas+'</div></div>'
+    +'<div style="background:#fff0f0;border:1px solid #f5c6c6;border-radius:8px;padding:10px 14px"><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#e03131;margin-bottom:4px">Deuda total</div><div style="font-size:20px;font-weight:500;color:#c0392b">'+fmt(totalDeuda)+'</div></div>'
+    +'</div>';
+  // Alerta si hay por vencer
+  if(porVencer>0||vencidas>0){
+    var alertaTotal=datos.filter(function(f){var d=diasRestantes(f.fecha_vencimiento);return d!==null&&d<=7;}).reduce(function(s,f){return s+(f.total||0)-(f.monto_pagado||0);},0);
+    h+='<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;font-weight:500;color:#7c4a00">⚠ '+(vencidas>0?vencidas+' factura'+(vencidas>1?'s':'')+' vencida'+(vencidas>1?'s':'')+' — ':'')+( porVencer>0?porVencer+' vence'+(porVencer>1?'n':'')+' en 7 días — ':'')+''+fmt(alertaTotal)+' en riesgo</div>';
+  }
+  datos.forEach(function(f){
+    var dias=diasRestantes(f.fecha_vencimiento);
+    var montoPagado=f.monto_pagado||0;
+    var saldo=(f.total||0)-montoPagado;
+    var pct=f.total>0?Math.round((montoPagado/f.total)*100):0;
+    var abonos=f.abonos||[];
+    if(typeof abonos==='string'){try{abonos=JSON.parse(abonos);}catch(e){abonos=[];}}
+    h+='<div style="background:white;border:1px solid #c1c7cd;border-radius:10px;padding:14px 16px;margin-bottom:10px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">';
+    h+='<div><div style="font-size:14px;font-weight:500;color:#212529">'+f.proveedor+'</div>';
+    h+='<div style="font-size:12px;color:#6c757d;margin-top:2px">Factura #'+(f.numero_factura||'—')+' · '+(f.fecha?new Date(f.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—')+(f.fecha_vencimiento?' · Vence '+new Date(f.fecha_vencimiento+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'')+'</div></div>';
+    h+=badgeVenc(dias)+'</div>';
+    // Barra progreso
+    h+='<div style="margin-bottom:10px">';
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;color:#6c757d;margin-bottom:4px"><span>Pagado '+fmt(montoPagado)+'</span><span>Total '+fmt(f.total||0)+'</span></div>';
+    var barColor=dias===null||dias>7?'#0d9e6e':dias<0?'#e74c3c':'#ef9f27';
+    h+='<div style="background:#f1f3f5;border-radius:3px;height:6px"><div style="background:'+barColor+';border-radius:3px;height:6px;width:'+pct+'%"></div></div>';
+    h+='</div>';
+    // Abonos
+    if(abonos.length){
+      h+='<div style="border-top:0.5px solid #f1f3f5;padding-top:8px;margin-bottom:8px">';
+      h+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:6px">Abonos</div>';
+      abonos.forEach(function(a){
+        h+='<div style="display:flex;justify-content:space-between;font-size:12px;color:#495057;padding:3px 0;border-bottom:0.5px solid #f8f9fa"><span>'+new Date(a.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'})+(a.nota?' — '+a.nota:'')+'</span><span>'+fmt(a.monto)+'</span></div>';
+      });
+      h+='</div>';
+    }
+    // Botones
+    h+='<div style="display:flex;gap:8px;margin-top:8px">';
+    if(saldo>0){
+      h+='<button data-id="'+f.id+'" data-saldo="'+saldo+'" data-prov="'+f.proveedor+'" onclick="abrirModalAbono(this.dataset.id,parseFloat(this.dataset.saldo),this.dataset.prov)" style="flex:1;height:32px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar abono</button>';
+      h+='<button data-id="'+f.id+'" onclick="pagarFacturaCompleta(this.dataset.id)" style="height:32px;padding:0 12px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">Marcar pagada</button>';
+    }
+    h+='</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
+async function loadPorPagarDash(){
+  var el=document.getElementById('df-pp');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&pagado=eq.false&order=fecha_vencimiento.asc.nullslast,fecha.desc',{headers:H()});
+    var datos=await r.json();
+    renderPorPagar(datos,'df-pp');
+  }catch(ex){document.getElementById('df-pp').innerHTML='<div class="ld">Error al cargar</div>';}
+}
+
+async function loadPorPagarCel(){
+  var el=document.getElementById('ft-pp-c');
+  el.innerHTML='<div class="ld">Cargando...</div>';
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&pagado=eq.false&order=fecha_vencimiento.asc.nullslast,fecha.desc',{headers:H()});
+    var datos=await r.json();
+    renderPorPagar(datos,'ft-pp-c');
+  }catch(ex){document.getElementById('ft-pp-c').innerHTML='<div class="ld">Error al cargar</div>';}
+}
+
+function abrirModalAbono(id,saldo,proveedor){
+  _ppFactId=id;
+  document.getElementById('mab-prov').textContent=proveedor;
+  document.getElementById('mab-saldo').textContent=fmt(saldo);
+  document.getElementById('mab-monto').value='';
+  document.getElementById('mab-fecha').value=hoy.toISOString().split('T')[0];
+  document.getElementById('mab-nota').value='';
+  abrirModal('abono');
+}
+
+async function guardarAbono(){
+  var monto=parseFloat(document.getElementById('mab-monto').value)||0;
+  if(!monto){alert('Ingresa el monto del abono');return;}
+  var fecha=document.getElementById('mab-fecha').value;
+  if(!fecha){alert('Ingresa la fecha');return;}
+  var nota=document.getElementById('mab-nota').value.trim();
+  var btn=document.getElementById('mab-btn');
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    // Traer factura actual
+    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+_ppFactId+'&select=*',{headers:H()});
+    var d=await r.json();
+    if(!d||!d[0])throw new Error('Factura no encontrada');
+    var f=d[0];
+    var abonos=f.abonos||[];
+    if(typeof abonos==='string'){try{abonos=JSON.parse(abonos);}catch(e){abonos=[];}}
+    abonos.push({fecha:fecha,monto:monto,nota:nota||null});
+    var montoPagado=(f.monto_pagado||0)+monto;
+    var pagado=montoPagado>=(f.total||0);
+    var upd=await fetch(SU+'/rest/v1/facturas?id=eq.'+_ppFactId,{method:'PATCH',headers:HJ(),body:JSON.stringify({abonos:abonos,monto_pagado:montoPagado,pagado:pagado})});
+    if(!upd.ok)throw new Error(await upd.text());
+    cerrarModal('abono');
+    // Recargar
+    loadPorPagarDash();
+    loadPorPagarCel();
+  }catch(ex){alert('Error: '+ex.message);}
+  btn.disabled=false;btn.textContent='Guardar abono';
+}
+
+async function pagarFacturaCompleta(id){
+  if(!confirm('¿Marcar esta factura como pagada completamente?'))return;
+  try{
+    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&select=total',{headers:H()});
+    var d=await r.json();
+    var total=d&&d[0]?d[0].total:0;
+    var upd=await fetch(SU+'/rest/v1/facturas?id=eq.'+id,{method:'PATCH',headers:HJ(),body:JSON.stringify({pagado:true,monto_pagado:total})});
+    if(!upd.ok)throw new Error(await upd.text());
+    loadPorPagarDash();
+    loadPorPagarCel();
+    loadFacturasDash();
+  }catch(ex){alert('Error: '+ex.message);}
+}
+
 // ── Reporte deuda por proveedor ──
 async function reporteDeudaProveedores(){
   try{
@@ -4079,7 +4234,7 @@ async function guardarFact(){
   btn.textContent='Guardando...';
   try{
     var hj2=HJ();hj2['Prefer']='return=representation';
-  var r=await fetch(SU+'/rest/v1/facturas',{method:'POST',headers:hj2,body:JSON.stringify({fecha,proveedor:pv,rut_proveedor:document.getElementById('ft-rut').value.trim()||null,numero_factura:nm,monto_neto:v('ft-ne'),iva:v('ft-iv'),impuesto:v('ft-im'),total:to,pagado:document.getElementById('ft-pagado').value==='true',notas:document.getElementById('ft-notas').value.trim()||null,cliente_id:cli.id})});
+  var r=await fetch(SU+'/rest/v1/facturas',{method:'POST',headers:hj2,body:JSON.stringify({fecha,proveedor:pv,rut_proveedor:document.getElementById('ft-rut').value.trim()||null,numero_factura:nm,monto_neto:v('ft-ne'),iva:v('ft-iv'),impuesto:v('ft-im'),total:to,pagado:document.getElementById('ft-pagado').value==='true',fecha_vencimiento:document.getElementById('ft-venc').value||null,notas:document.getElementById('ft-notas').value.trim()||null,cliente_id:cli.id})});
     if(r.ok){
       var factData=await r.json();
       var factId=factData&&factData[0]?factData[0].id:null;
@@ -4094,7 +4249,7 @@ async function guardarFact(){
       }
       document.getElementById('ft-ok').style.display='block';btn.textContent='✓ Guardada';
       setTimeout(function(){
-        ['ft-pv','ft-nm','ft-ne','ft-iv','ft-im','ft-to'].forEach(function(id){document.getElementById(id).value='';});
+        ['ft-pv','ft-nm','ft-ne','ft-iv','ft-im','ft-to','ft-venc'].forEach(function(id){document.getElementById(id).value='';});
         document.getElementById('ft-pagado').value='false';selPago(false);document.getElementById('ft-notas').value='';document.getElementById('ft-rut').value='';
         document.getElementById('ft-productos-lista').innerHTML='';
         document.getElementById('ft-aviso-ia').style.display='none';
@@ -6179,6 +6334,24 @@ setInterval(function(){
     <div class="modal-btns">
       <button class="modal-cancel" onclick="cerrarModal('nuevopago')">Cancelar</button>
       <button class="modal-save" id="mnp-btn" onclick="guardarNuevoPagoPC()">Guardar pago</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL ABONO FACTURA -->
+<div class="modal-bg" id="modal-abono">
+  <div class="modal">
+    <div class="modal-t">Registrar abono <button class="modal-x" onclick="cerrarModal('abono')">×</button></div>
+    <div style="font-size:13px;font-weight:500;color:#212529;margin-bottom:4px" id="mab-prov"></div>
+    <div style="font-size:12px;color:#6c757d;margin-bottom:14px">Saldo pendiente: <strong id="mab-saldo"></strong></div>
+    <label class="modal-label">Fecha del abono</label>
+    <input class="modal-input" type="date" id="mab-fecha">
+    <label class="modal-label">Monto</label>
+    <input class="modal-input" type="number" id="mab-monto" placeholder="0">
+    <label class="modal-label">Nota (opcional)</label>
+    <input class="modal-input" type="text" id="mab-nota" placeholder="Ej: Primer abono, transferencia...">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="cerrarModal('abono')">Cancelar</button>
+      <button class="modal-save" id="mab-btn" onclick="guardarAbono()">Guardar abono</button>
     </div>
   </div>
 </div>
