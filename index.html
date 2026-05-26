@@ -3751,7 +3751,6 @@ async function reporteDeudaProveedores(){
     var r=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&pagado=eq.false&order=proveedor.asc',{headers:H()});
     var datos=await r.json();
     if(!datos||!datos.length){alert('No hay facturas pendientes de pago');return;}
-    // Agrupar por proveedor
     var provs={};
     datos.forEach(function(f){
       var k=f.proveedor||'Sin nombre';
@@ -3759,27 +3758,31 @@ async function reporteDeudaProveedores(){
       provs[k].facturas++;
       provs[k].total+=(f.total||0);
     });
-    // Ordenar de mayor a menor deuda
     var lista=Object.keys(provs).map(function(k){return{nombre:k,rut:provs[k].rut,facturas:provs[k].facturas,total:provs[k].total};});
     lista.sort(function(a,b){return b.total-a.total;});
     var totalDeuda=lista.reduce(function(s,p){return s+p.total;},0);
     var totalFact=lista.reduce(function(s,p){return s+p.facturas;},0);
-    // Construir PDF
-    var cuerpo='<div class="sec">Resumen</div>'
-      +'<div class="row"><span>Proveedores con deuda</span><span>'+lista.length+'</span></div>'
-      +'<div class="row"><span>Facturas pendientes</span><span>'+totalFact+'</span></div>'
-      +'<div class="row tot"><span>Total adeudado</span><span>'+fmtR(totalDeuda)+'</span></div>'
-      +'<div class="sec">Detalle por proveedor</div>'
+    var maxTotal=lista[0]?lista[0].total:1;
+    // KPIs
+    var cuerpo='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">'
+      +'<div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:10px 14px"><div style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:4px">Proveedores con deuda</div><div style="font-size:20px;font-weight:500;color:#212529">'+lista.length+'</div></div>'
+      +'<div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:10px 14px"><div style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:4px">Facturas pendientes</div><div style="font-size:20px;font-weight:500;color:#212529">'+totalFact+'</div></div>'
+      +'<div style="background:#fff0f0;border:1px solid #f5c6c6;border-radius:6px;padding:10px 14px"><div style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#e03131;margin-bottom:4px">Total adeudado</div><div style="font-size:20px;font-weight:500;color:#c0392b">'+fmtR(totalDeuda)+'</div></div>'
+      +'</div>';
+    // Tabla con barras
+    cuerpo+='<div class="sec">Detalle por proveedor</div>'
       +'<table><tr><th>Proveedor</th><th>RUT</th><th style="text-align:right">Facturas</th><th style="text-align:right">Total deuda</th></tr>';
     lista.forEach(function(p){
+      var pct=Math.round((p.total/maxTotal)*100);
       cuerpo+='<tr>'
-        +'<td>'+p.nombre+'</td>'
-        +'<td style="color:#6c757d;font-size:12px">'+p.rut+'</td>'
-        +'<td style="text-align:right">'+p.facturas+'</td>'
-        +'<td style="text-align:right;font-weight:500;color:#c0392b">'+fmtR(p.total)+'</td>'
+        +'<td><div style="font-size:12px;font-weight:500;color:#212529;margin-bottom:3px">'+p.nombre+'</div>'
+        +'<div style="background:#dee2e6;border-radius:3px;height:5px;width:100%"><div style="background:#e74c3c;border-radius:3px;height:5px;width:'+pct+'%!important;-webkit-print-color-adjust:exact"></div></div></td>'
+        +'<td style="color:#6c757d;font-size:11px;vertical-align:top;padding-top:8px">'+p.rut+'</td>'
+        +'<td style="text-align:right;vertical-align:top;padding-top:8px">'+p.facturas+'</td>'
+        +'<td style="text-align:right;font-weight:500;color:#c0392b;vertical-align:top;padding-top:8px">'+fmtR(p.total)+'</td>'
         +'</tr>';
     });
-    cuerpo+='<tr style="background:#f8f9fa;font-weight:500"><td colspan="2">Total</td><td style="text-align:right">'+totalFact+'</td><td style="text-align:right;color:#c0392b">'+fmtR(totalDeuda)+'</td></tr>';
+    cuerpo+='<tr style="background:#f8f9fa!important;font-weight:bold"><td colspan="2">Total</td><td style="text-align:right">'+totalFact+'</td><td style="text-align:right;color:#c0392b">'+fmtR(totalDeuda)+'</td></tr>';
     cuerpo+='</table>';
     pdfBase('Deuda por proveedor',cuerpo);
   }catch(ex){alert('Error: '+ex.message);}
