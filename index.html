@@ -4725,7 +4725,6 @@ async function loadGastosFijosDash(){
       {key:'arriendo',label:'Arriendo',color:'#0d9e6e'},
       {key:'luz',label:'Luz',color:'#e03131'},
       {key:'credito',label:'Crédito',color:'#c92a2a'},
-      {key:'iva',label:'IVA',color:'#7048e8'},
       {key:'contabilidad',label:'Contabilidad',color:'#0ca678'},
       {key:'otros',label:'Otros',color:'#868e96'}
     ];
@@ -4794,7 +4793,7 @@ async function loadGastosFijosDash(){
     h+='<span style="font-size:12px;color:var(--g700);background:#e2e6ea;padding:2px 10px;border-radius:20px;border:1px solid #c1c7cd">'+d.length+' meses</span>';
     h+='</div>';
     h+='<table style="'+tStyle+'"><tr>';
-    ['Mes','Previred','Sueldos','Arriendo','Luz','Crédito','IVA','Contabilidad','Otros','Total',''].forEach(function(col){
+    ['Mes','Previred','Sueldos','Arriendo','Luz','Crédito','Contabilidad','Otros','Total',''].forEach(function(col){
       h+='<th style="'+thStyle+'">'+col+'</th>';
     });
     h+='</tr>';
@@ -4805,7 +4804,7 @@ async function loadGastosFijosDash(){
       var tdFinal=lastRow?'font-size:13px;color:var(--g900);padding:10px 14px':'font-size:13px;color:var(--g900);padding:10px 14px;border-bottom:1px solid #c1c7cd';
       h+='<tr style="'+rowBg+'">';
       h+='<td style="'+tdFinal+';font-weight:600;color:'+(ea?'var(--vd)':'var(--g900)')+(ea?';border-left:4px solid #0d9e6e':';border-left:4px solid transparent')+'">'+MS[r.mes-1]+' '+r.anio+'</td>';
-      [r.previred,r.sueldos,r.arriendo,r.luz,r.credito,r.iva,r.contabilidad].forEach(function(v){
+      [r.previred,r.sueldos,r.arriendo,r.luz,r.credito,r.contabilidad].forEach(function(v){
         h+='<td style="'+tdFinal+';color:'+(ea?'#087a55':'var(--g900)')+'">'+fmt(v)+'</td>';
       });
       // Otros con tooltip si tiene desglose
