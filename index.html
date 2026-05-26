@@ -3782,12 +3782,12 @@ function renderPorPagar(datos, elId){
   var vencidas=datos.filter(function(f){return f.fecha_vencimiento&&new Date(f.fecha_vencimiento+'T12:00:00')<hoy2;}).length;
   var porVencer=datos.filter(function(f){var d=diasRestantes(f.fecha_vencimiento);return d!==null&&d>=0&&d<=7;}).length;
   var totalDeuda=datos.reduce(function(s,f){return s+(f.total||0)-(f.monto_pagado||0);},0);
-  // KPIs — fondo blanco, borde gris igual que créditos
-  var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">'
-    +'<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Por vencer (7 días)</div><div style="font-size:18px;font-weight:500;color:#e67700">'+porVencer+'</div></div>'
-    +'<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Vencidas</div><div style="font-size:18px;font-weight:500;color:#e67700">'+vencidas+'</div></div>'
-    +'<div style="background:white;border:1px solid #c1c7cd;border-radius:8px;padding:10px 14px"><div style="font-size:11px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Deuda total</div><div style="font-size:18px;font-weight:500;color:#e67700">'+fmt(totalDeuda)+'</div></div>'
-    +'</div>';
+  // KPIs — mismas clases CSS que créditos, color según estado
+  var h='<div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.25rem">';
+  h+='<div class="kpi '+(porVencer>0?'g':'v')+'"><div class="kl">Por vencer (7 días)</div><div class="kv">'+porVencer+'</div><div class="ks">'+(porVencer>0?'requieren atención':'ninguna próxima')+'</div></div>';
+  h+='<div class="kpi '+(vencidas>0?'c':'v')+'"><div class="kl">Vencidas</div><div class="kv">'+vencidas+'</div><div class="ks">'+(vencidas>0?'sin pagar':'todas al día')+'</div></div>';
+  h+='<div class="kpi c"><div class="kl">Deuda total</div><div class="kv">'+fmt(totalDeuda)+'</div><div class="ks">saldo pendiente</div></div>';
+  h+='</div>';
   // Alerta
   if(porVencer>0||vencidas>0){
     var alertaTotal=datos.filter(function(f){var d=diasRestantes(f.fecha_vencimiento);return d!==null&&d<=7;}).reduce(function(s,f){return s+(f.total||0)-(f.monto_pagado||0);},0);
