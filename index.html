@@ -1554,42 +1554,70 @@ async function loadR(){
       }
     }
     var h='<div style="margin-bottom:1.25rem">';
-    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'">';
-    h+='<div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div><div class="ub-v">'+fmt(U)+'</div></div>';
-    h+='<div style="text-align:right">';
-    h+='<div class="ub-ml">Margen</div>';
-    h+='<div class="ub-mv">'+M+'%</div>';
+    // ── 1. Banner MARGEN BRUTO ──
+    var MB=V-C;
+    var MBpct=V>0?Math.round((MB/V)*100):0;
+    var MBp=Vp-Cp;
+    var MBpctP=Vp>0?Math.round((MBp/Vp)*100):0;
+    var diffMB=V>0&&Vp>0?MBpct-MBpctP:null;
+    h+='<div class="ubanner pos" style="margin-bottom:10px">';
+    h+='<div><div class="ub-l">Margen bruto — '+MS[mesSel-1]+'</div>';
+    h+='<div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:6px">Ventas menos costo de mercadería (compras)</div>';
+    h+='<div class="ub-v">'+fmt(MB)+'</div>';
+    h+='<div style="margin-top:6px"><span style="background:rgba(255,255,255,.2);color:white;font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px">↓ Ventas '+fmt(V)+' — Compras '+fmt(C)+'</span></div>';
+    h+='</div><div style="text-align:right"><div class="ub-ml">Margen</div><div class="ub-mv">'+MBpct+'%</div>';
+    if(diffMB!==null)h+='<div style="margin-top:5px"><span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffMB>=0?'↑ +':'↓ ')+diffMB+'% vs '+MS[mesPrev-1]+'</span></div>';
+    h+='</div></div>';
+    // ── 2. Banner UTILIDAD NETA ──
+    var textoExpl='';
+    if(V>0&&Vp>0){
+      var diffV=V-Vp,diffC=C-Cp,diffG=G-Gp;
+      var causas=[];
+      if(M<Mp){
+        if(diffV<-1000)causas.push('vendiste menos ('+fmt(Math.abs(diffV))+')');
+        if(diffC>1000)causas.push('tus compras subieron ('+fmt(diffC)+')');
+        if(diffG>1000)causas.push('tus gastos fijos subieron ('+fmt(diffG)+')');
+        if(causas.length>0)textoExpl=causas.join(' y ');
+      } else if(M>Mp){
+        if(diffV>1000)causas.push('vendiste más ('+fmt(diffV)+')');
+        if(diffC<-1000)causas.push('tus compras bajaron ('+fmt(Math.abs(diffC))+')');
+        if(diffG<-1000)causas.push('tus gastos fijos bajaron ('+fmt(Math.abs(diffG))+')');
+        if(causas.length>0)textoExpl=causas.join(' y ');
+      }
+    }
+    var diffM=V>0&&Vp>0?M-Mp:null;
+    h+='<div class="ubanner '+(U>=0?'pos':'neg')+'" style="background:'+(U>=0?'#085041':'#c0392b')+';margin-bottom:10px">';
+    h+='<div><div class="ub-l">Utilidad neta — '+MS[mesSel-1]+'</div>';
+    h+='<div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:6px">Margen bruto menos gastos fijos, personal y gastos del día</div>';
+    h+='<div class="ub-v">'+fmt(U)+'</div>';
+    h+='<div style="margin-top:6px"><span style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px">Fijos '+fmt(GF)+' · Personal '+fmt(P)+' · Gastos día '+fmt(GD)+'</span></div>';
+    h+='</div><div style="text-align:right"><div class="ub-ml">Margen neto</div><div class="ub-mv">'+M+'%</div>';
     if(diffM!==null){
-      var pilColor=diffM>=0?'rgba(255,255,255,.25)':'rgba(255,255,255,.2)';
-      h+='<div style="margin-top:5px;display:flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap">';
-      h+='<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:'+pilColor+';color:white">'+(diffM>=0?'↑ +':'↓ ')+diffM+'% vs '+MS[mesPrev-1]+'</span>';
-      if(textoExpl)h+='<span style="font-size:11px;color:rgba(255,255,255,.85)">'+textoExpl+'</span>';
+      h+='<div style="margin-top:5px;display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+      h+='<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(255,255,255,.2);color:white">'+(diffM>=0?'↑ +':'↓ ')+diffM+'% vs '+MS[mesPrev-1]+'</span>';
+      if(textoExpl)h+='<span style="font-size:11px;color:rgba(255,255,255,.8)">'+textoExpl+'</span>';
       h+='</div>';
     }
     h+='</div></div>';
     h+='</div>';
-    // ── B. Punto de equilibrio ──
-    if(GF>0){
-      var diasReg=c.length;
-      var diasMesN=new Date(a,mesSel,0).getDate();
-      var promedioVentaDia=diasReg>0?V/diasReg:0;
-      var diasParaEquilibrio=promedioVentaDia>0?Math.ceil(GF/promedioVentaDia):null;
-      var yaLoCubrio=V>=GF;
+    // ── 3. Punto de equilibrio — usa costos operacionales completos ──
+    var costoOp=GF+P+GD;
+    if(costoOp>0){
+      var yaLoCubrio=MB>=costoOp;
+      var coberturaPct=costoOp>0?Math.round((MB/costoOp)*100):0;
       var colorPE=yaLoCubrio?'var(--vm)':'#FAC775';
       var bgPE=yaLoCubrio?'var(--vl)':'#FAEEDA';
       var colorTxtPE=yaLoCubrio?'var(--vd)':'#7c4a00';
       h+='<div style="border-radius:8px;padding:12px 16px;margin-bottom:1.25rem;border:1px solid '+colorPE+';background:'+bgPE+'">'
         +'<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+colorTxtPE+';margin-bottom:8px">Punto de equilibrio</div>'
         +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
-        +'<div><div style="font-size:12px;color:var(--g500);margin-bottom:2px">Gastos fijos del mes</div><div style="font-size:18px;font-weight:500;color:var(--r)">'+fmt(GF)+'</div></div>'
+        +'<div><div style="font-size:12px;color:var(--g500);margin-bottom:2px">Costos operacionales</div><div style="font-size:18px;font-weight:500;color:var(--r)">'+fmt(costoOp)+'</div><div style="font-size:11px;color:var(--g500);margin-top:2px">fijos + personal + gastos día</div></div>'
         +'<div style="font-size:20px;color:var(--g300)">→</div>'
-        +'<div><div style="font-size:12px;color:var(--g500);margin-bottom:2px">Ya vendiste</div><div style="font-size:18px;font-weight:500;color:var(--vd)">'+fmt(V)+'</div></div>'
+        +'<div><div style="font-size:12px;color:var(--g500);margin-bottom:2px">Margen bruto</div><div style="font-size:18px;font-weight:500;color:var(--vd)">'+fmt(MB)+'</div><div style="font-size:11px;color:var(--g500);margin-top:2px">cubre el '+coberturaPct+'% de los costos</div></div>'
         +'<div style="padding:8px 14px;border-radius:8px;background:'+(yaLoCubrio?'var(--v)':'#e67700')+';color:white;font-size:13px;font-weight:500;text-align:center">'
         +(yaLoCubrio
-          ?'✓ Ya cubres tus costos<br><span style="font-size:11px;font-weight:400">+'+fmt(V-GF)+' sobre el equilibrio</span>'
-          :diasParaEquilibrio
-            ?'Te faltan ~'+diasParaEquilibrio+' días de ventas<br><span style="font-size:11px;font-weight:400">para cubrir costos</span>'
-            :'Ingresa más cierres para calcular')
+          ?'✓ Ya cubres tus costos<br><span style="font-size:11px;font-weight:400">+'+fmt(MB-costoOp)+' sobre el equilibrio</span>'
+          :'Te falta '+fmt(costoOp-MB)+'<br><span style="font-size:11px;font-weight:400">para cubrir costos operacionales</span>')
         +'</div>'
         +'</div>'
         +'</div>';
@@ -1630,7 +1658,7 @@ async function loadR(){
       h+='</div>';
     }
     // ── 2. KPIs ──
-    h+='<div class="kgrid" style="margin-bottom:1.25rem"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Personal + fijos</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
+    h+='<div class="kgrid" style="margin-bottom:1.25rem"><div class="kpi v"><div class="kl">Ventas</div><div class="kv">'+fmt(V)+'</div><div class="ks">'+c.length+' días registrados</div></div><div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(C)+'</div><div class="ks">'+f.length+' facturas</div></div><div class="kpi g"><div class="kl">Gastos</div><div class="kv">'+fmt(G)+'</div><div class="ks">Fijos + personal + gastos día</div></div><div class="kpi u"><div class="kl">Días sin registrar</div><div class="kv">'+sinReg+'</div><div class="ks">de '+diasMes+' días</div></div></div>';
     // ── 3. Alertas ──
     var al=nMal>0?'<div class="alerta err" style="margin-bottom:1.25rem"><span>⚠️</span><span><strong>'+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</strong></span></div>':'<div class="alerta ok" style="margin-bottom:1.25rem"><span>✓</span><span>Todos los cierres cuadran</span></div>';
     if(c.length>0){
