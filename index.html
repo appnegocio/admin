@@ -4135,24 +4135,40 @@ async function reporteDashboard(){
   var h2=af+'-'+String(mf).padStart(2,'0')+'-01';
   try{
     var res=await Promise.all([
-      fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
+      fetch(SU+'/rest/v1/cierres_caja?select=total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+m+'&anio=eq.'+a,{headers:H()})
+      fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+m+'&anio=eq.'+a,{headers:H()})
     ]);
     var c=await res[0].json(),f=await res[1].json(),p=await res[2].json(),g=await res[3].json();
-    var ventas=(c||[]).reduce(function(s,r){return s+(r.total_z||0);},0);
-    var compras=(f||[]).reduce(function(s,r){return s+(r.total||0);},0);
-    var personal=(p||[]).reduce(function(s,r){return s+(r.monto||0);},0);
-    var gastos=(g&&g.length?(g[0].total||0)-(g[0].sueldos||0):0)||0; // sin sueldos para evitar doble conteo
-    var utilidad=ventas-compras-personal-gastos;
-    var margen=ventas>0?Math.round((utilidad/ventas)*100):0;
-    var cuerpo='<div class="sec">Resumen ejecutivo — '+MS[m-1]+' '+a+'</div>'
-      +'<div class="row"><span>Ventas (Z)</span><span class="pos">'+fmtR(ventas)+'</span></div>'
-      +'<div class="row"><span>Facturas de compra</span><span class="neg">'+fmtR(compras)+'</span></div>'
-      +'<div class="row"><span>Personal</span><span class="neg">'+fmtR(personal)+'</span></div>'
-      +'<div class="row"><span>Gastos fijos</span><span class="neg">'+fmtR(gastos)+'</span></div>'
-      +'<div class="row tot"><span>Utilidad neta</span><span class="'+(utilidad>=0?'pos':'neg')+'">'+fmtR(utilidad)+' ('+margen+'%)</span></div>';
+    var V=(c||[]).reduce(function(s,r){return s+(r.total_z||0);},0);
+    var C=(f||[]).reduce(function(s,r){return s+(r.total||0);},0);
+    var P=(p||[]).reduce(function(s,r){return s+(r.monto||0);},0);
+    var GF=(g&&g.length?(g[0].total||0)-(g[0].sueldos||0):0)||0;
+    var GD=(c||[]).reduce(function(s,r){return s+(r.gastos||0);},0);
+    var MB=V-C;
+    var MBpct=V>0?Math.round((MB/V)*100):0;
+    var U=MB-GF-P-GD;
+    var Upct=V>0?Math.round((U/V)*100):0;
+    var costoOp=GF+P+GD;
+    var coberturaPct=costoOp>0?Math.round((MB/costoOp)*100):0;
+    var yaLoCubrio=MB>=costoOp;
+    var cuerpo='<div class="sec">Margen bruto — '+MS[m-1]+' '+a+'</div>'
+      +'<div style="font-size:11px;color:#6c757d;margin-bottom:8px">Ventas menos costo de mercadería (compras)</div>'
+      +'<div class="row"><span>Ventas del mes</span><span class="pos">'+fmtR(V)+'</span></div>'
+      +'<div class="row"><span>Compras (facturas)</span><span class="neg">'+fmtR(C)+'</span></div>'
+      +'<div class="row tot"><span>Margen bruto</span><span class="'+(MB>=0?'pos':'neg')+'">'+fmtR(MB)+' ('+MBpct+'%)</span></div>'
+      +'<div class="sec">Utilidad neta — '+MS[m-1]+' '+a+'</div>'
+      +'<div style="font-size:11px;color:#6c757d;margin-bottom:8px">Margen bruto menos gastos fijos, personal y gastos del día</div>'
+      +'<div class="row"><span>Margen bruto</span><span class="pos">'+fmtR(MB)+'</span></div>'
+      +'<div class="row"><span>Gastos fijos</span><span class="neg">'+fmtR(GF)+'</span></div>'
+      +'<div class="row"><span>Personal</span><span class="neg">'+fmtR(P)+'</span></div>'
+      +'<div class="row"><span>Gastos del día</span><span class="neg">'+fmtR(GD)+'</span></div>'
+      +'<div class="row tot"><span>Utilidad neta</span><span class="'+(U>=0?'pos':'neg')+'">'+fmtR(U)+' ('+Upct+'%)</span></div>'
+      +'<div class="sec">Punto de equilibrio</div>'
+      +'<div class="row"><span>Costos operacionales (fijos + personal + gastos día)</span><span class="neg">'+fmtR(costoOp)+'</span></div>'
+      +'<div class="row"><span>Margen bruto generado</span><span class="pos">'+fmtR(MB)+'</span></div>'
+      +'<div class="row tot"><span>'+(yaLoCubrio?'✓ Cubres tus costos':'✗ No cubres tus costos')+'</span><span class="'+(yaLoCubrio?'pos':'neg')+'">'+(yaLoCubrio?'+'+fmtR(MB-costoOp)+' sobre el equilibrio':fmtR(costoOp-MB)+' para cubrir costos')+' ('+coberturaPct+'%)</span></div>';
     pdfBase('Dashboard — '+MS[m-1]+' '+a,cuerpo);
   }catch(ex){alert('Error: '+ex.message);}
 }
