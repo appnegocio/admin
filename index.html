@@ -3806,7 +3806,7 @@ function badgeVenc(dias){
 
 function renderPorPagar(datos, elId){
   var el=document.getElementById(elId);
-  if(!datos||!datos.length){el.innerHTML='<div class="empty">Sin facturas pendientes de pago</div>';return;}
+  if(!datos||!datos.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">✅</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Sin facturas pendientes de pago</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Cuando registres facturas de compra sin pagar aparecerán aquí. Podrás ver las que están por vencer y registrar pagos parciales.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Ir a facturas de compra</div></div>';return;}
   var hoy2=new Date();hoy2.setHours(0,0,0,0);
   var en7=new Date(hoy2);en7.setDate(en7.getDate()+7);
   var vencidas=datos.filter(function(f){return f.fecha_vencimiento&&new Date(f.fecha_vencimiento+'T12:00:00')<hoy2;}).length;
@@ -5067,7 +5067,7 @@ async function loadPersonalMes(){
   try{
     var r=await fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=empleado.asc,fecha.asc',{headers:H()});
     var data=await r.json();
-    if(!data||!data.length){el.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button onclick="abrirModalNuevoPagoPC()" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button></div><div class="empty">Sin pagos en '+MS[mes-1]+' '+a+'</div>';return;}
+    if(!data||!data.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">🧑‍💼</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay pagos registrados</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra los sueldos, quincenas y adelantos de tu equipo y lleva el control exacto de lo que pagas cada mes.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Registrar primer pago</div></div><div style="display:flex;justify-content:flex-end;margin-top:1rem"><button onclick="abrirModalNuevoPagoPC()" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button></div>';return;}
     el.innerHTML=renderPersonalTabla(data);
   }catch(ex){el.innerHTML='<div class="ld">Error: '+ex.message+'</div>';}
 }
@@ -5596,7 +5596,7 @@ async function loadPropinasHist(){
     var h2=nm.getFullYear()+'-'+(String(nm.getMonth()+1).padStart(2,'0'))+'-01';
     var r=await fetch(SU+'/rest/v1/propinas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()});
     var data=await r.json();
-    if(!data||!data.length){el.innerHTML='<div class="ld">Sin propinas este mes</div>';return;}
+    if(!data||!data.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">⭐</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay propinas registradas</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra las propinas del día en efectivo y tarjeta para que tu equipo sepa cuánto hay para repartir.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Registrar propinas de hoy</div></div>';return;}
     var totalEf=0,totalTj=0,totalMes=0;
     var h='';
     data.forEach(function(p){
@@ -5645,7 +5645,7 @@ async function loadPropinasDash(){
     document.getElementById('prop-dash-ef').textContent=fmt(totalEf);
     document.getElementById('prop-dash-tj').textContent=fmt(totalTj);
     document.getElementById('prop-dash-total').textContent=fmt(totalMes);
-    if(!data||!data.length){el.innerHTML='<div class="ld">Sin propinas registradas este mes</div>';return;}
+    if(!data||!data.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">⭐</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Aún no hay propinas registradas</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Registra las propinas del día en efectivo y tarjeta para que tu equipo sepa cuánto hay para repartir.</div></div>';return;}
     var h='<table style="width:100%;border-collapse:collapse">';
     h+='<thead><tr style="background:#f8f9fa">';
     h+='<th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:500;color:#adb5bd;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e9ecef">Fecha</th>';
