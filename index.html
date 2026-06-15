@@ -6185,10 +6185,10 @@ async function guardarEditPers(){
   btn.disabled=false;btn.textContent='Guardar cambios';
 }
 async function eliminarPers(id){
-  if(!confirm('¿Eliminar el pago de '+nombre+' del '+fecha+'? Esta acción no se puede deshacer.'))return;
+  if(!confirm('¿Eliminar este pago? Esta acción no se puede deshacer.'))return;
   try{
     var r=await fetch(SU+'/rest/v1/pagos_personal?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'DELETE',headers:H()});
-    if(r.ok)dpage('personal',document.querySelector('.sb-item.active'));
+    if(r.ok){loadPersonalMes();}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
 }
