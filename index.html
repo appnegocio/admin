@@ -3808,24 +3808,23 @@ function badgeVenc(dias){
 
 function renderPorPagar(datos, elId){
   var el=document.getElementById(elId);
+  var esCel=elId==='ft-pp-c';
   if(!datos||!datos.length){el.innerHTML='<div class="empty" style="text-align:center;padding:2rem 1rem"><div style="font-size:32px;margin-bottom:10px">✅</div><div style="font-size:14px;font-weight:500;color:var(--g900);margin-bottom:6px">Sin facturas pendientes de pago</div><div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px;max-width:280px;margin-left:auto;margin-right:auto">Cuando registres facturas de compra sin pagar aparecerán aquí. Podrás ver las que están por vencer y registrar pagos parciales.</div><div style="display:inline-block;font-size:12px;font-weight:500;padding:7px 16px;border-radius:8px;background:#e8f7f2;color:#087a55;border:1px solid #9FE1CB">→ Ir a facturas de compra</div></div>';return;}
   var hoy2=new Date();hoy2.setHours(0,0,0,0);
-  var en7=new Date(hoy2);en7.setDate(en7.getDate()+7);
   var vencidas=datos.filter(function(f){return f.fecha_vencimiento&&new Date(f.fecha_vencimiento+'T12:00:00')<hoy2;}).length;
   var porVencer=datos.filter(function(f){var d=diasRestantes(f.fecha_vencimiento);return d!==null&&d>=0&&d<=7;}).length;
   var totalDeuda=datos.reduce(function(s,f){return s+(f.total||0)-(f.monto_pagado||0);},0);
-  // KPIs — mismas clases CSS que créditos, color según estado
+  // KPIs
   var h='<div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.25rem">';
-  h+='<div class="kpi '+(porVencer>0?'g':'v')+'"><div class="kl">Por vencer (7 días)</div><div class="kv">'+porVencer+'</div><div class="ks">'+(porVencer>0?'requieren atención':'ninguna próxima')+'</div></div>';
+  h+='<div class="kpi '+(porVencer>0?'g':'v')+'"><div class="kl">Por vencer</div><div class="kv">'+porVencer+'</div><div class="ks">'+(porVencer>0?'requieren atención':'ninguna próxima')+'</div></div>';
   h+='<div class="kpi '+(vencidas>0?'c':'v')+'"><div class="kl">Vencidas</div><div class="kv">'+vencidas+'</div><div class="ks">'+(vencidas>0?'sin pagar':'todas al día')+'</div></div>';
   h+='<div class="kpi c"><div class="kl">Deuda total</div><div class="kv">'+fmt(totalDeuda)+'</div><div class="ks">saldo pendiente</div></div>';
   h+='</div>';
   // Alerta
   if(porVencer>0||vencidas>0){
     var alertaTotal=datos.filter(function(f){var d=diasRestantes(f.fecha_vencimiento);return d!==null&&d<=7;}).reduce(function(s,f){return s+(f.total||0)-(f.monto_pagado||0);},0);
-    h+='<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;font-weight:500;color:#7c4a00">⚠ '+(vencidas>0?vencidas+' factura'+(vencidas>1?'s':'')+' vencida'+(vencidas>1?'s':'')+' — ':'')+( porVencer>0?porVencer+' vence'+(porVencer>1?'n':'')+' en 7 días — ':'')+fmt(alertaTotal)+' en riesgo</div>';
+    h+='<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;font-weight:500;color:#7c4a00">⚠ '+(vencidas>0?vencidas+' vencida'+(vencidas>1?'s':'')+' — ':'')+( porVencer>0?porVencer+' vence pronto — ':'')+fmt(alertaTotal)+' en riesgo</div>';
   }
-  // Cards — igual estructura que créditos pero naranja
   datos.forEach(function(f){
     var dias=diasRestantes(f.fecha_vencimiento);
     var montoPagado=f.monto_pagado||0;
@@ -3834,37 +3833,37 @@ function renderPorPagar(datos, elId){
     var barColor=pct>=66?'var(--v)':pct>=33?'var(--a)':'var(--r)';
     var abonos=f.abonos||[];
     if(typeof abonos==='string'){try{abonos=JSON.parse(abonos);}catch(e){abonos=[];}}
-    // Card borde naranja
     h+='<div style="background:white;border:1px solid #e67700;border-radius:8px;overflow:hidden;margin-bottom:10px">';
-    // Header naranja claro con botones a la derecha — igual que créditos
+    // Header naranja — igual en cel y PC
     h+='<div style="background:#FAEEDA;border-bottom:1px solid #FAC775;padding:9px 12px;display:flex;justify-content:space-between;align-items:center">';
     h+='<div><div style="font-size:13px;font-weight:500;color:#7c4a00">'+f.proveedor+'</div>';
     h+='<div style="font-size:11px;color:#b45309">Factura #'+(f.numero_factura||'—')+' · '+(f.fecha?new Date(f.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'—')+(f.fecha_vencimiento?' · Vence '+new Date(f.fecha_vencimiento+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'}):'')+'</div></div>';
-    h+='<div style="display:flex;align-items:center;gap:6px">';
-    h+=badgeVenc(dias);
-    if(saldo>0)h+='<button data-id="'+f.id+'" data-saldo="'+saldo+'" data-prov="'+f.proveedor+'" onclick="abrirModalAbono(this.dataset.id,parseFloat(this.dataset.saldo),this.dataset.prov)" style="height:28px;padding:0 10px;border:none;border-radius:6px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button>';
-    h+='<button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(f))+'" onclick="editFact(JSON.parse(decodeURIComponent(this.dataset.rec)))" style="width:28px;height:28px;border:1px solid #FAC775;border-radius:6px;background:white;color:#e67700;font-size:14px;cursor:pointer">✏️</button>';
-    h+='</div></div>';
-    // Grid detalle — igual que créditos
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid #e9ecef">';
-    h+='<div style="padding:.75rem 1rem;border-right:1px solid #e9ecef"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Pagado</div><div style="font-size:15px;font-weight:500;color:#212529">'+fmt(montoPagado)+'</div></div>';
-    h+='<div style="padding:.75rem 1rem;border-right:1px solid #e9ecef"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Saldo pendiente</div><div style="font-size:15px;font-weight:500;color:var(--r)">'+fmt(saldo)+'</div></div>';
-    h+='<div style="padding:.75rem 1rem;border-right:1px solid #e9ecef"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Total factura</div><div style="font-size:15px;font-weight:500;color:#212529">'+fmt(f.total||0)+'</div></div>';
-    h+='<div style="padding:.75rem 1rem"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Pagos</div><div style="font-size:15px;font-weight:500;color:#212529">'+abonos.length+'</div></div>';
-    h+='</div>';
-    // Barra progreso — colores igual que créditos
-    h+='<div style="padding:8px 12px;background:white">';
-    h+='<div style="background:#e9ecef;border-radius:4px;height:5px"><div style="background:'+barColor+';border-radius:4px;height:5px;width:'+pct+'%"></div></div>';
-    h+='<div style="font-size:10px;color:#adb5bd;margin-top:2px">'+pct+'% pagado</div>';
+    h+=badgeVenc(dias)+'</div>';
+    // Barra progreso — igual en cel y PC
+    h+='<div style="padding:10px 12px">';
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;color:#adb5bd;margin-bottom:4px"><span>Pagado '+fmt(montoPagado)+'</span><span>Saldo <strong style="color:var(--r)">'+fmt(saldo)+'</strong></span></div>';
+    h+='<div style="background:#e9ecef;border-radius:4px;height:5px;margin-bottom:3px"><div style="background:'+barColor+';border-radius:4px;height:5px;width:'+pct+'%"></div></div>';
+    h+='<div style="font-size:10px;color:#adb5bd">'+pct+'% pagado · Total '+fmt(f.total||0)+'</div>';
     h+='</div>';
     // Pagos registrados
     if(abonos.length){
-      h+='<div style="border-top:0.5px solid #e9ecef;padding:8px 12px;background:white">';
+      h+='<div style="border-top:0.5px solid #FAC775;padding:8px 12px">';
       h+='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin-bottom:6px">Pagos registrados</div>';
       abonos.forEach(function(a){
         h+='<div style="display:flex;justify-content:space-between;font-size:12px;color:#495057;padding:3px 0;border-bottom:0.5px solid #f8f9fa"><span>'+new Date(a.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'})+(a.nota?' — '+a.nota:'')+'</span><span style="font-weight:500">'+fmt(a.monto)+'</span></div>';
       });
       h+='</div>';
+    }
+    // Botones — cel: ancho completo / PC: pequeño a la derecha
+    if(saldo>0){
+      if(esCel){
+        h+='<div style="padding:0 12px 10px"><button data-id="'+f.id+'" data-saldo="'+saldo+'" data-prov="'+f.proveedor+'" onclick="abrirModalAbono(this.dataset.id,parseFloat(this.dataset.saldo),this.dataset.prov)" style="width:100%;height:36px;border:none;border-radius:8px;background:#e67700;color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button></div>';
+      } else {
+        h+='<div style="padding:8px 12px;border-top:0.5px solid #FAC775;display:flex;gap:6px">';
+        h+='<button data-id="'+f.id+'" data-saldo="'+saldo+'" data-prov="'+f.proveedor+'" onclick="abrirModalAbono(this.dataset.id,parseFloat(this.dataset.saldo),this.dataset.prov)" style="height:28px;padding:0 10px;border:none;border-radius:6px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Registrar pago</button>';
+        h+='<button class="btn-edit" data-rec="'+encodeURIComponent(JSON.stringify(f))+'" onclick="editFact(JSON.parse(decodeURIComponent(this.dataset.rec)))" style="width:28px;height:28px;border:1px solid #FAC775;border-radius:6px;background:white;color:#e67700;font-size:14px;cursor:pointer">✏️</button>';
+        h+='</div>';
+      }
     }
     h+='</div>';
   });
