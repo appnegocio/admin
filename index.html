@@ -689,7 +689,7 @@ tr:hover td{background:var(--g50)}
         <div style="height:1rem"></div>
       </div>
       <div id="fact-hist" style="display:none"><div id="ft-hc" class="ld">Cargando...</div></div>
-      <div id="fact-pagar" style="display:none"><div id="ft-pp-c" class="ld">Cargando...</div></div>
+      <div id="fact-pagar" style="display:none;padding-top:.5rem"><div id="ft-pp-c" class="ld">Cargando...</div></div>
     </div>
   </div>
 
@@ -2079,10 +2079,10 @@ async function loadDashCelDetalle(mesParam,anioParam){
   }catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
 }
 function swTab(mod,t,el){
-  document.getElementById(mod+'-form').style.display=t==='form'?'':'none';
-  document.getElementById(mod+'-hist').style.display=t==='hist'?'':'none';
+  document.getElementById(mod+'-form').style.display=t==='form'?'block':'none';
+  document.getElementById(mod+'-hist').style.display=t==='hist'?'block':'none';
   var pagarEl=document.getElementById(mod+'-pagar');
-  if(pagarEl)pagarEl.style.display=t==='pagar'?'':'none';
+  if(pagarEl)pagarEl.style.display=t==='pagar'?'block':'none';
   document.querySelectorAll('#sc-'+mod+' .tabbtn').forEach(function(b){b.classList.remove('active');});
   el.classList.add('active');
 }
