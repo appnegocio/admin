@@ -2081,6 +2081,8 @@ async function loadDashCelDetalle(mesParam,anioParam){
 function swTab(mod,t,el){
   document.getElementById(mod+'-form').style.display=t==='form'?'':'none';
   document.getElementById(mod+'-hist').style.display=t==='hist'?'':'none';
+  var pagarEl=document.getElementById(mod+'-pagar');
+  if(pagarEl)pagarEl.style.display=t==='pagar'?'':'none';
   document.querySelectorAll('#sc-'+mod+' .tabbtn').forEach(function(b){b.classList.remove('active');});
   el.classList.add('active');
 }
