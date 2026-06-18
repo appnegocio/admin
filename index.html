@@ -1821,7 +1821,11 @@ function abrirScreen(n){
   document.getElementById('sc-'+n).classList.add('vis');
   if(n==='rep')loadReporte();
   if(n==='bal')loadBalCel();
-  if(n==='cred')loadCreditosCel();
+  if(n==='cred'){
+    document.getElementById('cred-form').style.display='block';
+    document.getElementById('cred-hist').style.display='none';
+    loadCreditosCel();
+  }
   if(n==='prop'){
     var pf=document.getElementById('prop-fecha');
     if(!pf.value)pf.value=hoy.toISOString().split('T')[0];
@@ -2638,16 +2642,46 @@ async function toggleFactProds(elId, factId){
   el.style.display='block';
   if(el.dataset.loaded)return;
   try{
+    // Traer productos de esta factura
     var r=await fetch(SU+'/rest/v1/productos_factura?select=*&factura_id=eq.'+factId+'&order=created_at.asc',{headers:H()});
     var prods=await r.json();
     if(!prods||!prods.length){el.innerHTML='<span style="font-size:11px;color:#adb5bd">Sin productos registrados</span>';el.dataset.loaded='1';return;}
+    // Traer factura para saber proveedor y fecha
+    var rf=await fetch(SU+'/rest/v1/facturas?select=proveedor,fecha&id=eq.'+factId,{headers:H()});
+    var factData=await rf.json();
+    var factura=factData&&factData[0];
     var h='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#adb5bd;margin-bottom:5px">Productos</div>';
-    prods.forEach(function(p){
+    for(var i=0;i<prods.length;i++){
+      var p=prods[i];
+      var colorPrecio='#212529';
+      var indicador='';
+      // Buscar precio anterior del mismo producto del mismo proveedor
+      if(p.nombre&&factura&&p.precio_unitario){
+        try{
+          var rPrev=await fetch(SU+'/rest/v1/productos_factura?select=precio_unitario,facturas(fecha,proveedor)&nombre=eq.'+encodeURIComponent(p.nombre)+'&precio_unitario=not.is.null&order=facturas(fecha).desc&limit=5',{headers:H()});
+          var prevProds=await rPrev.json();
+          // Filtrar por mismo proveedor y fecha anterior
+          var anterior=null;
+          if(prevProds&&prevProds.length){
+            for(var j=0;j<prevProds.length;j++){
+              var pp=prevProds[j];
+              if(pp.facturas&&pp.facturas.proveedor===factura.proveedor&&pp.facturas.fecha<factura.fecha&&pp.precio_unitario!==p.precio_unitario){
+                anterior=pp;break;
+              }
+            }
+          }
+          if(anterior){
+            if(p.precio_unitario>anterior.precio_unitario){colorPrecio='#e03131';indicador=' ↑';}
+            else if(p.precio_unitario<anterior.precio_unitario){colorPrecio='#0d9e6e';indicador=' ↓';}
+            else{colorPrecio='#212529';indicador='';}
+          }
+        }catch(e){}
+      }
       h+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e9ecef;font-size:12px">';
       h+='<span style="color:#212529">'+p.nombre+(p.cantidad?' · '+p.cantidad+(p.unidad?' '+p.unidad:''):'')+'</span>';
-      h+='<span style="font-weight:500;color:#e03131">'+(p.precio_unitario?fmt(p.precio_unitario)+'/'+(p.unidad||'u'):'—')+'</span>';
+      h+='<span style="font-weight:500;color:'+colorPrecio+'">'+(p.precio_unitario?fmt(p.precio_unitario)+'/'+(p.unidad||'u')+indicador:'—')+'</span>';
       h+='</div>';
-    });
+    }
     el.innerHTML=h;
     el.dataset.loaded='1';
   }catch(ex){el.innerHTML='<span style="font-size:11px;color:#adb5bd">Error al cargar</span>';}
