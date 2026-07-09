@@ -1077,6 +1077,8 @@ tr:hover td{background:var(--g50)}
       <option value="false">❌ No pagado</option>
       <option value="true">✅ Pagado</option>
     </select>
+    <label class="modal-label">Fecha de vencimiento <span style="color:#adb5bd;font-weight:400">(opcional)</span></label>
+    <input class="modal-input" type="date" id="mft-venc">
     <label class="modal-label">Notas</label>
     <textarea class="modal-input" id="mft-notas" placeholder="Comentarios o notas sobre esta factura..." style="height:70px;resize:vertical"></textarea>
     <div class="modal-btns"><button class="modal-cancel" onclick="cerrarModal('fact')">Cancelar</button><button class="modal-save" id="mft-btn" onclick="guardarEditFact()">Guardar cambios</button></div>
@@ -2004,6 +2006,40 @@ async function loadDashCelResumen(mesParam,anioParam){
     h+=nMal>0
       ?'<div style="border-radius:8px;padding:7px 10px;font-size:11px;margin-bottom:9px;border:1px solid #F09595;background:#FCEBEB;color:#791F1F">⚠ '+nMal+' cierre'+(nMal>1?'s':'')+' con descuadre</div>'
       :'<div style="border-radius:8px;padding:7px 10px;font-size:11px;margin-bottom:9px;border:1px solid #9FE1CB;background:#e8f7f2;color:#087a55">✓ Todos los cierres cuadran</div>';
+    // ── 5. Bloque facturas por pagar (naranja) ──
+    try{
+      var rPP=await fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&pagado=eq.false&order=fecha_vencimiento.asc.nullslast',{headers:H()});
+      var dataPP=await rPP.json();
+      if(dataPP&&dataPP.length){
+        var hoy3=new Date();hoy3.setHours(0,0,0,0);
+        var vencidasC=dataPP.filter(function(ff){return ff.fecha_vencimiento&&new Date(ff.fecha_vencimiento+'T12:00:00')<hoy3;}).length;
+        var porVencerC=dataPP.filter(function(ff){var dd=diasRestantes(ff.fecha_vencimiento);return dd!==null&&dd>=0&&dd<=7;}).length;
+        var deudaC=dataPP.reduce(function(s,ff){return s+(ff.total||0)-(ff.monto_pagado||0);},0);
+        h+='<div style="border:1px solid #e67700;border-radius:8px;overflow:hidden;margin-bottom:9px">';
+        h+='<div style="background:#FAEEDA;border-bottom:1px solid #FAC775;padding:8px 11px;display:flex;justify-content:space-between;align-items:center">';
+        h+='<span style="font-size:12px;font-weight:500;color:#7c4a00">Facturas por pagar</span>';
+        if(vencidasC>0)h+='<span style="background:#e03131;color:white;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px">'+vencidasC+' vencida'+(vencidasC>1?'s':'')+'</span>';
+        else if(porVencerC>0)h+='<span style="background:#e67700;color:white;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px">'+porVencerC+' vence pronto</span>';
+        else h+='<span style="background:#e8f7f2;color:#085041;font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;border:1px solid #9FE1CB">✓ Al día</span>';
+        h+='</div>';
+        h+='<div style="display:grid;grid-template-columns:1fr 1fr;background:white;border-bottom:1px solid #e9ecef">';
+        h+='<div style="padding:8px 11px;border-right:1px solid #e9ecef"><div style="font-size:9px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Pendientes</div><div style="font-size:15px;font-weight:500;color:#e67700">'+dataPP.length+'</div></div>';
+        h+='<div style="padding:8px 11px"><div style="font-size:9px;color:#adb5bd;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Deuda total</div><div style="font-size:15px;font-weight:500;color:#e67700">'+fmtK(deudaC)+'</div></div>';
+        h+='</div>';
+        // Mostrar hasta 2 facturas urgentes
+        var urgentesC=dataPP.filter(function(ff){var dd=diasRestantes(ff.fecha_vencimiento);return ff.fecha_vencimiento&&(new Date(ff.fecha_vencimiento+'T12:00:00')<hoy3||(dd!==null&&dd<=7));}).slice(0,2);
+        urgentesC.forEach(function(ff){
+          var diasFF=diasRestantes(ff.fecha_vencimiento);
+          var saldoFF=(ff.total||0)-(ff.monto_pagado||0);
+          h+='<div style="padding:7px 11px;background:white;border-bottom:0.5px solid #f1f3f5;display:flex;justify-content:space-between;align-items:center">';
+          h+='<div><div style="font-size:12px;font-weight:500;color:#7c4a00">'+ff.proveedor+'</div>';
+          h+='<div style="font-size:10px;color:#adb5bd">'+badgeVenc(diasFF)+'</div></div>';
+          h+='<div style="font-size:12px;font-weight:500;color:#c0392b">'+fmt(saldoFF)+'</div>';
+          h+='</div>';
+        });
+        h+='</div>';
+      }
+    }catch(e){}
     el.innerHTML=h;
   }catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
 }
@@ -6183,6 +6219,7 @@ function editFact(r){
   document.getElementById('mft-im').value=r.impuesto||0;
   document.getElementById('mft-to').value=r.total||0;
   document.getElementById('mft-pagado').value=r.pagado?'true':'false';
+  document.getElementById('mft-venc').value=r.fecha_vencimiento||'';
   document.getElementById('mft-rut').value=r.rut_proveedor||'';
   document.getElementById('mft-notas').value=r.notas||'';
   _provCache=null;
@@ -6197,7 +6234,7 @@ async function guardarEditFact(){
   var id=document.getElementById('mft-id').value;
   var btn=document.getElementById('mft-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
-    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({proveedor:document.getElementById('mft-pv').value,rut_proveedor:document.getElementById('mft-rut').value.trim()||null,numero_factura:document.getElementById('mft-nm').value,monto_neto:mv('mft-ne'),iva:mv('mft-iv'),impuesto:mv('mft-im'),total:mv('mft-to'),pagado:document.getElementById('mft-pagado').value==='true',notas:document.getElementById('mft-notas').value.trim()||null})});
+    var r=await fetch(SU+'/rest/v1/facturas?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({proveedor:document.getElementById('mft-pv').value,rut_proveedor:document.getElementById('mft-rut').value.trim()||null,numero_factura:document.getElementById('mft-nm').value,monto_neto:mv('mft-ne'),iva:mv('mft-iv'),impuesto:mv('mft-im'),total:mv('mft-to'),pagado:document.getElementById('mft-pagado').value==='true',fecha_vencimiento:document.getElementById('mft-venc').value||null,notas:document.getElementById('mft-notas').value.trim()||null})});
     if(r.ok){cerrarModal('fact');dpage('facturas',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
