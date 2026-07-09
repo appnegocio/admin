@@ -1911,11 +1911,14 @@ async function loadDashCelResumen(mesParam,anioParam){
     var h='<select id="dash-mes-sel" style="width:100%;height:34px;background:white;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;color:#212529;margin-bottom:9px;font-family:inherit" onchange="dashCelCambiarMes(this.value)">';
     for(var mi=1;mi<=12;mi++){var selVal=a+'-'+String(mi).padStart(2,'0');h+='<option value="'+selVal+'"'+(mi===mes?' selected':'')+'>'+MS[mi-1]+' '+a+'</option>';}
     h+='</select>';
-    // ── 1. Utilidad neta ──
+    // ── 1. MARGEN BRUTO ──
+    var MB=V-C;
+    var MBpct=V>0?Math.round((MB/V)*100):0;
     h+='<div style="background:#0d9e6e;border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center">';
-    h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Utilidad neta — '+MS[mes-1]+'</div>';
-    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
-    h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div><div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div></div>';
+    h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Margen bruto — '+MS[mes-1]+'</div>';
+    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(MB)+'</div>';
+    h+='<div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:2px">Ventas '+fmtK(V)+' — Compras '+fmtK(C)+'</div>';
+    h+='</div><div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div><div style="font-size:18px;font-weight:500;color:white">'+MBpct+'%</div></div>';
     h+='</div>';
     // ── Avisos perfil celular ──
     var avisos='';
@@ -1934,7 +1937,7 @@ async function loadDashCelResumen(mesParam,anioParam){
         +'</div>';
     }
     h+=avisos;
-    // ── 2. Banner utilidad + margen + explicación integrada (celular) ──
+    // ── 2. UTILIDAD NETA ──
     var diffMc=V>0&&Vp>0?M-Mp:null;
     var textoExplC='';
     if(V>0&&Vp>0){
@@ -1952,10 +1955,11 @@ async function loadDashCelResumen(mesParam,anioParam){
         if(causasc.length>0)textoExplC=causasc.join(' y ');
       }
     }
-    h+='<div style="background:#0d9e6e;border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:flex-start">';
+    h+='<div style="background:#085041;border-radius:8px;padding:10px 12px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:flex-start">';
     h+='<div><div style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.75);margin-bottom:2px">Utilidad neta — '+MS[mes-1]+'</div>';
-    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div></div>';
-    h+='<div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen</div>';
+    h+='<div style="font-size:22px;font-weight:500;color:white">'+fmt(U)+'</div>';
+    h+='<div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:2px">Fijos '+fmtK(GF)+' · Personal '+fmtK(P)+' · Gastos '+fmtK(GD)+'</div>';
+    h+='</div><div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.7)">Margen neto</div>';
     h+='<div style="font-size:18px;font-weight:500;color:white">'+(M>0?'+':'')+M+'%</div>';
     if(diffMc!==null){
       h+='<div style="margin-top:4px;display:flex;flex-direction:column;align-items:flex-end;gap:2px">';
@@ -1964,20 +1968,19 @@ async function loadDashCelResumen(mesParam,anioParam){
       h+='</div>';
     }
     h+='</div></div>';
-    // ── B. Punto de equilibrio (celular) ──
-    if(GF>0){
-      var yaLoCubrioC=V>=GF;
-      var diasRegC=c.length;
-      var promDiaC=diasRegC>0?V/diasRegC:0;
-      var diasFaltanC=promDiaC>0?Math.ceil((GF-V)/promDiaC):null;
+    // ── 3. PUNTO DE EQUILIBRIO — costos operacionales completos ──
+    var costoOpC=GF+P+GD;
+    if(costoOpC>0){
+      var yaLoCubrioC=MB>=costoOpC;
+      var coberturaPctC=costoOpC>0?Math.round((MB/costoOpC)*100):0;
       h+='<div style="border-radius:8px;padding:9px 11px;margin-bottom:9px;border:1px solid '+(yaLoCubrioC?'var(--vm)':'#FAC775')+';background:'+(yaLoCubrioC?'var(--vl)':'#FAEEDA')+'">'
         +'<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:'+(yaLoCubrioC?'var(--vd)':'#7c4a00')+';margin-bottom:5px">Punto de equilibrio</div>'
-        +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<div><div style="font-size:10px;color:var(--g500)">Gastos fijos</div><div style="font-size:15px;font-weight:500;color:var(--r)">'+fmt(GF)+'</div></div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px">'
+        +'<div><div style="font-size:10px;color:var(--g500)">Costos operacionales</div><div style="font-size:15px;font-weight:500;color:var(--r)">'+fmt(costoOpC)+'</div></div>'
         +'<div style="font-size:13px;color:var(--g300)">→</div>'
-        +'<div><div style="font-size:10px;color:var(--g500)">Vendiste</div><div style="font-size:15px;font-weight:500;color:var(--vd)">'+fmt(V)+'</div></div>'
+        +'<div><div style="font-size:10px;color:var(--g500)">Margen bruto</div><div style="font-size:15px;font-weight:500;color:var(--vd)">'+fmt(MB)+'</div></div>'
         +'<div style="padding:5px 10px;border-radius:6px;background:'+(yaLoCubrioC?'var(--v)':'#e67700')+';color:white;font-size:11px;font-weight:500;text-align:center">'
-        +(yaLoCubrioC?'✓ Cubres costos':'~'+((diasFaltanC)||'?')+' días más')
+        +(yaLoCubrioC?'✓ Cubres<br>costos':fmtK(costoOpC-MB)+' falta')
         +'</div></div></div>';
     }
     // ── C. Mejor y peor día (celular) ──
