@@ -102,6 +102,7 @@ body{font-family:'DM Sans',sans-serif;background:#f4f5f6;color:var(--g900);min-h
 .bdg.adelanto{background:var(--al);color:var(--a)}
 .bdg.quincena{background:var(--vl);color:var(--vd)}
 .bdg.sueldo{background:var(--azl);color:var(--az)}
+.bdg.comision{background:#f3f0ff;color:#6741d9}
 .bdg.otro{background:var(--g100);color:var(--g700)}
 
 /* DASHBOARD PC */
@@ -708,6 +709,7 @@ tr:hover td{background:var(--g50)}
           <button class="tbtn" onclick="selTipo('Adelanto',this)">⏩ Adelanto</button>
           <button class="tbtn" onclick="selTipo('Sueldo',this)">📅 Sueldo</button>
           <button class="tbtn" onclick="selTipo('Otro',this)">📝 Otro</button>
+          <button class="tbtn" onclick="selTipo('Comisión',this)">💹 Comisión</button>
         </div>
         <label class="fl">Monto <span style="font-size:10px;color:#adb5bd;font-weight:400;text-transform:none">(dejar en 0 si es solo observación)</span></label><input class="fi" type="number" id="ps-mo" placeholder="0">
         <label class="fl">Observación (opcional)</label><input class="fi" type="text" id="ps-ob" placeholder="Ej: anticipo semana 2">
@@ -1093,7 +1095,7 @@ tr:hover td{background:var(--g50)}
     <div class="modal-grid2"><div><label class="modal-label">Fecha</label><input class="modal-input" type="date" id="mps-f"></div><div><label class="modal-label">Monto</label><input class="modal-input" type="number" id="mps-mo"></div></div>
     <label class="modal-label">Empleado</label><input class="modal-input" type="text" id="mps-em">
     <label class="modal-label">Tipo</label>
-    <select class="modal-select" id="mps-tp"><option value="Quincena">Quincena</option><option value="Adelanto">Adelanto</option><option value="Sueldo">Sueldo</option><option value="Otro">Otro</option></select>
+    <select class="modal-select" id="mps-tp"><option value="Quincena">Quincena</option><option value="Adelanto">Adelanto</option><option value="Sueldo">Sueldo</option><option value="Comisión">Comisión</option><option value="Otro">Otro</option></select>
     <label class="modal-label">Observación</label><input class="modal-input" type="text" id="mps-ob">
     <div class="modal-btns"><button class="modal-cancel" onclick="cerrarModal('pers')">Cancelar</button><button class="modal-save" id="mps-btn" onclick="guardarEditPers()">Guardar cambios</button></div>
   </div>
@@ -2409,8 +2411,8 @@ async function generarReportePersonal(){
     if(!pagos||!pagos.length){alert('No hay pagos registrados en '+MS[mes-1]+' '+a);return;}
     // f2 es función global definida arriba
     var fd=function(fecha){return new Date(fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});};
-    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Otro':'#495057'};
-    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Otro':'#f4f5f6'};
+    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Comisión':'#6741d9','Otro':'#495057'};
+    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Comisión':'#f3f0ff','Otro':'#f4f5f6'};
     // Agrupar por empleado
     var empleados={};
     var totalGeneral=0;
@@ -2506,8 +2508,15 @@ async function mostrarResumenPersonal(){
     var pagos=await r.json();
     if(!pagos||!pagos.length){panel.innerHTML='<div class="empty">Sin pagos en '+MS[mes-1]+' '+a+'</div>';return;}
     var empleados={};var total=0;
-    pagos.forEach(function(p){if(!empleados[p.empleado])empleados[p.empleado]=[];empleados[p.empleado].push(p);total+=(p.monto||0);});
-    var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Otro:'otro'};
+    var totalComisiones=0,totalFijos=0;
+    pagos.forEach(function(p){
+      if(!empleados[p.empleado])empleados[p.empleado]=[];
+      empleados[p.empleado].push(p);
+      total+=(p.monto||0);
+      if(p.tipo==='Comisión')totalComisiones+=(p.monto||0);
+      else totalFijos+=(p.monto||0);
+    });
+    var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Comisión:'comision',Otro:'otro'};
     var h='<div style="background:#0d9e6e;border-radius:8px 8px 0 0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">'
       +'<span style="font-size:14px;font-weight:500;color:white">Resumen personal — '+MS[mes-1]+' '+a+'</span>'
       +'<span style="font-size:11px;color:rgba(255,255,255,.8)">'+Object.keys(empleados).length+' empleados · '+pagos.length+' pagos</span>'
@@ -2515,8 +2524,9 @@ async function mostrarResumenPersonal(){
       +'<div style="border:1px solid #c1c7cd;border-top:none;border-radius:0 0 8px 8px;padding:14px 16px">'
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
       +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Empleados</div><div style="font-size:15px;font-weight:500">'+Object.keys(empleados).length+'</div></div>'
-      +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Pagos</div><div style="font-size:15px;font-weight:500">'+pagos.length+'</div></div>'
-      +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Total pagado</div><div style="font-size:15px;font-weight:500;color:#087a55">'+fmt(total)+'</div></div>'
+      +'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Pagos fijos</div><div style="font-size:15px;font-weight:500;color:#087a55">'+fmt(totalFijos)+'</div></div>'
+      +(totalComisiones>0?'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Comisiones</div><div style="font-size:15px;font-weight:500;color:#6741d9">'+fmt(totalComisiones)+'</div></div>'
+      :'<div style="border:1px solid #c1c7cd;border-radius:6px;padding:8px;text-align:center"><div style="font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px">Total pagado</div><div style="font-size:15px;font-weight:500;color:#087a55">'+fmt(total)+'</div></div>')
       +'</div>';
     Object.keys(empleados).forEach(function(emp){
       var ps=empleados[emp];
@@ -2554,8 +2564,8 @@ async function generarPDFPersCompleto(empleado, fechaRef){
     var fd2=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});};
     var total=pagos.reduce(function(s,p){return s+(p.monto||0);},0);
     var periodo=MS[mes-1]+' '+a;
-    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Otro':'#f4f5f6'};
-    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Otro':'#495057'};
+    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Comisión':'#f3f0ff','Otro':'#f4f5f6'};
+    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Comisión':'#6741d9','Otro':'#495057'};
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante '+empleado+' '+periodo+'</title>'
       +'<style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:500px}'
       +'.hdr{background:#0d9e6e!important;color:white!important;padding:16px 20px;border-radius:6px 6px 0 0}'
@@ -2738,8 +2748,8 @@ async function generarPDFPersonalCompleto(){
     // f2 es función global definida arriba
     var fd2=function(f){return new Date(f+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'});};
     var periodo=MS[mes-1]+' '+a;
-    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Otro':'#f4f5f6'};
-    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Otro':'#495057'};
+    var tipoBg={'Sueldo':'#e8f0fb','Quincena':'#e8f7f2','Adelanto':'#FAEEDA','Comisión':'#f3f0ff','Otro':'#f4f5f6'};
+    var tipoColor={'Sueldo':'#1971c2','Quincena':'#087a55','Adelanto':'#b45309','Comisión':'#6741d9','Otro':'#495057'};
     // Agrupar por empleado
     var empleados={};
     var totalGeneral=0;
@@ -4748,7 +4758,7 @@ function renderFactHist(d){
   return h;
 }
 function renderPersHist(d){
-  var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Otro:'otro'};
+  var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Comisión:'comision',Otro:'otro'};
   // Agrupar por empleado
   var empleados={};
   d.forEach(function(r){
@@ -5157,7 +5167,7 @@ async function loadPersonalMes(){
 }
 
 function renderPersonalTabla(d){
-  var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Otro:'otro'};
+  var tm={Quincena:'quincena',Adelanto:'adelanto',Sueldo:'sueldo',Comisión:'comision',Otro:'otro'};
   var empleados={},peFecha={},tT=0;
   d.forEach(function(r){
     if(!empleados[r.empleado]){empleados[r.empleado]=[];peFecha[r.empleado]=r.fecha;}
@@ -6509,6 +6519,7 @@ setInterval(function(){
       <button class="ebtn" onclick="selTipoPC('Quincena',this)">💰 Quincena</button>
       <button class="ebtn" onclick="selTipoPC('Adelanto',this)">⏩ Adelanto</button>
       <button class="ebtn" onclick="selTipoPC('Sueldo',this)">📅 Sueldo</button>
+      <button class="ebtn" onclick="selTipoPC('Comisión',this)">💹 Comisión</button>
       <button class="ebtn" onclick="selTipoPC('Otro',this)">📝 Otro</button>
     </div>
     <label class="modal-label">Monto</label>
