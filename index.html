@@ -2677,7 +2677,11 @@ async function registrarPagoCreditoCel(creditoId,monto){
     var mes=hoy.getMonth()+1,a=hoy.getFullYear();
     var r=await fetch(SU+'/rest/v1/pagos_creditos',{method:'POST',headers:HJ(),body:JSON.stringify({credito_id:creditoId,cliente_id:cli.id,monto:parseFloat(monto),mes:mes,anio:a,pagado:true,fecha:hoy.toISOString().substring(0,10)})});
     if(r.ok){
-      await fetch(SU+'/rest/v1/creditos?id=eq.'+creditoId+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({cuotas_pagadas:undefined})});
+      // Traer cuotas_pagadas actuales antes de incrementar
+      var rc=await fetch(SU+'/rest/v1/creditos?id=eq.'+creditoId+'&cliente_id=eq.'+cli.id+'&select=cuotas_pagadas',{headers:H()});
+      var dc=await rc.json();
+      var cuotasActuales=(dc&&dc[0]?dc[0].cuotas_pagadas:0)||0;
+      await fetch(SU+'/rest/v1/creditos?id=eq.'+creditoId+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({cuotas_pagadas:cuotasActuales+1})});
       loadCreditosCel();
     }else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
