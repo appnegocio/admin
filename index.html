@@ -2675,7 +2675,7 @@ async function registrarPagoCreditoCel(creditoId,monto){
   if(!confirm('¿Registrar pago de '+fmt(parseFloat(monto))+'?'))return;
   try{
     var mes=hoy.getMonth()+1,a=hoy.getFullYear();
-    var r=await fetch(SU+'/rest/v1/pagos_creditos',{method:'POST',headers:HJ(),body:JSON.stringify({credito_id:creditoId,cliente_id:cli.id,monto:parseFloat(monto),mes:mes,anio:a,pagado:true,fecha:hoy.toISOString().substring(0,10)})});
+    var r=await fetch(SU+'/rest/v1/pagos_creditos',{method:'POST',headers:HJ(),body:JSON.stringify({credito_id:creditoId,cliente_id:cli.id,monto:parseFloat(monto),mes:mes,anio:a,pagado:true,fecha_pago:hoy.toISOString().substring(0,10)})});
     if(r.ok){
       // Traer cuotas_pagadas actuales antes de incrementar
       var rc=await fetch(SU+'/rest/v1/creditos?id=eq.'+creditoId+'&cliente_id=eq.'+cli.id+'&select=cuotas_pagadas',{headers:H()});
