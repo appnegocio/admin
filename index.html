@@ -2458,11 +2458,16 @@ async function generarReportePersonal(){
     // Agrupar por empleado
     var empleados={};
     var totalGeneral=0;
+    var totalFijos=0;
+    var totalComisiones=0;
     pagos.forEach(function(p){
       if(!empleados[p.empleado])empleados[p.empleado]=[];
       empleados[p.empleado].push(p);
       totalGeneral+=(p.monto||0);
+      if(p.tipo==='Comisión')totalComisiones+=(p.monto||0);
+      else totalFijos+=(p.monto||0);
     });
+    var nCards=totalComisiones>0?4:3;
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte Personal '+MS[mes-1]+' '+a+'</title>'
       +'<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:12px;color:#212529;margin:0;padding:20px;max-width:700px}'
       +'@media print{.no-print{display:none}}'
@@ -2472,7 +2477,7 @@ async function generarReportePersonal(){
       +'.body{border:1px solid #c1c7cd;border-top:none;border-radius:0 0 6px 6px;padding:16px 20px}'
       +'.sec{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#adb5bd;margin:16px 0 8px}'
       +'.sec:first-child{margin-top:0}'
-      +'.resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}'
+      +'.resumen{display:grid;grid-template-columns:repeat('+nCards+',1fr);gap:8px;margin-bottom:4px}'
       +'.res-card{border:1px solid #c1c7cd;border-radius:6px;padding:8px 10px;text-align:center}'
       +'.res-lbl{font-size:10px;color:#adb5bd;text-transform:uppercase;margin-bottom:3px}'
       +'.res-val{font-size:15px;font-weight:500}'
@@ -2496,7 +2501,8 @@ async function generarReportePersonal(){
       +'<div class="sec">1. Resumen del mes</div>'
       +'<div class="resumen">'
       +'<div class="res-card"><div class="res-lbl">Empleados</div><div class="res-val">'+Object.keys(empleados).length+'</div></div>'
-      +'<div class="res-card"><div class="res-lbl">Pagos</div><div class="res-val">'+pagos.length+'</div></div>'
+      +'<div class="res-card"><div class="res-lbl">Pagos fijos</div><div class="res-val" style="color:#087a55">'+f2(totalFijos)+'</div></div>'
+      +(totalComisiones>0?'<div class="res-card"><div class="res-lbl">Comisiones</div><div class="res-val" style="color:#6741d9">'+f2(totalComisiones)+'</div></div>':'')
       +'<div class="res-card"><div class="res-lbl">Total pagado</div><div class="res-val" style="color:#087a55">'+f2(totalGeneral)+'</div></div>'
       +'</div>';
     // 2. Detalle por empleado
