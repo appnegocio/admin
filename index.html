@@ -4250,23 +4250,29 @@ async function reporteBalance(){
       var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
       var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
       var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
-      meses.push({m:m,v:vv,co:co,su:su,gf:gf,eg:co+su+gf,u:vv-co-su-gf});
+      var mb=vv-co;
+      meses.push({m:m,v:vv,co:co,su:su,gf:gf,mb:mb,eg:co+su+gf,u:mb-su-gf});
     }
     var tV=meses.reduce(function(s,r){return s+r.v;},0);
     var tC=meses.reduce(function(s,r){return s+r.co;},0);
     var tS=meses.reduce(function(s,r){return s+r.su;},0);
     var tG=meses.reduce(function(s,r){return s+r.gf;},0);
-    var tU=tV-tC-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
+    var tMB=tV-tC;
+    var tMBpct=tV>0?Math.round((tMB/tV)*100):0;
+    var tU=tMB-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
     var cuerpo='<div class="sec">Resumen anual '+a+'</div>'
       +'<div class="row"><span>Ventas totales</span><span class="pos">'+fmtR(tV)+'</span></div>'
-      +'<div class="row"><span>Facturas compra</span><span class="neg">'+fmtR(tC)+'</span></div>'
+      +'<div class="row"><span>Compras (facturas)</span><span class="neg">'+fmtR(tC)+'</span></div>'
+      +'<div class="row tot"><span>Margen bruto</span><span class="'+(tMB>=0?'pos':'neg')+'">'+fmtR(tMB)+' ('+tMBpct+'%)</span></div>'
       +'<div class="row"><span>Personal</span><span class="neg">'+fmtR(tS)+'</span></div>'
       +'<div class="row"><span>Gastos fijos</span><span class="neg">'+fmtR(tG)+'</span></div>'
       +'<div class="row tot"><span>Utilidad neta</span><span class="'+(tU>=0?'pos':'neg')+'">'+fmtR(tU)+' ('+tM+'%)</span></div>'
       +'<div class="sec">Detalle mensual</div>'
-      +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Personal</th><th>G.Fijos</th><th>Utilidad</th></tr>';
+      +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Margen bruto</th><th>Personal</th><th>G.Fijos</th><th>Utilidad</th></tr>';
     meses.forEach(function(r){
+      var mbpct=r.v>0?Math.round((r.mb/r.v)*100):0;
       cuerpo+='<tr><td>'+MS[r.m-1]+'</td><td class="pos">'+fmtR(r.v)+'</td><td>'+fmtR(r.co)+'</td>'
+        +'<td class="'+(r.mb>=0?'pos':'neg')+'">'+fmtR(r.mb)+' ('+mbpct+'%)</td>'
         +'<td>'+fmtR(r.su)+'</td><td>'+fmtR(r.gf)+'</td>'
         +'<td class="'+(r.u>=0?'pos':'neg')+'">'+fmtR(r.u)+'</td></tr>';
     });
@@ -4956,24 +4962,28 @@ async function loadB(anioSel){
       var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
       var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
       var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
-      var eg=co+su+gf,u=vv-eg;
+      var mb=vv-co;
+      var eg=co+su+gf,u=mb-su-gf;
       if(vv>maxV)maxV=vv;
-      data.push({m:m,v:vv,co:co,su:su,gf:gf,eg:eg,u:u,td:vv>0||eg>0});
+      data.push({m:m,v:vv,co:co,su:su,gf:gf,mb:mb,eg:eg,u:u,td:vv>0||eg>0});
     }
     if(!maxV)maxV=1;
     var tV=data.reduce(function(s,r){return s+r.v;},0);
     var tC=data.reduce(function(s,r){return s+r.co;},0);
     var tS=data.reduce(function(s,r){return s+r.su;},0);
     var tG=data.reduce(function(s,r){return s+r.gf;},0);
-    var tU=tV-tC-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
+    var tMB=tV-tC;
+    var tMBpct=tV>0?Math.round((tMB/tV)*100):0;
+    var tU=tMB-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
 
     // KPIs
-    var h='<div class="kgrid" style="grid-template-columns:repeat(5,1fr);margin-bottom:1.5rem">';
+    var h='<div class="kgrid" style="grid-template-columns:repeat(6,1fr);margin-bottom:1.5rem">';
     h+='<div class="kpi v"><div class="kl">Ventas '+a+'</div><div class="kv">'+fmt(tV)+'</div></div>';
     h+='<div class="kpi c"><div class="kl">Compras</div><div class="kv">'+fmt(tC)+'</div></div>';
-    h+='<div class="kpi g"><div class="kl">Sueldos</div><div class="kv">'+fmt(tS)+'</div></div>';
+    h+='<div class="kpi '+(tMB>=0?'v':'c')+'"><div class="kl">Margen bruto</div><div class="kv">'+fmt(tMB)+'</div><div class="ks">'+(tMBpct>0?'+':'')+tMBpct+'%</div></div>';
+    h+='<div class="kpi g"><div class="kl">Personal</div><div class="kv">'+fmt(tS)+'</div></div>';
     h+='<div class="kpi c"><div class="kl">Gastos fijos</div><div class="kv">'+fmt(tG)+'</div></div>';
-    h+='<div class="kpi '+(tU>=0?'v':'c')+'"><div class="kl">Resultado</div><div class="kv">'+fmt(tU)+'</div><div class="ks">Margen '+(tM>0?'+':'')+tM+'%</div></div>';
+    h+='<div class="kpi '+(tU>=0?'v':'c')+'"><div class="kl">Utilidad neta</div><div class="kv">'+fmt(tU)+'</div><div class="ks">Margen '+(tM>0?'+':'')+tM+'%</div></div>';
     h+='</div>';
 
     // Gráfico mejorado
@@ -5007,14 +5017,16 @@ async function loadB(anioSel){
 
     // Tabla detalle
     h+=anioHtml+'<div class="tc"><div class="tc-h"><span class="tc-t">Detalle por mes</span></div>';
-    h+='<table><tr><th>Mes</th><th style="text-align:right">Ventas</th><th style="text-align:right">Compras</th><th style="text-align:right">Sueldos</th><th style="text-align:right">Gastos fijos</th><th style="text-align:right">Resultado</th><th style="text-align:right">Margen</th></tr>';
+    h+='<table><tr><th>Mes</th><th style="text-align:right">Ventas</th><th style="text-align:right">Compras</th><th style="text-align:right">Margen bruto</th><th style="text-align:right">Personal</th><th style="text-align:right">Gastos fijos</th><th style="text-align:right">Utilidad</th><th style="text-align:right">Margen</th></tr>';
     data.forEach(function(r){
       var ea=r.m===hoy.getMonth()+1;
       var mar=r.v>0?Math.round((r.u/r.v)*100):0;
+      var mbpct=r.v>0?Math.round((r.mb/r.v)*100):0;
       h+='<tr style="'+(ea?'background:var(--vl);':'')+'">';
       h+='<td style="font-weight:'+(ea?'700':'500')+'">'+(ea?'▶ ':'')+MS[r.m-1]+'</td>';
       h+='<td style="text-align:right;color:var(--vd);font-weight:500">'+fmt(r.v)+'</td>';
       h+='<td style="text-align:right">'+fmt(r.co)+'</td>';
+      h+='<td style="text-align:right;font-weight:500;color:'+(r.mb>=0?'var(--vd)':'var(--r)')+'">'+fmt(r.mb)+'</td>';
       h+='<td style="text-align:right">'+fmt(r.su)+'</td>';
       h+='<td style="text-align:right">'+fmt(r.gf)+'</td>';
       h+='<td style="text-align:right;font-weight:500;color:'+(r.u>=0?'var(--vd)':'var(--r)')+'">'+fmt(r.u)+'</td>';
@@ -5024,6 +5036,7 @@ async function loadB(anioSel){
     h+='<tr style="background:var(--g50);font-weight:500;border-top:2px solid #c1c7cd">';
     h+='<td>Total</td><td style="text-align:right;color:var(--vd)">'+fmt(tV)+'</td>';
     h+='<td style="text-align:right">'+fmt(tC)+'</td>';
+    h+='<td style="text-align:right;color:'+(tMB>=0?'var(--vd)':'var(--r)')+'">'+fmt(tMB)+'</td>';
     h+='<td style="text-align:right">'+fmt(tS)+'</td>';
     h+='<td style="text-align:right">'+fmt(tG)+'</td>';
     h+='<td style="text-align:right;color:'+(tU>=0?'var(--vd)':'var(--r)')+'">'+fmt(tU)+'</td>';
