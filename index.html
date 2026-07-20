@@ -4921,7 +4921,9 @@ async function loadBalCel(){
         var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
         var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
         var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
-        var result=vv-co-su-gf,mar=vv>0?Math.round((result/vv)*100):0;
+        var mb=vv-co;
+        var result=mb-su-gf,mar=vv>0?Math.round((result/vv)*100):0;
+        var mbpct=vv>0?Math.round((mb/vv)*100):0;
         tV+=vv;tC+=co;tS+=su;tG+=gf;
         if(vv>0||gf>0){
           tieneDatos=true;
@@ -4934,15 +4936,18 @@ async function loadBalCel(){
           mesesHtml+='<div id="'+mid+'" style="display:none;padding:10px 12px;background:var(--g50);border-top:1px solid #c1c7cd">';
           mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--v);border-radius:2px;display:inline-block"></span>Ventas</span><span style="font-weight:500;color:var(--vd)">'+fmt(vv)+'</span></div>';
           mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--r);border-radius:2px;display:inline-block"></span>Compras</span><span>'+fmt(co)+'</span></div>';
-          mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Sueldos</span><span>'+fmt(su)+'</span></div>';
+          mesesHtml+='<div class="hrow" style="border-top:0.5px solid #c1c7cd;padding-top:5px;margin-top:5px"><span style="font-weight:500">Margen bruto</span><span style="font-weight:500;color:'+(mb>=0?'var(--vd)':'var(--r)')+'">'+fmt(mb)+' ('+(mbpct>0?'+':'')+mbpct+'%)</span></div>';
+          mesesHtml+='<div class="hrow" style="margin-top:5px"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Personal</span><span>'+fmt(su)+'</span></div>';
           mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--az);border-radius:2px;display:inline-block"></span>Gastos fijos</span><span>'+fmt(gf)+'</span></div>';
-          mesesHtml+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Resultado</span><span style="font-weight:500;color:'+clr+'">'+fmt(result)+'</span></div>';
-          mesesHtml+='<div class="hrow"><span style="font-weight:500">Margen</span><span style="font-weight:500;color:'+clr+'">'+(mar>0?'+':'')+mar+'%</span></div>';
+          mesesHtml+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Utilidad neta</span><span style="font-weight:500;color:'+clr+'">'+fmt(result)+'</span></div>';
+          mesesHtml+='<div class="hrow"><span style="font-weight:500">Margen neto</span><span style="font-weight:500;color:'+clr+'">'+(mar>0?'+':'')+mar+'%</span></div>';
           mesesHtml+='</div></div>';
         }
       }
       if(!tieneDatos)continue;
-      var tR=tV-tC-tS-tG,tM=tV>0?Math.round((tR/tV)*100):0;
+      var tMB=tV-tC;
+      var tMBpct=tV>0?Math.round((tMB/tV)*100):0;
+      var tR=tMB-tS-tG,tM=tV>0?Math.round((tR/tV)*100):0;
       var anoId='balano'+a;
       var abierto=a===aAct;
       var clrAno=tR>=0?'var(--vd)':'var(--r)';
@@ -4954,10 +4959,11 @@ async function loadBalCel(){
       html+='<div class="hitem" style="margin-bottom:8px">';
       html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--v);border-radius:2px;display:inline-block"></span>Ventas</span><span style="font-weight:500;color:var(--vd)">'+fmt(tV)+'</span></div>';
       html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--r);border-radius:2px;display:inline-block"></span>Compras</span><span>'+fmt(tC)+'</span></div>';
-      html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Sueldos</span><span>'+fmt(tS)+'</span></div>';
+      html+='<div class="hrow" style="border-top:0.5px solid #c1c7cd;padding-top:5px;margin-top:5px"><span style="font-weight:500">Margen bruto</span><span style="font-weight:500;color:'+(tMB>=0?'var(--vd)':'var(--r)')+'">'+fmt(tMB)+' ('+(tMBpct>0?'+':'')+tMBpct+'%)</span></div>';
+      html+='<div class="hrow" style="margin-top:5px"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Personal</span><span>'+fmt(tS)+'</span></div>';
       html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--az);border-radius:2px;display:inline-block"></span>Gastos fijos</span><span>'+fmt(tG)+'</span></div>';
-      html+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Resultado anual</span><span style="font-weight:500;color:'+clrAno+'">'+fmt(tR)+'</span></div>';
-      html+='<div class="hrow"><span style="font-weight:500">Margen</span><span style="font-weight:500;color:'+clrAno+'">'+(tM>0?'+':'')+tM+'%</span></div>';
+      html+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Utilidad neta</span><span style="font-weight:500;color:'+clrAno+'">'+fmt(tR)+'</span></div>';
+      html+='<div class="hrow"><span style="font-weight:500">Margen neto</span><span style="font-weight:500;color:'+clrAno+'">'+(tM>0?'+':'')+tM+'%</span></div>';
       html+='</div>'+mesesHtml+'</div></div>';
     }
     el.innerHTML=html||'<div class="empty">Sin datos registrados</div>';
