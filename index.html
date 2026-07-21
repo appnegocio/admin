@@ -5009,7 +5009,7 @@ async function loadB(anioSel){
   anioHtml+='</div>';
   try{
     var res=await Promise.all([
-      fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
+      fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=fecha,total&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=fecha,monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
       fetch(SU+'/rest/v1/gastos_fijos?select=mes,total&cliente_id=eq.'+cli.id+'&anio=eq.'+a,{headers:H()})
