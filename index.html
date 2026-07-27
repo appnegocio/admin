@@ -1019,9 +1019,39 @@ tr:hover td{background:var(--g50)}
           <div id="dp-personal-emps" style="display:none"><div id="dem"><div class="ld">Cargando...</div></div></div>
         </div>
         <div class="dp" id="dp-gastosfijos">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
-            <select id="rep-mes-gf" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
-            <button onclick="reporteGastosFijos()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;margin-left:8px">📊 Reporte mensual</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="rep-mes-gf" style="height:32px;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;color:#212529;background:white"></select>
+              <button onclick="reporteGastosFijos()" style="height:32px;padding:0 14px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">📊 Reporte</button>
+            </div>
+            <button onclick="toggleFormGFPC()" id="gf-pc-btn-nuevo" style="height:32px;padding:0 14px;border:none;border-radius:8px;background:var(--v);color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">+ Ingresar gastos del mes</button>
+          </div>
+          <!-- Formulario inline PC -->
+          <div id="gf-pc-form" style="display:none;background:white;border:1px solid #c1c7cd;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem">
+            <div style="font-size:14px;font-weight:500;color:#212529;margin-bottom:1rem">Gastos fijos del mes</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">
+              <div><label class="modal-label">Previred</label><input class="modal-input" type="number" id="gfpc-pr" placeholder="0" oninput="calcGFPC()"></div>
+              <div><label class="modal-label">Arriendo</label><input class="modal-input" type="number" id="gfpc-ar" placeholder="0" oninput="calcGFPC()"></div>
+              <div><label class="modal-label">Luz</label><input class="modal-input" type="number" id="gfpc-lu" placeholder="0" oninput="calcGFPC()"></div>
+              <div><label class="modal-label">Crédito</label><input class="modal-input" type="number" id="gfpc-cr" placeholder="0" oninput="calcGFPC()"></div>
+              <div><label class="modal-label">Contabilidad</label><input class="modal-input" type="number" id="gfpc-co" placeholder="0" oninput="calcGFPC()"></div>
+            </div>
+            <div style="margin-bottom:1rem">
+              <label class="modal-label">Otros gastos</label>
+              <div id="gfpc-otros-lista"></div>
+              <button onclick="agregarOtroGFPC()" style="height:30px;padding:0 12px;border:1px dashed #c1c7cd;border-radius:6px;background:white;color:#495057;font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px">+ Agregar otro</button>
+              <input type="hidden" id="gfpc-ot" value="0">
+            </div>
+            <div style="background:#e8f7f2;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+              <span style="font-size:13px;font-weight:500;color:#085041">Total gastos fijos</span>
+              <span style="font-size:18px;font-weight:500;color:#085041" id="gfpc-tv">$0</span>
+            </div>
+            <div class="fmsg ok" id="gfpc-ok" style="display:none">✓ Gastos guardados correctamente</div>
+            <div class="fmsg err" id="gfpc-err" style="display:none"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button onclick="toggleFormGFPC()" style="height:34px;padding:0 16px;border:1px solid #c1c7cd;border-radius:8px;background:white;color:#212529;font-size:13px;cursor:pointer;font-family:inherit">Cancelar</button>
+              <button onclick="guardarGFPC()" id="gfpc-btn" style="height:34px;padding:0 16px;border:none;border-radius:8px;background:var(--v);color:white;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Guardar gastos</button>
+            </div>
           </div>
           <div id="dg"><div class="ld">Cargando...</div></div>
         </div>
@@ -4679,6 +4709,88 @@ function mensajeError(ex){
 
 
 function calcGF(){var t=GFC.reduce(function(s,c){return s+v('gf-'+c);},0);document.getElementById('gf-tv').textContent=fmt(t);}
+// ── Gastos fijos PC ──
+function toggleFormGFPC(){
+  var f=document.getElementById('gf-pc-form');
+  var abierto=f.style.display==='block';
+  f.style.display=abierto?'none':'block';
+  if(!abierto){
+    // Limpiar formulario
+    ['gfpc-pr','gfpc-ar','gfpc-lu','gfpc-cr','gfpc-co'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('gfpc-otros-lista').innerHTML='';
+    document.getElementById('gfpc-ot').value='0';
+    document.getElementById('gfpc-tv').textContent='$0';
+    document.getElementById('gfpc-ok').style.display='none';
+    document.getElementById('gfpc-err').style.display='none';
+  }
+}
+function calcGFPC(){
+  var pr=parseFloat(document.getElementById('gfpc-pr').value)||0;
+  var ar=parseFloat(document.getElementById('gfpc-ar').value)||0;
+  var lu=parseFloat(document.getElementById('gfpc-lu').value)||0;
+  var cr=parseFloat(document.getElementById('gfpc-cr').value)||0;
+  var co=parseFloat(document.getElementById('gfpc-co').value)||0;
+  var ot=parseFloat(document.getElementById('gfpc-ot').value)||0;
+  document.getElementById('gfpc-tv').textContent=fmt(pr+ar+lu+cr+co+ot);
+}
+function agregarOtroGFPC(){
+  var lista=document.getElementById('gfpc-otros-lista');
+  var idx=lista.children.length;
+  var div=document.createElement('div');
+  div.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:6px';
+  div.innerHTML='<input class="modal-input" type="text" placeholder="Descripción" style="flex:2" oninput="recalcOtrosGFPC()">'
+    +'<input class="modal-input" type="number" placeholder="$0" style="flex:1" oninput="recalcOtrosGFPC()">'
+    +'<button onclick="this.parentElement.remove();recalcOtrosGFPC()" style="height:34px;width:34px;border:1px solid #c1c7cd;border-radius:6px;background:white;cursor:pointer;font-size:14px;color:#e03131">×</button>';
+  lista.appendChild(div);
+}
+function recalcOtrosGFPC(){
+  var lista=document.getElementById('gfpc-otros-lista');
+  var total=0;
+  Array.from(lista.children).forEach(function(div){
+    var inputs=div.querySelectorAll('input');
+    total+=parseFloat(inputs[1].value)||0;
+  });
+  document.getElementById('gfpc-ot').value=total;
+  calcGFPC();
+}
+async function guardarGFPC(){
+  var pr=parseFloat(document.getElementById('gfpc-pr').value)||0;
+  var ar=parseFloat(document.getElementById('gfpc-ar').value)||0;
+  var lu=parseFloat(document.getElementById('gfpc-lu').value)||0;
+  var cr=parseFloat(document.getElementById('gfpc-cr').value)||0;
+  var co=parseFloat(document.getElementById('gfpc-co').value)||0;
+  var ot=parseFloat(document.getElementById('gfpc-ot').value)||0;
+  var lista=document.getElementById('gfpc-otros-lista');
+  var otrosDetalle=Array.from(lista.children).map(function(div){
+    var inputs=div.querySelectorAll('input');
+    return {desc:inputs[0].value.trim(),monto:parseFloat(inputs[1].value)||0};
+  }).filter(function(x){return x.desc&&x.monto>0;});
+  var total=pr+ar+lu+cr+co+ot;
+  var mes=hoy.getMonth()+1,a=hoy.getFullYear();
+  var ok=document.getElementById('gfpc-ok');
+  var err=document.getElementById('gfpc-err');
+  ok.style.display='none';err.style.display='none';
+  var btn=document.getElementById('gfpc-btn');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    // Verificar si ya existe para ese mes
+    var rc=await fetch(SU+'/rest/v1/gastos_fijos?select=id&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()});
+    var existing=await rc.json();
+    var payload={previred:pr,arriendo:ar,luz:lu,credito:cr,contabilidad:co,otros:ot,otros_detalle:otrosDetalle,total:total,mes:mes,anio:a,cliente_id:cli.id};
+    var r;
+    if(existing&&existing.length){
+      r=await fetch(SU+'/rest/v1/gastos_fijos?id=eq.'+existing[0].id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify(payload)});
+    } else {
+      r=await fetch(SU+'/rest/v1/gastos_fijos',{method:'POST',headers:HJ(),body:JSON.stringify(payload)});
+    }
+    if(!r.ok)throw new Error(await r.text());
+    ok.style.display='block';
+    setTimeout(function(){
+      toggleFormGFPC();
+      dpage('gastosfijos',document.querySelector('.sb-item.active'));
+    },1500);
+  }catch(ex){err.textContent=mensajeError(ex);err.style.display='block';}
+  btn.disabled=false;btn.textContent='Guardar gastos';
+}
 async function loadGFUltimo(){
   try{var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.desc,mes.desc&limit=1',{headers:H()});var d=await r.json();
     if(d&&d.length>0){GFC.forEach(function(c,i){if(d[0][GFKEYS[i]])document.getElementById('gf-'+c).value=d[0][GFKEYS[i]];});calcGF();}}catch(ex){}
