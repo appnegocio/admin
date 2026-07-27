@@ -587,7 +587,7 @@ tr:hover td{background:var(--g50)}
   <!-- CIERRE CAJA -->
   <div class="cscreen" id="sc-caja">
     <div class="csh"><button class="csh-back" onclick="cerrarScreen()"><svg fill="none" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span class="csh-t">Cierre de caja</span></div><div style="background:#E1F5EE;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid #9FE1CB" onclick="document.getElementById('caja-ayuda-panel').style.display='flex'"><span style="font-size:12px;color:#085041;font-weight:500">📖 ¿Cómo ingresar el cierre de caja?</span><span style="font-size:12px;color:#0d9e6e;font-weight:600">Ver guía →</span></div>
-    <div class="tabbar"><button class="tabbtn active" onclick="swTab('caja','form',this)">Ingresar</button><button class="tabbtn" onclick="if(cli.rol_usuario==='jefe_local'){alert('El historial solo está disponible para administradores');return;}swTab('caja','hist',this);loadCierresHistCel()">Historial</button></div>
+    <div class="tabbar"><button class="tabbtn active" onclick="swTab('caja','form',this)">Ingresar</button><button class="tabbtn" onclick="if(cli.rol_usuario==='jefe_local'){alert('El historial solo está disponible para administradores');return;}swTab('caja','hist',this);loadHist('cierres_caja','cj-hc',renderCajaHist)">Historial</button></div>
     <div class="csb">
       <div id="caja-form">
         <label class="fl">Fecha</label><input class="fi" type="date" id="cj-f">
@@ -624,12 +624,7 @@ tr:hover td{background:var(--g50)}
         <button class="fbtn" id="cj-btn" onclick="guardarCaja()">Guardar cierre del día</button>
         <div style="height:1rem"></div>
       </div>
-      <div id="caja-hist" style="display:none">
-        <div style="padding:.75rem 0 .5rem">
-          <select id="cj-hist-mes" onchange="loadCierresHistCel()" style="width:100%;height:40px;border:1px solid #c1c7cd;border-radius:8px;padding:0 12px;font-size:14px;font-family:inherit;color:#212529;background:white"></select>
-        </div>
-        <div id="cj-hc" class="ld">Cargando...</div>
-      </div>
+      <div id="caja-hist" style="display:none"><div id="cj-hc" class="ld">Cargando...</div></div>
     </div>
   </div>
 
@@ -1558,20 +1553,20 @@ async function loadR(){
       fetch(SU+'/rest/v1/facturas?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),
       fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&mes=eq.'+mesSel+'&anio=eq.'+a,{headers:H()}),
-      fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
+      fetch(SU+'/rest/v1/cierres_caja?select=total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
+      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
     ]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
     var cp=await rCp.json(),fp=await rFp.json(),pp=await rPp.json(),gp=await rGp.json();
     var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0);
-    var GF=g.length>0?((g[0].total||0)):0; // restamos sueldos de GF para evitar doble conteo con P
+    var GF=g.length>0?(g[0].total||0):0;
     var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0);
     var G=P+GF+GD,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
     // Mes anterior
     var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0);
-    var GFp=gp.length>0?((gp[0].total||0)):0;
+    var GFp=gp.length>0?(gp[0].total||0):0;
     var GDp=cp.reduce(function(s,r){return s+(r.gastos||0);},0);
     var Gp=Pp+GFp+GDp,Up=Vp-Cp-Gp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
     var diasMes=new Date(a,mesSel,0).getDate(),sinReg=diasMes-c.length;
@@ -1935,24 +1930,21 @@ async function loadDashCelResumen(mesParam,anioParam){
       fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2+'&order=fecha.desc',{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()}),
-      fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
+      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()}),
+      fetch(SU+'/rest/v1/cierres_caja?select=total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+dPrev+'&fecha=lt.'+h2Prev,{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
+      fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mesPrev+'&anio=eq.'+aPrev,{headers:H()})
     ]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
     var cp=await rCp.json(),fp=await rFp.json(),pp=await rPp.json(),gp=await rGp.json();
     var V=c.reduce(function(s,r){return s+(r.total_z||0);},0);
     var C=f.reduce(function(s,r){return s+(r.total||0);},0);
     var P=p.reduce(function(s,r){return s+(r.monto||0);},0);
-    var GF=g.length>0?((g[0].total||0)):0; // sin sueldos para evitar doble conteo
+    var GF=g.length>0?(g[0].total||0):0;
     var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0);
     var G=P+GF+GD,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
-    var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0);
-    var GFp=gp.length>0?((gp[0].total||0)):0;
-    var GDp=cp.reduce(function(s,r){return s+(r.gastos||0);},0);
-    var Gp=Pp+GFp+GDp,Up=Vp-Cp-Gp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
+    var Vp=cp.reduce(function(s,r){return s+(r.total_z||0);},0),Cp=fp.reduce(function(s,r){return s+(r.total||0);},0),Pp=pp.reduce(function(s,r){return s+(r.monto||0);},0),GFp=gp.length>0?(gp[0].total||0):0,Up=Vp-Cp-Pp-GFp,Mp=Vp>0?Math.round((Up/Vp)*100):0;
     var diasMes=new Date(a,mes,0).getDate(),sinReg=diasMes-c.length;
     var nMal=c.filter(function(r){return (r.diferencia||0)!==0;}).length;
     var h='<select id="dash-mes-sel" style="width:100%;height:34px;background:white;border:1px solid #c1c7cd;border-radius:8px;padding:0 10px;font-size:12px;color:#212529;margin-bottom:9px;font-family:inherit" onchange="dashCelCambiarMes(this.value)">';
@@ -2253,8 +2245,6 @@ function generarPDFCierre(r){
     +'<div class="row"><span>Caja final</span><span>'+f2(r.caja_final)+'</span></div>'
     +'<div class="sec">Medios de pago</div>'
     +'<div class="row"><span>Redcompra</span><span>'+f2(r.redcompra)+'</span></div>'
-    +'<div class="row"><span>Creditos Redbanc</span><span>'+f2(r.creditos_redbanc)+'</span></div>'
-    +'<div class="row"><span>Otro Redbanc</span><span>'+f2(r.otro_redbanc)+'</span></div>'
     +'<div class="row"><span>Transferencias</span><span>'+f2(r.transferencias)+'</span></div>'
     +'<div class="row"><span>Nulos / Vauchers</span><span>'+f2(r.nulos)+'</span></div>';
   if(gastos&&gastos.length){
@@ -3798,7 +3788,7 @@ async function guardarCajaPC(){
   try{
     var gastosDetalle=obtenerGastosLista('pcc-gastos-lista');
     var ingresosDetalle=obtenerGastosLista('pcc-ingresos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,local_efectivo:ci,local_tarjeta:ti,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,tarjeta_registrada:rc,tarjeta_informada:ti,creditos_redbanc:0,otro_redbanc:0,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,ventas_efectivo:z,local_efectivo:z,local_tarjeta:ti,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,tarjeta_registrada:rc,tarjeta_informada:ti,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){
       document.getElementById('pcc-ok').style.display='block';
       btn.textContent='✓ Guardado';
@@ -3816,7 +3806,6 @@ async function guardarCajaPC(){
     document.getElementById('pcc-err').textContent=mensajeError(ex);
     btn.disabled=false;btn.textContent='Guardar cierre';
   } finally {
-    // Siempre rehabilitar el botón por si algo falla silenciosamente
     if(btn.disabled&&btn.textContent==='Guardando...'){
       btn.disabled=false;btn.textContent='Guardar cierre';
     }
@@ -4248,7 +4237,7 @@ async function reporteBalance(){
       fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
       fetch(SU+'/rest/v1/facturas?select=fecha,total&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
       fetch(SU+'/rest/v1/pagos_personal?select=fecha,monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
-      fetch(SU+'/rest/v1/gastos_fijos?select=mes,total,sueldos&cliente_id=eq.'+cli.id+'&anio=eq.'+a,{headers:H()})
+      fetch(SU+'/rest/v1/gastos_fijos?select=mes,total&cliente_id=eq.'+cli.id+'&anio=eq.'+a,{headers:H()})
     ]);
     var c=await res[0].json(),f=await res[1].json(),p=await res[2].json(),g=await res[3].json();
     var meses=[];
@@ -4257,35 +4246,31 @@ async function reporteBalance(){
       var vv=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total_z||0);},0);
       var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
       var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
-      var gfRaw=(g.find(function(r){return r.mes===m;})||{});
-      var gf=(gfRaw.total||0);
-      var gd=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.gastos||0);},0);
+      var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
       var mb=vv-co;
-      meses.push({m:m,v:vv,co:co,su:su,gf:gf,gd:gd,mb:mb,eg:co+su+gf+gd,u:mb-su-gf-gd});
+      meses.push({m:m,v:vv,co:co,su:su,gf:gf,mb:mb,eg:co+su+gf,u:mb-su-gf});
     }
     var tV=meses.reduce(function(s,r){return s+r.v;},0);
     var tC=meses.reduce(function(s,r){return s+r.co;},0);
     var tS=meses.reduce(function(s,r){return s+r.su;},0);
     var tG=meses.reduce(function(s,r){return s+r.gf;},0);
-    var tGD=meses.reduce(function(s,r){return s+r.gd;},0);
     var tMB=tV-tC;
     var tMBpct=tV>0?Math.round((tMB/tV)*100):0;
-    var tU=tMB-tS-tG-tGD,tM=tV>0?Math.round((tU/tV)*100):0;
+    var tU=tMB-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
     var cuerpo='<div class="sec">Resumen anual '+a+'</div>'
       +'<div class="row"><span>Ventas totales</span><span class="pos">'+fmtR(tV)+'</span></div>'
       +'<div class="row"><span>Compras (facturas)</span><span class="neg">'+fmtR(tC)+'</span></div>'
       +'<div class="row tot"><span>Margen bruto</span><span class="'+(tMB>=0?'pos':'neg')+'">'+fmtR(tMB)+' ('+tMBpct+'%)</span></div>'
       +'<div class="row"><span>Personal</span><span class="neg">'+fmtR(tS)+'</span></div>'
       +'<div class="row"><span>Gastos fijos</span><span class="neg">'+fmtR(tG)+'</span></div>'
-      +'<div class="row"><span>Gastos del día</span><span class="neg">'+fmtR(tGD)+'</span></div>'
       +'<div class="row tot"><span>Utilidad neta</span><span class="'+(tU>=0?'pos':'neg')+'">'+fmtR(tU)+' ('+tM+'%)</span></div>'
       +'<div class="sec">Detalle mensual</div>'
-      +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Margen bruto</th><th>Personal</th><th>G.Fijos</th><th>G.Día</th><th>Utilidad</th></tr>';
+      +'<table><tr><th>Mes</th><th>Ventas</th><th>Compras</th><th>Margen bruto</th><th>Personal</th><th>G.Fijos</th><th>Utilidad</th></tr>';
     meses.forEach(function(r){
       var mbpct=r.v>0?Math.round((r.mb/r.v)*100):0;
       cuerpo+='<tr><td>'+MS[r.m-1]+'</td><td class="pos">'+fmtR(r.v)+'</td><td>'+fmtR(r.co)+'</td>'
         +'<td class="'+(r.mb>=0?'pos':'neg')+'">'+fmtR(r.mb)+' ('+mbpct+'%)</td>'
-        +'<td>'+fmtR(r.su)+'</td><td>'+fmtR(r.gf)+'</td><td>'+fmtR(r.gd)+'</td>'
+        +'<td>'+fmtR(r.su)+'</td><td>'+fmtR(r.gf)+'</td>'
         +'<td class="'+(r.u>=0?'pos':'neg')+'">'+fmtR(r.u)+'</td></tr>';
     });
     cuerpo+='</table>';
@@ -4401,7 +4386,7 @@ async function guardarCaja(){
   try{
     var gastosDetalle=obtenerGastosLista('cj-gastos-lista');
     var ingresosDetalle=obtenerGastosLista('cj-ingresos-lista');
-    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,local_efectivo:ci,local_tarjeta:ti,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,tarjeta_registrada:rc,tarjeta_informada:ti,creditos_redbanc:0,otro_redbanc:0,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja',{method:'POST',headers:HJ(),body:JSON.stringify({fecha,caja_inicial:ci,caja_final:cf,total_z:totalVentas,ventas_efectivo:z,local_efectivo:z,local_tarjeta:ti,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,tarjeta_registrada:rc,tarjeta_informada:ti,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtros,otros_ingresos_detalle:ingresosDetalle,diferencia:dif,cliente_id:cli.id})});
     if(r.ok){document.getElementById('cj-ok').style.display='block';btn.textContent='✓ Guardado';
       setTimeout(function(){['cj-ci','cj-cf','cj-z','cj-del-ef','cj-del-tj','cj-rc','cj-ti','cj-tr','cj-nu','cj-re','cj-ga'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('cj-gastos-lista').innerHTML='';document.getElementById('cj-ga-total').textContent='$0';document.getElementById('cj-ingresos-lista').innerHTML='';document.getElementById('cj-in-total').textContent='$0';document.getElementById('cj-in').value='0';var dt=document.getElementById('cj-del-total');if(dt)dt.textContent='$0';calcCaja();btn.disabled=false;btn.textContent='Guardar cierre del día';document.getElementById('cj-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
@@ -4721,37 +4706,6 @@ async function loadHist(tabla,elId,renderFn){
   catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
 }
 
-async function loadCierresHistCel(){
-  var sel=document.getElementById('cj-hist-mes');
-  // Inicializar selector si está vacío
-  if(!sel.options.length){
-    var h2=new Date();
-    for(var i=0;i<12;i++){
-      var d=new Date(h2.getFullYear(),h2.getMonth()-i,1);
-      var v=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      var o=document.createElement('option');
-      o.value=v;
-      o.textContent=MS[d.getMonth()]+' '+d.getFullYear();
-      sel.appendChild(o);
-    }
-  }
-  var v=sel.value;
-  var parts=v.split('-');
-  var anio=parseInt(parts[0]);var mes=parseInt(parts[1]);
-  var d1=anio+'-'+String(mes).padStart(2,'0')+'-01';
-  var nm=new Date(anio,mes,1);
-  var d2=nm.getFullYear()+'-'+String(nm.getMonth()+1).padStart(2,'0')+'-01';
-  var el=document.getElementById('cj-hc');
-  el.innerHTML='<div class="ld">Cargando...</div>';
-  try{
-    var r=await fetch(SU+'/rest/v1/cierres_caja?select=*&cliente_id=eq.'+cli.id+'&fecha=gte.'+d1+'&fecha=lt.'+d2+'&order=fecha.desc',{headers:H()});
-    var data=await r.json();
-    if(!data||!data.length){el.innerHTML='<div class="empty">Sin cierres en '+MS[mes-1]+' '+anio+'</div>';return;}
-    el.innerHTML='';
-    data.forEach(function(r){renderCajaHist(r,el);});
-  }catch(ex){el.innerHTML='<div class="ld">Error al cargar</div>';}
-}
-
 function renderCajaHist(d){
   var meses={};
   d.forEach(function(r){
@@ -4896,21 +4850,12 @@ async function loadReporte(){
   var el=document.getElementById('rp-ct');el.innerHTML='<div class="ld">Calculando...</div>';
   var d=a+'-'+String(mes).padStart(2,'0')+'-01',mf=mes===12?1:mes+1,af=mes===12?a+1:a,h2=af+'-'+String(mf).padStart(2,'0')+'-01';
   try{
-    var [rC,rF,rP,rG]=await Promise.all([fetch(SU+'/rest/v1/cierres_caja?select=total_z&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/gastos_fijos?select=total,sueldos&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()})]);
+    var [rC,rF,rP,rG]=await Promise.all([fetch(SU+'/rest/v1/cierres_caja?select=total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/facturas?select=total&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/pagos_personal?select=monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+d+'&fecha=lt.'+h2,{headers:H()}),fetch(SU+'/rest/v1/gastos_fijos?select=total&cliente_id=eq.'+cli.id+'&mes=eq.'+mes+'&anio=eq.'+a,{headers:H()})]);
     var c=await rC.json(),f=await rF.json(),p=await rP.json(),g=await rG.json();
-    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0),GF=g.length>0?((g[0].total||0)):0;
+    var V=c.reduce(function(s,r){return s+(r.total_z||0);},0),C=f.reduce(function(s,r){return s+(r.total||0);},0),P=p.reduce(function(s,r){return s+(r.monto||0);},0),GF=g.length>0?(g[0].total||0):0;
     var GD=c.reduce(function(s,r){return s+(r.gastos||0);},0);
     var G=P+GF+GD,U=V-C-G,M=V>0?Math.round((U/V)*100):0;
-    var MB=V-C,MBpct=V>0?Math.round((MB/V)*100):0;
-    el.innerHTML='<div class="fres '+(U>=0?'ok':'bad')+'" style="margin:0 0 1rem"><div class="fres-l">Utilidad neta — '+MS[mes-1]+'</div><div class="fres-v">'+fmt(U)+'</div><div class="fres-h">Margen '+M+'%</div></div>'
-      +'<div class="hitem">'
-      +'<div class="hrow"><span>Ventas ('+c.length+' días)</span><span style="color:var(--vd);font-weight:500">'+fmt(V)+'</span></div>'
-      +'<div class="hrow"><span>Compras</span><span style="color:var(--r)">'+fmt(C)+'</span></div>'
-      +'<div class="hrow" style="border-top:0.5px solid #c1c7cd;padding-top:5px;margin-top:5px"><span style="font-weight:500">Margen bruto</span><span style="font-weight:500;color:'+(MB>=0?'var(--vd)':'var(--r)')+'">'+fmt(MB)+' ('+MBpct+'%)</span></div>'
-      +'<div class="hrow" style="margin-top:5px"><span>Personal</span><span style="color:var(--r)">'+fmt(P)+'</span></div>'
-      +'<div class="hrow"><span>Gastos fijos</span><span style="color:var(--r)">'+fmt(GF)+'</span></div>'
-      +'<div class="hrow"><span>Gastos del día</span><span style="color:var(--r)">'+fmt(GD)+'</span></div>'
-      +'</div>';
+    el.innerHTML='<div class="fres '+(U>=0?'ok':'bad')+'" style="margin:0 0 1rem"><div class="fres-l">Utilidad neta — '+MS[mes-1]+'</div><div class="fres-v">'+fmt(U)+'</div><div class="fres-h">Margen '+M+'%</div></div><div class="hitem"><div class="hrow"><span>Ventas ('+c.length+' días)</span><span style="color:var(--vd);font-weight:500">'+fmt(V)+'</span></div><div class="hrow"><span>Compras</span><span style="color:var(--r)">'+fmt(C)+'</span></div><div class="hrow"><span>Personal</span><span style="color:var(--r)">'+fmt(P)+'</span></div><div class="hrow"><span>Gastos fijos</span><span style="color:var(--r)">'+fmt(GF)+'</span></div></div>';
   }catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
 }
 
@@ -4927,22 +4872,18 @@ async function loadBalCel(){
         fetch(SU+'/rest/v1/cierres_caja?select=fecha,total_z,gastos&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
         fetch(SU+'/rest/v1/facturas?select=fecha,total&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
         fetch(SU+'/rest/v1/pagos_personal?select=fecha,monto&cliente_id=eq.'+cli.id+'&fecha=gte.'+a+'-01-01&fecha=lt.'+(a+1)+'-01-01&limit=500',{headers:H()}),
-        fetch(SU+'/rest/v1/gastos_fijos?select=mes,total,sueldos&cliente_id=eq.'+cli.id+'&anio=eq.'+a,{headers:H()})
+        fetch(SU+'/rest/v1/gastos_fijos?select=mes,total&cliente_id=eq.'+cli.id+'&anio=eq.'+a,{headers:H()})
       ]);
       var c=await res[0].json(),f=await res[1].json(),p=await res[2].json(),g=await res[3].json();
-      var tV=0,tC=0,tS=0,tG=0,tGD=0,tieneDatos=false,mesesHtml='';
+      var tV=0,tC=0,tS=0,tG=0,tieneDatos=false,mesesHtml='';
       for(var m=1;m<=12;m++){
         var pf=a+'-'+String(m).padStart(2,'0');
         var vv=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total_z||0);},0);
         var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
         var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
-        var gfRaw=(g.find(function(r){return r.mes===m;})||{});
-        var gf=(gfRaw.total||0);
-        var gd=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.gastos||0);},0);
-        var mb=vv-co;
-        var result=mb-su-gf-gd,mar=vv>0?Math.round((result/vv)*100):0;
-        var mbpct=vv>0?Math.round((mb/vv)*100):0;
-        tV+=vv;tC+=co;tS+=su;tG+=gf;tGD=(tGD||0)+gd;
+        var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
+        var result=vv-co-su-gf,mar=vv>0?Math.round((result/vv)*100):0;
+        tV+=vv;tC+=co;tS+=su;tG+=gf;
         if(vv>0||gf>0){
           tieneDatos=true;
           var mid='bal'+a+'m'+m;
@@ -4954,18 +4895,15 @@ async function loadBalCel(){
           mesesHtml+='<div id="'+mid+'" style="display:none;padding:10px 12px;background:var(--g50);border-top:1px solid #c1c7cd">';
           mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--v);border-radius:2px;display:inline-block"></span>Ventas</span><span style="font-weight:500;color:var(--vd)">'+fmt(vv)+'</span></div>';
           mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--r);border-radius:2px;display:inline-block"></span>Compras</span><span>'+fmt(co)+'</span></div>';
-          mesesHtml+='<div class="hrow" style="border-top:0.5px solid #c1c7cd;padding-top:5px;margin-top:5px"><span style="font-weight:500">Margen bruto</span><span style="font-weight:500;color:'+(mb>=0?'var(--vd)':'var(--r)')+'">'+fmt(mb)+' ('+(mbpct>0?'+':'')+mbpct+'%)</span></div>';
-          mesesHtml+='<div class="hrow" style="margin-top:5px"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Personal</span><span>'+fmt(su)+'</span></div>';
+          mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Sueldos</span><span>'+fmt(su)+'</span></div>';
           mesesHtml+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--az);border-radius:2px;display:inline-block"></span>Gastos fijos</span><span>'+fmt(gf)+'</span></div>';
-          mesesHtml+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Utilidad neta</span><span style="font-weight:500;color:'+clr+'">'+fmt(result)+'</span></div>';
-          mesesHtml+='<div class="hrow"><span style="font-weight:500">Margen neto</span><span style="font-weight:500;color:'+clr+'">'+(mar>0?'+':'')+mar+'%</span></div>';
+          mesesHtml+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Resultado</span><span style="font-weight:500;color:'+clr+'">'+fmt(result)+'</span></div>';
+          mesesHtml+='<div class="hrow"><span style="font-weight:500">Margen</span><span style="font-weight:500;color:'+clr+'">'+(mar>0?'+':'')+mar+'%</span></div>';
           mesesHtml+='</div></div>';
         }
       }
       if(!tieneDatos)continue;
-      var tMB=tV-tC;
-      var tMBpct=tV>0?Math.round((tMB/tV)*100):0;
-      var tR=tMB-tS-tG-tGD,tM=tV>0?Math.round((tR/tV)*100):0;
+      var tR=tV-tC-tS-tG,tM=tV>0?Math.round((tR/tV)*100):0;
       var anoId='balano'+a;
       var abierto=a===aAct;
       var clrAno=tR>=0?'var(--vd)':'var(--r)';
@@ -4977,11 +4915,10 @@ async function loadBalCel(){
       html+='<div class="hitem" style="margin-bottom:8px">';
       html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--v);border-radius:2px;display:inline-block"></span>Ventas</span><span style="font-weight:500;color:var(--vd)">'+fmt(tV)+'</span></div>';
       html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--r);border-radius:2px;display:inline-block"></span>Compras</span><span>'+fmt(tC)+'</span></div>';
-      html+='<div class="hrow" style="border-top:0.5px solid #c1c7cd;padding-top:5px;margin-top:5px"><span style="font-weight:500">Margen bruto</span><span style="font-weight:500;color:'+(tMB>=0?'var(--vd)':'var(--r)')+'">'+fmt(tMB)+' ('+(tMBpct>0?'+':'')+tMBpct+'%)</span></div>';
-      html+='<div class="hrow" style="margin-top:5px"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Personal</span><span>'+fmt(tS)+'</span></div>';
+      html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--a);border-radius:2px;display:inline-block"></span>Sueldos</span><span>'+fmt(tS)+'</span></div>';
       html+='<div class="hrow"><span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--az);border-radius:2px;display:inline-block"></span>Gastos fijos</span><span>'+fmt(tG)+'</span></div>';
-      html+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Utilidad neta</span><span style="font-weight:500;color:'+clrAno+'">'+fmt(tR)+'</span></div>';
-      html+='<div class="hrow"><span style="font-weight:500">Margen neto</span><span style="font-weight:500;color:'+clrAno+'">'+(tM>0?'+':'')+tM+'%</span></div>';
+      html+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:6px;padding-top:6px"><span style="font-weight:500">Resultado anual</span><span style="font-weight:500;color:'+clrAno+'">'+fmt(tR)+'</span></div>';
+      html+='<div class="hrow"><span style="font-weight:500">Margen</span><span style="font-weight:500;color:'+clrAno+'">'+(tM>0?'+':'')+tM+'%</span></div>';
       html+='</div>'+mesesHtml+'</div></div>';
     }
     el.innerHTML=html||'<div class="empty">Sin datos registrados</div>';
@@ -5021,23 +4958,20 @@ async function loadB(anioSel){
       var vv=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total_z||0);},0);
       var co=f.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.total||0);},0);
       var su=p.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.monto||0);},0);
-      var gfRaw=(g.find(function(r){return r.mes===m;})||{});
-      var gf=(gfRaw.total||0);
-      var gd=c.filter(function(r){return r.fecha&&r.fecha.startsWith(pf);}).reduce(function(s,r){return s+(r.gastos||0);},0);
+      var gf=(g.find(function(r){return r.mes===m;})||{}).total||0;
       var mb=vv-co;
-      var eg=co+su+gf+gd,u=mb-su-gf-gd;
+      var eg=co+su+gf,u=mb-su-gf;
       if(vv>maxV)maxV=vv;
-      data.push({m:m,v:vv,co:co,su:su,gf:gf,gd:gd,mb:mb,eg:eg,u:u,td:vv>0||eg>0});
+      data.push({m:m,v:vv,co:co,su:su,gf:gf,mb:mb,eg:eg,u:u,td:vv>0||eg>0});
     }
     if(!maxV)maxV=1;
     var tV=data.reduce(function(s,r){return s+r.v;},0);
     var tC=data.reduce(function(s,r){return s+r.co;},0);
     var tS=data.reduce(function(s,r){return s+r.su;},0);
     var tG=data.reduce(function(s,r){return s+r.gf;},0);
-    var tGD=data.reduce(function(s,r){return s+r.gd;},0);
     var tMB=tV-tC;
     var tMBpct=tV>0?Math.round((tMB/tV)*100):0;
-    var tU=tMB-tS-tG-tGD,tM=tV>0?Math.round((tU/tV)*100):0;
+    var tU=tMB-tS-tG,tM=tV>0?Math.round((tU/tV)*100):0;
 
     // KPIs
     var h='<div class="kgrid" style="grid-template-columns:repeat(6,1fr);margin-bottom:1.5rem">';
@@ -6315,21 +6249,22 @@ function editCaja(r){
   document.getElementById('mcj-f').value=r.fecha;
   document.getElementById('mcj-ci').value=r.caja_inicial||0;
   document.getElementById('mcj-cf').value=r.caja_final||0;
-  // Lógica definitiva: usar la mejor tarjeta disponible
-  // tarjeta_informada > tarjeta_registrada > redcompra
-  var _ti=r.tarjeta_informada||r.tarjeta_registrada||(r.redcompra||0)||0;
-  var _tr=r.transferencias||0;
-  var _delEf=r.delivery_efectivo||0;
-  var _delTj=r.delivery_tarjeta||0;
-  var _otros=r.otros_ingresos||0;
-  var _nu=r.nulos||0;
+  // Si existe ventas_efectivo guardado, usarlo directo — sino fallback para cierres viejos
   var _z;
-  // Si hay tarjeta Y total_z es mayor que solo la tarjeta → total_z incluye todo → calcular efectivo
-  if(_ti>0&&(r.total_z||0)>_ti){
-    _z=(r.total_z||0)-_ti-_tr-_delEf-_delTj-_otros+_nu;
+  if(r.ventas_efectivo>0){
+    _z=r.ventas_efectivo;
   } else {
-    // total_z ya es solo efectivo (cierre viejo puro)
-    _z=r.total_z||0;
+    var _ti=r.tarjeta_informada||r.tarjeta_registrada||(r.redcompra||0)||0;
+    var _tr=r.transferencias||0;
+    var _delEf=r.delivery_efectivo||0;
+    var _delTj=r.delivery_tarjeta||0;
+    var _otros=r.otros_ingresos||0;
+    var _nu=r.nulos||0;
+    if(_ti>0&&(r.total_z||0)>_ti){
+      _z=(r.total_z||0)-_ti-_tr-_delEf-_delTj-_otros+_nu;
+    } else {
+      _z=r.total_z||0;
+    }
   }
   document.getElementById('mcj-z').value=Math.max(0,_z);
   document.getElementById('mcj-rc').value=r.tarjeta_registrada||r.redcompra||0;
@@ -6387,7 +6322,7 @@ async function guardarEditCaja(){
     var gastosDetalle=obtenerGastosLista('mcj-gastos-lista');
     var ingresosDetalleM=obtenerGastosLista('mcj-ingresos-lista');
     var inOtrosM2=mv('mcj-in');
-    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:totalVentas,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,tarjeta_registrada:rc,tarjeta_informada:ti,creditos_redbanc:0,otro_redbanc:0,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtrosM2,otros_ingresos_detalle:ingresosDetalleM,diferencia:dif})});
+    var r=await fetch(SU+'/rest/v1/cierres_caja?id=eq.'+id+'&cliente_id=eq.'+cli.id,{method:'PATCH',headers:HJ(),body:JSON.stringify({fecha:document.getElementById('mcj-f').value,caja_inicial:ci,caja_final:cf,total_z:totalVentas,ventas_efectivo:z,local_efectivo:z,delivery_efectivo:delEf,delivery_tarjeta:delTj,redcompra:rc,tarjeta_registrada:rc,tarjeta_informada:ti,transferencias:tr,nulos:nu,retiros:re,gastos:ga,gastos_detalle:gastosDetalle,otros_ingresos:inOtrosM2,otros_ingresos_detalle:ingresosDetalleM,diferencia:dif})});
     if(r.ok){cerrarModal('caja');dpage('cierres',document.querySelector('.sb-item.active'));}
     else throw new Error(await r.text());
   }catch(ex){alert(mensajeError(ex));}
