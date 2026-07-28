@@ -4074,7 +4074,7 @@ function abrirModalAbono(id,saldo,proveedor){
 }
 
 async function guardarAbono(){
-  var monto=parseFloat(document.getElementById('mab-monto').value)||0;
+  var monto=parseFloat((document.getElementById('mab-monto').value||'0').replace(/\./g,'').replace(',','.'))||0;
   if(!monto){alert('Ingresa el monto del abono');return;}
   var fecha=document.getElementById('mab-fecha').value;
   if(!fecha){alert('Ingresa la fecha');return;}
@@ -6772,7 +6772,7 @@ setInterval(function(){
     <label class="modal-label">Fecha del abono</label>
     <input class="modal-input" type="date" id="mab-fecha">
     <label class="modal-label">Monto</label>
-    <input class="modal-input" type="number" id="mab-monto" placeholder="0">
+    <input class="modal-input" type="text" inputmode="numeric" id="mab-monto" placeholder="$0" oninput="fmtInput(this)">
     <label class="modal-label">Nota (opcional)</label>
     <input class="modal-input" type="text" id="mab-nota" placeholder="Ej: Primer abono, transferencia...">
     <div class="modal-btns">
