@@ -3410,8 +3410,14 @@ function toggleOtrosDetalle(id){
 // ══════════════════════════════════════
 function calcModalFV(){
   var n=parseCLP(document.getElementById('mfv-neto').value);
-  var i=parseCLP(document.getElementById('mfv-iva').value);
-  document.getElementById('mfv-total').value=Math.round(n+i)||'';
+  var ivaEl=document.getElementById('mfv-iva');
+  if(!ivaEl.value||parseCLP(ivaEl.value)===0){
+    var iva=Math.round(n*0.19);
+    ivaEl.value=iva>0?iva.toLocaleString('es-CL'):'';
+  }
+  var i=parseCLP(ivaEl.value);
+  var total=Math.round(n+i);
+  document.getElementById('mfv-total').value=total>0?total.toLocaleString('es-CL'):'';
 }
 
 async function loadFactVentasDash(){
@@ -3611,8 +3617,15 @@ async function eliminarFactVenta(id,nombre){
 // ── Facturas de venta celular ──
 function calcFVC(){
   var n=parseCLP(document.getElementById('fvc-neto').value);
-  var i=parseCLP(document.getElementById('fvc-iva').value);
-  document.getElementById('fvc-total').value=Math.round(n+i)||'';
+  // Calcular IVA automáticamente si el campo está vacío
+  var ivaEl=document.getElementById('fvc-iva');
+  if(!ivaEl.value||parseCLP(ivaEl.value)===0){
+    var iva=Math.round(n*0.19);
+    ivaEl.value=iva>0?iva.toLocaleString('es-CL'):'';
+  }
+  var i=parseCLP(ivaEl.value);
+  var total=Math.round(n+i);
+  document.getElementById('fvc-total').value=total>0?total.toLocaleString('es-CL'):'';
 }
 
 function setEstadoFVC(estado){
@@ -4445,8 +4458,13 @@ async function togglePagado(id,actual){
 
 
 function calcFact(){
-  var ne=v('ft-ne');if(ne>0&&!v('ft-iv'))document.getElementById('ft-iv').value=Math.round(ne*.19);
-  var t=v('ft-ne')+v('ft-iv')+v('ft-im');if(t>0)document.getElementById('ft-to').value=t;
+  var ne=v('ft-ne');
+  if(ne>0&&!v('ft-iv')){
+    var iva=Math.round(ne*.19);
+    document.getElementById('ft-iv').value=iva.toLocaleString('es-CL');
+  }
+  var t=v('ft-ne')+v('ft-iv')+v('ft-im');
+  if(t>0)document.getElementById('ft-to').value=t.toLocaleString('es-CL');
 }
 async function guardarFact(){
   var pv=document.getElementById('ft-pv').value.trim();if(!pv){alert('Ingresa el proveedor');return;}
@@ -6468,8 +6486,12 @@ function editFact(r){
 }
 function calcModalFact(){
   var ne=mv('mft-ne'),iv=mv('mft-iv');
-  if(ne>0&&!iv)document.getElementById('mft-iv').value=Math.round(ne*.19);
-  var t=mv('mft-ne')+mv('mft-iv')+mv('mft-im');if(t>0)document.getElementById('mft-to').value=t;
+  if(ne>0&&!iv){
+    var iva=Math.round(ne*.19);
+    document.getElementById('mft-iv').value=iva.toLocaleString('es-CL');
+  }
+  var t=mv('mft-ne')+mv('mft-iv')+mv('mft-im');
+  if(t>0)document.getElementById('mft-to').value=t.toLocaleString('es-CL');
 }
 async function guardarEditFact(){
   var id=document.getElementById('mft-id').value;
