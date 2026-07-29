@@ -3409,8 +3409,8 @@ function toggleOtrosDetalle(id){
 // FACTURAS DE VENTA
 // ══════════════════════════════════════
 function calcModalFV(){
-  var n=parseFloat(document.getElementById('mfv-neto').value)||0;
-  var i=parseFloat(document.getElementById('mfv-iva').value)||0;
+  var n=parseCLP(document.getElementById('mfv-neto').value);
+  var i=parseCLP(document.getElementById('mfv-iva').value);
   document.getElementById('mfv-total').value=Math.round(n+i)||'';
 }
 
@@ -3610,8 +3610,8 @@ async function eliminarFactVenta(id,nombre){
 
 // ── Facturas de venta celular ──
 function calcFVC(){
-  var n=parseFloat(document.getElementById('fvc-neto').value)||0;
-  var i=parseFloat(document.getElementById('fvc-iva').value)||0;
+  var n=parseCLP(document.getElementById('fvc-neto').value);
+  var i=parseCLP(document.getElementById('fvc-iva').value);
   document.getElementById('fvc-total').value=Math.round(n+i)||'';
 }
 
@@ -4726,12 +4726,12 @@ function toggleFormGFPC(){
   }
 }
 function calcGFPC(){
-  var pr=parseFloat(document.getElementById('gfpc-pr').value)||0;
-  var ar=parseFloat(document.getElementById('gfpc-ar').value)||0;
-  var lu=parseFloat(document.getElementById('gfpc-lu').value)||0;
-  var cr=parseFloat(document.getElementById('gfpc-cr').value)||0;
-  var co=parseFloat(document.getElementById('gfpc-co').value)||0;
-  var ot=parseFloat(document.getElementById('gfpc-ot').value)||0;
+  var pr=parseCLP(document.getElementById('gfpc-pr').value);
+  var ar=parseCLP(document.getElementById('gfpc-ar').value);
+  var lu=parseCLP(document.getElementById('gfpc-lu').value);
+  var cr=parseCLP(document.getElementById('gfpc-cr').value);
+  var co=parseCLP(document.getElementById('gfpc-co').value);
+  var ot=parseCLP(document.getElementById('gfpc-ot').value);
   document.getElementById('gfpc-tv').textContent=fmt(pr+ar+lu+cr+co+ot);
 }
 function agregarOtroGFPC(){
@@ -4755,12 +4755,12 @@ function recalcOtrosGFPC(){
   calcGFPC();
 }
 async function guardarGFPC(){
-  var pr=parseFloat(document.getElementById('gfpc-pr').value)||0;
-  var ar=parseFloat(document.getElementById('gfpc-ar').value)||0;
-  var lu=parseFloat(document.getElementById('gfpc-lu').value)||0;
-  var cr=parseFloat(document.getElementById('gfpc-cr').value)||0;
-  var co=parseFloat(document.getElementById('gfpc-co').value)||0;
-  var ot=parseFloat(document.getElementById('gfpc-ot').value)||0;
+  var pr=parseCLP(document.getElementById('gfpc-pr').value);
+  var ar=parseCLP(document.getElementById('gfpc-ar').value);
+  var lu=parseCLP(document.getElementById('gfpc-lu').value);
+  var cr=parseCLP(document.getElementById('gfpc-cr').value);
+  var co=parseCLP(document.getElementById('gfpc-co').value);
+  var ot=parseCLP(document.getElementById('gfpc-ot').value);
   var lista=document.getElementById('gfpc-otros-lista');
   var otrosDetalle=Array.from(lista.children).map(function(div){
     var inputs=div.querySelectorAll('input');
