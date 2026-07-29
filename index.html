@@ -657,7 +657,7 @@ tr:hover td{background:var(--g50)}
           </div>
         </div>
         <label class="fl">Total</label>
-        <input class="fi" type="number" id="fvc-total" placeholder="0" readonly style="background:var(--g50)">
+        <input class="fi" type="text" id="fvc-total" placeholder="0" readonly style="background:var(--g50)">
         <label class="fl">Fecha vencimiento</label>
         <input class="fi" type="date" id="fvc-venc">
         <label class="fl">Estado</label>
@@ -699,7 +699,7 @@ tr:hover td{background:var(--g50)}
         <div class="fdiv">Montos</div>
         <label class="fl">Monto neto</label><input class="fi" type="text" inputmode="numeric" id="ft-ne" placeholder="0" oninput="fmtInput(this);calcFact()">
         <div class="fg2"><div><label class="fl">IVA</label><input class="fi" type="text" inputmode="numeric" id="ft-iv" placeholder="0" oninput="fmtInput(this);calcFact()"></div><div><label class="fl">Impuesto</label><input class="fi" type="text" inputmode="numeric" id="ft-im" placeholder="0" oninput="fmtInput(this);calcFact()"></div></div>
-        <label class="fl">Total</label><input class="fi" type="text" inputmode="numeric" id="ft-to" placeholder="0" oninput="fmtInput(this)">
+        <label class="fl">Total</label><input class="fi" type="text" id="ft-to" placeholder="0" readonly style="background:var(--g50)">
         <label class="fl">Estado de pago</label>
         <div style="display:flex;gap:10px;margin-top:4px">
           <button type="button" id="ft-pg-no" onclick="selPago(false)" style="flex:1;height:48px;border:2px solid #c1c7cd;border-radius:10px;background:white;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g500)">❌ No pagado</button>
@@ -1136,7 +1136,7 @@ tr:hover td{background:var(--g50)}
     <div class="modal-div">Montos</div>
     <label class="modal-label">Monto neto</label><input class="modal-input" type="text" inputmode="numeric" id="mft-ne" oninput="fmtInput(this);calcModalFact()">
     <div class="modal-grid2"><div><label class="modal-label">IVA</label><input class="modal-input" type="text" inputmode="numeric" id="mft-iv" oninput="fmtInput(this);calcModalFact()"></div><div><label class="modal-label">Impuesto</label><input class="modal-input" type="text" inputmode="numeric" id="mft-im" oninput="fmtInput(this);calcModalFact()"></div></div>
-    <label class="modal-label">Total</label><input class="modal-input" type="text" inputmode="numeric" id="mft-to" oninput="fmtInput(this)">
+    <label class="modal-label">Total</label><input class="modal-input" type="text" id="mft-to" readonly style="background:var(--g50)">
     <label class="modal-label">Estado de pago</label>
     <select class="modal-select" id="mft-pagado">
       <option value="false">❌ No pagado</option>
@@ -1311,7 +1311,7 @@ tr:hover td{background:var(--g50)}
       </div>
       <div>
         <label class="modal-label">Total</label>
-        <input class="modal-input" type="number" id="mfv-total" placeholder="0" readonly style="background:var(--g50)">
+        <input class="modal-input" type="text" id="mfv-total" placeholder="0" readonly style="background:var(--g50)">
       </div>
       <div>
         <label class="modal-label">Fecha vencimiento</label>
@@ -3410,12 +3410,7 @@ function toggleOtrosDetalle(id){
 // ══════════════════════════════════════
 function calcModalFV(){
   var n=parseCLP(document.getElementById('mfv-neto').value);
-  var ivaEl=document.getElementById('mfv-iva');
-  if(!ivaEl.value||parseCLP(ivaEl.value)===0){
-    var iva=Math.round(n*0.19);
-    ivaEl.value=iva>0?iva.toLocaleString('es-CL'):'';
-  }
-  var i=parseCLP(ivaEl.value);
+  var i=parseCLP(document.getElementById('mfv-iva').value);
   var total=Math.round(n+i);
   document.getElementById('mfv-total').value=total>0?total.toLocaleString('es-CL'):'';
 }
@@ -3617,13 +3612,7 @@ async function eliminarFactVenta(id,nombre){
 // ── Facturas de venta celular ──
 function calcFVC(){
   var n=parseCLP(document.getElementById('fvc-neto').value);
-  // Calcular IVA automáticamente si el campo está vacío
-  var ivaEl=document.getElementById('fvc-iva');
-  if(!ivaEl.value||parseCLP(ivaEl.value)===0){
-    var iva=Math.round(n*0.19);
-    ivaEl.value=iva>0?iva.toLocaleString('es-CL'):'';
-  }
-  var i=parseCLP(ivaEl.value);
+  var i=parseCLP(document.getElementById('fvc-iva').value);
   var total=Math.round(n+i);
   document.getElementById('fvc-total').value=total>0?total.toLocaleString('es-CL'):'';
 }
@@ -4458,11 +4447,6 @@ async function togglePagado(id,actual){
 
 
 function calcFact(){
-  var ne=v('ft-ne');
-  if(ne>0&&!v('ft-iv')){
-    var iva=Math.round(ne*.19);
-    document.getElementById('ft-iv').value=iva.toLocaleString('es-CL');
-  }
   var t=v('ft-ne')+v('ft-iv')+v('ft-im');
   if(t>0)document.getElementById('ft-to').value=t.toLocaleString('es-CL');
 }
@@ -6485,11 +6469,6 @@ function editFact(r){
   abrirModal('fact');
 }
 function calcModalFact(){
-  var ne=mv('mft-ne'),iv=mv('mft-iv');
-  if(ne>0&&!iv){
-    var iva=Math.round(ne*.19);
-    document.getElementById('mft-iv').value=iva.toLocaleString('es-CL');
-  }
   var t=mv('mft-ne')+mv('mft-iv')+mv('mft-im');
   if(t>0)document.getElementById('mft-to').value=t.toLocaleString('es-CL');
 }
