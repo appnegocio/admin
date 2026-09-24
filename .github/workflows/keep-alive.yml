@@ -1,0 +1,17 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 10 */5 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            "https://xeitfaxkatsejyyokhwa.supabase.co/rest/v1/clientes?select=id&limit=1" \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlaXRmYXhrYXRzZWp5eW9raHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2MTk0NTIsImV4cCI6MjAyODE5NTQ1Mn0.RSNnNsLbMkPsk8MBdVE0JkSRLjTmrWAW1GX0Gmj2ons"
+          echo "Ping completado"
