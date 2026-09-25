@@ -575,7 +575,8 @@ tr:hover td{background:var(--g50)}
     </div>
   </div>
 
-</div>
+  <!-- SCREEN DASHBOARD CEL -->
+  <div class="cscreen" id="sc-dash">
     <div class="csh"><button class="csh-back" onclick="irInicio()"><svg fill="none" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><div><div style="font-size:15px;font-weight:500;color:white" id="dash-neg"></div><div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:2px" id="dash-fecha"></div></div></div>
     <div class="tabbar"><button class="tabbtn active" onclick="swDashTab('resumen',this)">Resumen</button><button class="tabbtn" onclick="swDashTab('detalle',this)">Detalle</button></div>
     <div class="csb" id="dash-body">
@@ -776,9 +777,6 @@ tr:hover td{background:var(--g50)}
       <div class="fmsg ok" id="gf-ok">✓ Gastos guardados correctamente</div>
       <div class="fmsg err" id="gf-err">Error al guardar</div>
       <button class="fbtn" id="gf-btn" onclick="guardarGF()">Guardar gastos del mes</button>
-      <div style="height:1.5rem"></div>
-      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#adb5bd;margin-bottom:8px">Historial</div>
-      <div id="gf-hist-cel"><div class="ld">Cargando...</div></div>
       <div style="height:1rem"></div>
     </div>
   </div>
@@ -1902,7 +1900,6 @@ function abrirScreen(n){
     ['cel-cfg-neg-ok','cel-cfg-neg-err','cel-cfg-pass-ok','cel-cfg-pass-err'].forEach(function(id){document.getElementById(id).style.display='none';});
     loadConfigUsuariosCel();
   }
-  if(n==='gf')loadGFHistCel();
   if(n==='prop'){
     var pf=document.getElementById('prop-fecha');
     if(!pf.value)pf.value=hoy.toISOString().split('T')[0];
@@ -4795,45 +4792,6 @@ async function guardarGFPC(){
   }catch(ex){err.textContent=mensajeError(ex);err.style.display='block';}
   btn.disabled=false;btn.textContent='Guardar gastos';
 }
-async function loadGFHistCel(){
-  var el=document.getElementById('gf-hist-cel');
-  if(!el)return;
-  try{
-    var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.desc,mes.desc&limit=12',{headers:H()});
-    var d=await r.json();
-    if(!d||!d.length){el.innerHTML='<div class="empty">Sin gastos registrados</div>';return;}
-    var h='';
-    d.forEach(function(g){
-      var mid='gfhc-'+g.mes+'-'+g.anio;
-      h+='<div style="border:1px solid #c1c7cd;border-radius:10px;margin-bottom:8px;overflow:hidden">';
-      h+='<div class="bal-toggle" data-target="'+mid+'" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:white;cursor:pointer">';
-      h+='<span style="font-size:14px;font-weight:500;color:#212529">'+MS[g.mes-1]+' '+g.anio+'</span>';
-      h+='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:500;color:var(--r)">'+fmt(g.total||0)+'</span><span style="color:#adb5bd">▼</span></div></div>';
-      h+='<div id="'+mid+'" style="display:none;padding:10px 12px;background:var(--g50);border-top:1px solid #c1c7cd">';
-      if(g.previred)h+='<div class="hrow"><span>Previred</span><span>'+fmt(g.previred)+'</span></div>';
-      if(g.arriendo)h+='<div class="hrow"><span>Arriendo</span><span>'+fmt(g.arriendo)+'</span></div>';
-      if(g.luz)h+='<div class="hrow"><span>Luz</span><span>'+fmt(g.luz)+'</span></div>';
-      if(g.credito)h+='<div class="hrow"><span>Crédito</span><span>'+fmt(g.credito)+'</span></div>';
-      if(g.contabilidad)h+='<div class="hrow"><span>Contabilidad</span><span>'+fmt(g.contabilidad)+'</span></div>';
-      if(g.otros)h+='<div class="hrow"><span>Otros</span><span>'+fmt(g.otros)+'</span></div>';
-      if(g.otros_detalle&&g.otros_detalle.length){
-        g.otros_detalle.forEach(function(o){
-          h+='<div class="hrow" style="padding-left:12px"><span style="color:#adb5bd">↳ '+o.desc+'</span><span>'+fmt(o.monto)+'</span></div>';
-        });
-      }
-      h+='<div class="hrow" style="border-top:1px solid #c1c7cd;margin-top:4px;padding-top:6px"><span style="font-weight:500">Total</span><span style="font-weight:500;color:var(--r)">'+fmt(g.total||0)+'</span></div>';
-      h+='</div></div>';
-    });
-    el.innerHTML=h;
-    // Activar toggles
-    el.querySelectorAll('.bal-toggle').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        var t=document.getElementById(btn.dataset.target);
-        if(t)t.style.display=t.style.display==='block'?'none':'block';
-      });
-    });
-  }catch(ex){el.innerHTML='<div class="empty">Error al cargar</div>';}
-}
 async function loadGFUltimo(){
   try{var r=await fetch(SU+'/rest/v1/gastos_fijos?select=*&cliente_id=eq.'+cli.id+'&order=anio.desc,mes.desc&limit=1',{headers:H()});var d=await r.json();
     if(d&&d.length>0){GFC.forEach(function(c,i){if(d[0][GFKEYS[i]])document.getElementById('gf-'+c).value=d[0][GFKEYS[i]];});calcGF();}}catch(ex){}
@@ -4848,7 +4806,7 @@ async function guardarGF(){
   try{
     await fetch(SU+'/rest/v1/gastos_fijos?mes=eq.'+mes+'&anio=eq.'+anio+'&cliente_id=eq.'+cli.id,{method:'DELETE',headers:H()});
     var r=await fetch(SU+'/rest/v1/gastos_fijos',{method:'POST',headers:HJ(),body:JSON.stringify(payload)});
-    if(r.ok){document.getElementById('gf-ok').style.display='block';btn.textContent='✓ Guardado';setTimeout(function(){document.getElementById('gf-otros-lista').innerHTML='';document.getElementById('gf-ot-total').textContent='$0';btn.disabled=false;btn.textContent='Guardar gastos del mes';document.getElementById('gf-ok').style.display='none';loadGFHistCel();},2500);}
+    if(r.ok){document.getElementById('gf-ok').style.display='block';btn.textContent='✓ Guardado';setTimeout(function(){document.getElementById('gf-otros-lista').innerHTML='';document.getElementById('gf-ot-total').textContent='$0';btn.disabled=false;btn.textContent='Guardar gastos del mes';document.getElementById('gf-ok').style.display='none';},2500);}
     else throw new Error(await r.text());
   }catch(ex){document.getElementById('gf-err').style.display='block';btn.disabled=false;btn.textContent='Guardar gastos del mes';}
 }
